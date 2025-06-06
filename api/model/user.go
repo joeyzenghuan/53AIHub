@@ -1,0 +1,441 @@
+package model
+
+import (
+	"errors"
+	"strconv"
+	"strings"
+	"time"
+
+	"github.com/53AI/53AIHub/common/utils/helper"
+	"github.com/53AI/53AIHub/common/utils/jwt"
+)
+
+type User struct {
+	UserID         int64           `json:"user_id" gorm:"primaryKey;autoIncrement"`
+	Username       string          `json:"username" gorm:"not null;index" binding:"required" example:"john_doe"`
+	Nickname       string          `json:"nickname" gorm:"not null" example:"John Doe"`
+	Avatar         string          `json:"avatar" gorm:"not null" example:"http://avatar.cc/a.jpg"`
+	Mobile         string          `json:"mobile" gorm:"size:20" example:"13800138000"`
+	Email          string          `json:"email" gorm:"size:100" example:"john@example.com"`
+	Eid            int64           `json:"eid" gorm:"not null;index" example:"123"`
+	Role           int64           `json:"role" gorm:"type:int;default:1;not null" example:"1"`
+	GroupId        int64           `json:"group_id" gorm:"type:int;default:0;not null" example:"0"`
+	Status         int             `json:"status" gorm:"type:int;default:1;not null;comment:'User status: 0-Not joined, 1-Joined, 2-Disabled'" example:"1"`
+	Password       string          `json:"-" gorm:"not null;default:''"`
+	Salt           string          `json:"-" gorm:"size:10;not null"`
+	ExpiredTime    int64           `json:"expired_time" gorm:"not null" example:"1672502400"`
+	LastLoginTime  int64           `json:"last_login_time" gorm:"not null" example:"1672502400"`
+	AccessToken    string          `json:"access_token" gorm:"type:varchar(512);column:access_token"`
+	RelatedId      int64           `json:"related_id" gorm:"type:int;default:0;not null" example:"0"`
+	Type           int             `json:"type" gorm:"type:int;default:1;not null;comment:'User type: 1-Registered user, 2-Internal user'" example:"1"`
+	AddAdminTime   int64           `json:"add_admin_time" gorm:"type:bigint;default:0;not null;comment:'Time when user was added as admin'" example:"1672502400"`
+	Departments    []Department    `json:"departments" gorm:"-"`
+	MemberBindings []MemberBinding `json:"memberbindings" gorm:"-"`
+	BaseModel
+}
+
+const (
+	RoleGuestUser   = 0
+	RoleCommonUser  = 1
+	RoleAdminUser   = 10
+	RoleCreatorUser = 10000
+	RoleRootUser    = 100000
+)
+
+// User status constants
+const (
+	UserStatusNotJoined = 0 // Not joined
+	UserStatusJoined    = 1 // Joined
+	UserStatusDisabled  = 2 // Disabled
+)
+
+// User type constants
+const (
+	UserTypeRegistered = 1 // Registered user
+	UserTypeInternal   = 2 // Internal user
+)
+
+func (user *User) Create() error {
+	var err error
+	if user.Eid == 0 {
+		return errors.New("eid is empty")
+	}
+	// check if username exists
+	var count int64
+	DB.Model(&User{}).Where("eid = ? AND username = ?", user.Eid, user.Username).Count(&count)
+	if count > 0 {
+		return errors.New("username already exists")
+	}
+
+	if user.Mobile != "" {
+		// check if mobile exists
+		DB.Model(&User{}).Where("eid =? AND mobile =?", user.Eid, user.Mobile).Count(&count)
+		if count > 0 {
+			return errors.New("mobile already exists")
+		}
+	}
+
+	if user.Email != "" {
+		// check if email exists
+		DB.Model(&User{}).Where("eid =? AND email =?", user.Eid, user.Email).Count(&count)
+		if count > 0 {
+			return errors.New("email already exists")
+		}
+	}
+
+	if user.Salt == "" {
+		user.Salt = helper.RandomString(6)
+	}
+	if user.Password != "" {
+		user.Password, err = helper.PasswordHash(user.Password, user.Salt)
+		if err != nil {
+			return err
+		}
+	} else {
+		return errors.New("password is empty")
+	}
+
+	result := DB.Create(user)
+	if result.Error != nil {
+		return result.Error
+	}
+
+	user.AccessToken, err = jwt.UserGenerateJWT(user.UserID, user.Eid)
+	if err != nil {
+		return err
+	}
+
+	err = DB.Model(user).Updates(user).Error
+
+	return err
+}
+
+func (user *User) Update(updatePassword bool) error {
+	updateMap := map[string]interface{}{
+		"nickname":     user.Nickname,
+		"avatar":       user.Avatar,
+		"mobile":       user.Mobile,
+		"email":        user.Email,
+		"group_id":     user.GroupId,
+		"expired_time": user.ExpiredTime,
+		"status":       user.Status,
+		"role":         user.Role,
+	}
+
+	if updatePassword && user.Password != "" {
+		var err error
+		user.Password, err = helper.PasswordHash(user.Password, user.Salt)
+		if err != nil {
+			return err
+		}
+
+		updateMap["password"] = user.Password
+	}
+
+	return DB.Model(user).Updates(updateMap).Error
+}
+
+func (user *User) Delete() error {
+	err := DB.Delete(user).Error
+	return err
+}
+
+func GetUserByID(userID int64) (*User, error) {
+	var user User
+	err := DB.First(&user, userID).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (user *User) LoginValidate(eid int64, username string, password string) error {
+	if username == "" || password == "" {
+		return errors.New("username or password is empty")
+	}
+
+	foundUser, err := GetUserByUserName(eid, username)
+	if err != nil {
+		return errors.New("user not found")
+	}
+	*user = *foundUser
+
+	password, err = helper.PasswordHash(password, user.Salt)
+	if err != nil {
+		return err
+	}
+	if user.Password != password {
+		return errors.New("username or password is incorrect")
+	}
+
+	return nil
+}
+
+func GetUserByUserName(eid int64, username string) (*User, error) {
+	var user User
+	err := DB.Where("eid = ? AND username = ?", eid, username).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+func (user *User) RefreshAccessToken() error {
+	var err error
+	user.AccessToken, err = jwt.UserGenerateJWT(user.UserID, user.Eid)
+	if err != nil {
+		return err
+	}
+	user.LastLoginTime = time.Now().UTC().UnixMilli()
+	err = DB.Model(user).Updates(user).Error
+	return err
+}
+
+func (user *User) UpdateStatusToJoin() error {
+	var err error
+	if user.Status == UserStatusNotJoined {
+		user.Status = UserStatusJoined
+		err = DB.Model(user).Updates(user).Error
+	}
+	return err
+}
+
+func ValidateAccessToken(token string) (user *User) {
+	if token == "" {
+		return nil
+	}
+	user = &User{}
+	if DB.Where("access_token = ?", token).First(user).RowsAffected == 1 {
+		return user
+	}
+	return nil
+}
+
+func GetUserList(eid int64, keyword string, group_id int64, offset int, limit int) (count int64, users []*User, err error) {
+	db := DB.Model(&User{}).Omit("password", "access_token").Where("eid = ?", eid)
+	if keyword != "" {
+		db = db.Where("username LIKE ? OR nickname LIKE ? OR mobile LIKE ? OR email LIKE ?",
+			keyword+"%", keyword+"%", keyword+"%", keyword+"%")
+	}
+
+	if group_id != 0 {
+		db = db.Where("group_id =?", group_id)
+	}
+
+	db.Count(&count)
+
+	err = db.Offset(offset).Limit(limit).Find(&users).Error
+
+	return count, users, err
+}
+
+func DeleteUser(eid int64, user_id int64) error {
+	var user User
+	if err := DB.Where("eid = ? AND user_id = ?", eid, user_id).First(&user).Error; err != nil {
+		return err
+	}
+
+	tx := DB.Begin()
+	if tx.Error != nil {
+		return tx.Error
+	}
+
+	if user.Type == UserTypeInternal {
+		if err := tx.Where("eid = ? AND mid = ? and `from` = ?", eid, user_id, MemberBindingSourceNone).Delete(&MemberBinding{}).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+
+		if err := tx.Where("eid = ? AND bid = ? and `from` = ?", eid, user_id, MemberDepartmentRelationFromBackend).Delete(&MemberDepartmentRelation{}).Error; err != nil {
+			tx.Rollback()
+			return err
+		}
+	}
+
+	if err := tx.Where("eid = ? AND user_id = ?", eid, user_id).Delete(&User{}).Error; err != nil {
+		tx.Rollback()
+		return err
+	}
+
+	return tx.Commit().Error
+}
+
+func UpdateUserPassword(eid int64, userID int64, newPassword string) error {
+	var user User
+	if err := DB.Where("user_id = ? AND eid = ?", userID, eid).First(&user).Error; err != nil {
+		return err
+	}
+
+	if user.Password != "" {
+		user.Password, _ = helper.PasswordHash(newPassword, user.Salt)
+	}
+
+	return DB.Model(&user).Update("password", user.Password).Error
+}
+
+func GetUserByEmail(eid int64, email string) (User, error) {
+	var user User
+	err := DB.Where("eid = ? AND email = ?", eid, email).First(&user).Error
+	return user, err
+}
+
+func GetUserByMobile(eid int64, mobile string) (User, error) {
+	var user User
+	err := DB.Where("eid = ? AND mobile = ?", eid, mobile).First(&user).Error
+	return user, err
+}
+
+func (user *User) VerifyPassword(password string) error {
+	hashedPassword, err := helper.PasswordHash(password, user.Salt)
+	if err != nil {
+		return err
+	}
+	if hashedPassword != user.Password {
+		return errors.New("username or password is incorrect")
+	}
+	return nil
+}
+
+// GetUserByRelatedId retrieves a user by related ID
+func GetUserByRelatedId(eid int64, relatedId int64) (*User, error) {
+	var user User
+	err := DB.Where("eid = ? AND related_id = ?", eid, relatedId).First(&user).Error
+	if err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+// GetUserListWithRoles retrieves user list with role filtering
+func GetUserListWithRoles(eid int64, keyword string, groupId int64, roleStr string, userType int64, offset, limit int) (int64, []*User, error) {
+	var users []*User
+	query := DB.Model(&User{}).Where("eid = ?", eid)
+
+	if userType != 0 {
+		query = query.Where("type =?", userType)
+	}
+
+	// Process keyword search
+	if keyword != "" {
+		query = query.Where("nickname LIKE ? OR mobile LIKE ? OR email LIKE ?", "%"+keyword+"%", "%"+keyword+"%", "%"+keyword+"%")
+	}
+
+	// Process user group filtering
+	if groupId > 0 {
+		query = query.Where("group_id = ?", groupId)
+	}
+
+	// Process role filtering
+	if roleStr != "" {
+		// Convert comma-separated role string to integer slice
+		roleStrs := strings.Split(roleStr, ",")
+		var roles []int
+		for _, r := range roleStrs {
+			if roleInt, err := strconv.Atoi(strings.TrimSpace(r)); err == nil {
+				roles = append(roles, roleInt)
+			}
+		}
+
+		if len(roles) > 0 {
+			query = query.Where("role IN ?", roles)
+		}
+	}
+
+	// Get total count
+	var count int64
+	if err := query.Count(&count).Error; err != nil {
+		return 0, nil, err
+	}
+
+	// Get paginated data
+	if err := query.Offset(offset).Limit(limit).Find(&users).Error; err != nil {
+		return 0, nil, err
+	}
+
+	return count, users, nil
+}
+
+// IsUserExistsByAccount checks if a user exists by account (email or mobile)
+func IsUserExistsByAccount(eid int64, account string) (bool, error) {
+	var count int64
+
+	// Check if the account is an email or mobile
+	isEmail := helper.IsValidEmail(account)
+	isMobile := helper.IsValidPhone(account)
+
+	query := DB.Model(&User{}).Where("eid = ?", eid)
+
+	if isEmail {
+		// Check by email
+		query = query.Where("email = ?", account)
+	} else if isMobile {
+		// Check by mobile
+		query = query.Where("mobile = ?", account)
+	} else {
+		// Check by username
+		query = query.Where("username = ?", account)
+	}
+
+	err := query.Count(&count).Error
+	if err != nil {
+		return false, err
+	}
+
+	return count > 0, nil
+}
+
+// LoadDepartments 加载用户关联的部门信息
+func (u *User) LoadDepartments() error {
+	var departments []Department
+	err := DB.Table("departments").
+		Joins("JOIN member_department_relations ON departments.did = member_department_relations.did").
+		Where("member_department_relations.bid = ? AND member_department_relations.eid = ? AND departments.eid = ?",
+			u.UserID, u.Eid, u.Eid).
+		Find(&departments).Error
+
+	if err == nil && len(departments) > 0 {
+		u.Departments = departments
+	}
+	return err
+}
+
+func (u *User) LoadMemberBindings() error {
+	var memberBindings []MemberBinding
+	err := DB.Where("mid = ? AND eid = ?", u.UserID, u.Eid).Find(&memberBindings).Error
+	if err == nil && len(memberBindings) > 0 {
+		u.MemberBindings = memberBindings
+	}
+	return err
+}
+
+func (u *User) LoadUserInfo() {
+	_ = u.LoadDepartments()
+	_ = u.LoadMemberBindings()
+}
+
+func (u *User) GetUserGroupIds() ([]int64, error) {
+	if u.Type == UserTypeRegistered {
+		return []int64{u.GroupId}, nil
+	} else if u.Type == UserTypeInternal {
+		var groupIDs, userGroupIds []int64
+		err := DB.Model(&ResourcePermission{}).Where("resource_type = ? AND resource_id = ?", ResourceTypeUser, u.UserID).Pluck("group_id", &userGroupIds).Error
+		if err != nil {
+			return nil, err
+		}
+
+		var dids []int64
+		err = DB.Model(&MemberDepartmentRelation{}).Where("eid = ? AND bid = ?", u.Eid, u.UserID).Pluck("did", &dids).Error
+		if err != nil {
+			return nil, err
+		}
+
+		departmentGroupIds, err := GetGroupIDsByDepartmentIDs(dids)
+		if err != nil {
+			return nil, err
+		}
+
+		groupIDs = append(userGroupIds, departmentGroupIds...)
+		return groupIDs, nil
+	}
+	return []int64{}, nil
+}

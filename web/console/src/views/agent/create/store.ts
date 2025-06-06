@@ -1,0 +1,364 @@
+import { defineStore } from 'pinia'
+import {
+  AGENT_APP_OPTIONS,
+  AGENT_TYPE_53AI_AGENT,
+  AGENT_TYPE_APP_BUILDER,
+  AGENT_TYPE_COZE_AGENT_CN,
+  AGENT_TYPE_DIFY_AGENT,
+  AGENT_TYPE_ICON_MAP,
+  AGENT_TYPE_PROMPT,
+  agentApi,
+} from '@/api/modules/agent'
+import { CHANNEL_TYPE_DEEP_SEEK, CHANNEL_TYPE_OPEN_AI, CHANNEL_TYPE_SILICON_FLOW, CHANNEL_TYPE_VALUE_MAP, channelApi } from '@/api/modules/channel'
+import { GROUP_TYPE_AGENT, GROUP_TYPE_USER, groupApi } from '@/api/modules/group'
+
+const DEFAULT_COMPLETION_PARAMS = {
+  temperature: 0.2,
+  top_p: 0.75,
+  presence_penalty: 0.5,
+  frequency_penalty: 0.5,
+}
+
+export const useAgentFormStore = defineStore('agent-form-store', {
+  state: (): {
+    saving: boolean
+    loading: boolean
+    agent_id: number
+    agent_type: string
+    form_data: Agent.FormData
+    agent_data: Record<string, any>
+    group_options: any[]
+    channel_options: any[]
+    subscription_options: any[]
+    model_options: any[]
+    coze_workspace_options: any[]
+    coze_bot_options: any[]
+    app_builder_bot_options: any[]
+  } => ({
+    saving: false,
+    loading: false,
+    agent_id: 0,
+    agent_type: 'prompt',
+    form_data: {
+      logo: '',
+      name: '',
+      group_id: 0,
+      description: '',
+      channel_type: 0,
+      model: '',
+      sort: 0,
+      prompt: '',
+      user_group_ids: [],
+      tools: [],
+      use_cases: [],
+      configs: {},
+      custom_config: {
+        agent_type: 'prompt',
+        coze_workspace_id: '',
+        coze_bot_id: '',
+        app_builder_bot_id: '',
+        channel_config: {},
+        file_parse: {
+          enable: false,
+        },
+        image_parse: {
+          enable: false,
+        },
+      },
+    },
+    agent_data: {},
+    group_options: [],
+    channel_options: [],
+    subscription_options: [],
+    model_options: [],
+    coze_workspace_options: [],
+    coze_bot_options: [],
+    app_builder_bot_options: [],
+  }),
+  getters: {
+    agent_option_data: (state) => {
+      let result = {}
+      AGENT_APP_OPTIONS.forEach((item) => {
+        const data = item.children.find(row => row.value == state.agent_type)
+        if (data)
+          result = JSON.parse(JSON.stringify(data))
+      })
+      return result
+    },
+    support_file: (state) => {
+      return state.agent_type !== AGENT_TYPE_PROMPT
+    },
+    support_image: (state) => {
+      if (state.agent_type !== AGENT_TYPE_PROMPT)
+        return true
+
+      return state.model_options
+        .find((item: { model_options: Array<{ value: string }> }) =>
+          item.model_options.some((row: { value: string }) => row.value === state.form_data.model))
+        ?.model_options.find((item: { value: string; vision?: boolean }) => item.value === state.form_data.model)
+        ?.vision || false
+    },
+  },
+  actions: {
+    async loadDetailData() {
+      if (!this.agent_id)
+        return Promise.resolve()
+
+      this.loading = true
+      try {
+        this.agent_data = await agentApi.detail({ data: { agent_id: this.agent_id } })
+
+        this.updateFormData()
+      }
+      finally {
+        this.loading = false
+      }
+    },
+
+    updateFormData() {
+      this.agent_type = this.agent_data.agent_type || this.agent_type || ''
+
+      Object.assign(this.form_data, {
+        logo: this.agent_data.logo || this.agent_option_data?.icon || '',
+        name: this.agent_data.name || '',
+        group_id: +this.agent_data.group_id || 0,
+        description: this.agent_data.description || '',
+        channel_type: +this.agent_data.channel_type || 0,
+        model: this.agent_data.model || '',
+        sort: +this.agent_data.sort || 0,
+        prompt: this.agent_data.prompt || '',
+        user_group_ids: this.agent_data.user_group_ids || [],
+        tools: this.agent_data.tools || [],
+        use_cases: this.agent_data.use_cases || [],
+        configs: this.agent_data.configs && Object.keys(this.agent_data.configs).length > 0
+          ? this.agent_data.configs
+          : { completion_params: DEFAULT_COMPLETION_PARAMS },
+        enable: !!+this.agent_data.enable || false,
+        custom_config: {
+          agent_type: this.agent_type,
+          coze_workspace_id: '',
+          coze_bot_id: '',
+          app_builder_bot_id: '',
+          channel_config: {},
+          file_parse: {
+            enable: false,
+          },
+          image_parse: {
+            enable: false,
+          },
+          ...(this.agent_data.custom_config || {}),
+        },
+      })
+
+      if (this.agent_type === AGENT_TYPE_PROMPT)
+        this.form_data.model = `${this.agent_data.channel_type}_${this.agent_data.model}` || ''
+    },
+
+    async loadGroupOptions() {
+      const list = await groupApi.list({ params: { group_type: GROUP_TYPE_AGENT } })
+      this.group_options = (list || []).map((item) => {
+        item.value = +item.group_id || 0
+        item.label = item.group_name || ''
+        return item
+      })
+      // if (this.group_options.length && !this.group_options.find(item => item.value === this.form_data.group_id))
+      // 	this.form_data.group_id = this.group_options[0].value
+      if (this.group_options.length && !this.form_data.group_id)
+        this.form_data.group_id = this.group_options[0].value
+      if (!this.group_options.find(item => item.value === this.form_data.group_id))
+        this.form_data.group_id = ''
+    },
+
+    async loadChannelOptions() {
+      const list = await channelApi.list()
+      this.channel_options = (list || []).filter((item = {}) => [CHANNEL_TYPE_SILICON_FLOW, CHANNEL_TYPE_OPEN_AI, CHANNEL_TYPE_DEEP_SEEK].includes(item.type))
+      const all_model_options = []
+      this.model_options = this.channel_options.map((item = {}) => {
+        item.value = String(item.channel_type || item.channel_id || '')
+        item.icon = window.$getRealPath({ url: `/images/platform/${item.icon}.png` })
+        item.options = (item.model_options || []).map((row = {}) => {
+          row.value = `${item.value}_${row.value}`
+          row.icon = window.$getRealPath({ url: `/images/platform/${row.icon}.png` })
+          return row
+        })
+        all_model_options.push(...item.options)
+        return item
+      })
+      // if (all_model_options.length && !all_model_options.find(item => item.value === this.form_data.model)) this.form_data.model = all_model_options[0].value
+      if (all_model_options.length && !this.form_data.model)
+        this.form_data.model = all_model_options[0].value
+      if ([AGENT_TYPE_PROMPT].includes(this.agent_type) && !all_model_options.find(item => item.value === this.form_data.model))
+        this.form_data.model = ''
+      const channel_data = this.channel_options.find(item => item.channel_type == CHANNEL_TYPE_VALUE_MAP.get(this.agent_type))
+      switch (this.agent_type) {
+        case AGENT_TYPE_DIFY_AGENT:
+        case AGENT_TYPE_53AI_AGENT:
+          if (channel_data && channel_data.models && channel_data.models[0])
+            this.form_data.model = channel_data.models[0]
+          break
+        default:
+          break
+      }
+    },
+
+    async loadSubscriptionOptions() {
+      const list = await groupApi.list({ params: { group_type: GROUP_TYPE_USER } })
+      this.subscription_options = (list || []).map((item) => {
+        item.value = +item.group_id || 0
+        item.label = item.group_name || ''
+        return item
+      })
+      if (!this.agent_id && this.subscription_options.length && !this.form_data.user_group_ids.length)
+			  this.form_data.user_group_ids = this.subscription_options.map(item => item.value)
+    },
+
+    async loadCozeWorkspaceOptions() {
+      const list = await channelApi.cozeWorkspaceList()
+      this.coze_workspace_options = (list || []).map((item) => {
+        item.value = item.id || 0
+        item.label = item.name || ''
+        item.icon = item.icon_url || ''
+        return item
+      })
+      if (this.coze_workspace_options.length && !this.form_data.custom_config.coze_workspace_id)
+        this.form_data.custom_config.coze_workspace_id = this.coze_workspace_options[0].value
+      if (!this.coze_workspace_options.find(item => item.value === this.form_data.custom_config.coze_workspace_id))
+        this.form_data.custom_config.coze_workspace_id = ''
+    },
+
+    async loadCozeBotOptions(workspace_id: string) {
+      if (!workspace_id)
+        return
+
+      const list = await channelApi.cozeBotList({ params: { workspace_id } })
+      this.coze_bot_options = (list || []).map((item) => {
+        item.value = item.bot_id || 0
+        item.label = item.bot_name || ''
+        item.icon = item.icon_url || ''
+        return item
+      })
+      if (this.coze_bot_options.length && !this.form_data.custom_config.coze_bot_id)
+        this.form_data.custom_config.coze_bot_id = this.coze_bot_options[0].value
+      if (!this.coze_bot_options.find(item => item.value === this.form_data.custom_config.coze_bot_id))
+        this.form_data.custom_config.coze_bot_id = ''
+    },
+
+    async loadAppBuilderBotOptions() {
+      const list = await channelApi.appBuilderBotList()
+      this.app_builder_bot_options = (list || []).map((item) => {
+        item.value = item.id || 0
+        if (item.value)
+          item.value = `bot-${item.value}`
+        item.label = item.name || ''
+        item.icon = item.icon || AGENT_TYPE_ICON_MAP.get(AGENT_TYPE_APP_BUILDER) || ''
+        return item
+      })
+      if (this.app_builder_bot_options.length && !this.form_data.custom_config.app_builder_bot_id)
+        this.form_data.custom_config.app_builder_bot_id = this.app_builder_bot_options[0].value
+      if (!this.app_builder_bot_options.find(item => item.value === this.form_data.custom_config.app_builder_bot_id))
+        this.form_data.custom_config.app_builder_bot_id = ''
+    },
+    resetState() {
+      this.saving = false
+      this.loading = false
+      this.agent_id = 0
+      this.agent_type = 'prompt'
+      this.form_data = {
+        logo: '',
+        name: '',
+        group_id: 0,
+        description: '',
+        channel_type: 0,
+        model: '',
+        sort: 0,
+        prompt: '',
+        user_group_ids: [],
+        tools: [],
+        use_cases: [],
+        configs: { completion_params: DEFAULT_COMPLETION_PARAMS },
+        custom_config: {
+          agent_type: 'prompt',
+          coze_workspace_id: '',
+          coze_bot_id: '',
+          app_builder_bot_id: '',
+          channel_config: {},
+          file_parse: {
+            enable: false,
+          },
+          image_parse: {
+            enable: false,
+          },
+        },
+      }
+      this.agent_data = {}
+      this.group_options = []
+      this.channel_options = []
+      this.subscription_options = []
+      this.model_options = []
+      this.coze_workspace_options = []
+      this.coze_bot_options = []
+      this.app_builder_bot_options = []
+    },
+
+    async saveAgentData({ hideToast = false } = {}) {
+      const {
+        logo = '',
+        name = '',
+        group_id = 0,
+        description = '',
+        model = '',
+        channel_type = 0,
+        prompt = '',
+        user_group_ids = [],
+        use_cases = [],
+        tools = [],
+        sort = 0,
+        configs = {},
+        enable,
+        custom_config = {},
+      } = this.form_data
+
+      const data = {
+        agent_id: this.agent_id || 0,
+        channel_type,
+        model,
+        logo,
+        name,
+        group_id: +group_id || 0,
+        description,
+        sort,
+        prompt,
+        user_group_ids,
+        use_cases,
+        tools,
+        configs,
+        enable,
+        custom_config,
+      }
+      if (!channel_type)
+        data.channel_type = CHANNEL_TYPE_VALUE_MAP.get((this.agent_type)) || 0
+
+      switch (this.agent_type) {
+        case AGENT_TYPE_PROMPT:
+          data.channel_type = +model.split('_')[0] || 0
+          data.model = model.split('_')[1] || ''
+          break
+        case AGENT_TYPE_COZE_AGENT_CN:
+          data.model = custom_config.coze_bot_id || ''
+          break
+        case AGENT_TYPE_APP_BUILDER:
+          data.model = custom_config.app_builder_bot_id || ''
+          break
+      }
+      this.saving = true
+      const result_data = await agentApi.save({ data }).finally(() => {
+        this.saving = false
+      })
+      if (!hideToast)
+        ElMessage.success(window.$t('action_save_success'))
+      this.agent_data = result_data
+      this.agent_id = result_data.agent_id
+      return this.agent_data
+    },
+  },
+})

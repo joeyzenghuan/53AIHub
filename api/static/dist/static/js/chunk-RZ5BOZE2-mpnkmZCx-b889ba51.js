@@ -1,0 +1,20 @@
+import { _ as n, d as x, l as g } from "./mermaid-j5R1o_wi-7b9be563.js";
+import { L as a } from "./helper-7WMIPux3-736d9956.js";
+var $ = n((t, i) => {
+  let o;
+  return i === "sandbox" && (o = a("#i" + t)), (i === "sandbox" ? a(o.nodes()[0].contentDocument.body) : a("body")).select(`[id="${t}"]`);
+}, "getDiagramElement"), b = n((t, i, o, e) => {
+  t.attr("class", o);
+  const { width: d, height: r, x: h, y: c } = l(t, i);
+  x(t, r, d, e);
+  const s = m(h, c, d, r, i);
+  t.attr("viewBox", s), g.debug(`viewBox configured: ${s} with padding: ${i}`);
+}, "setupViewPortForSVG"), l = n((t, i) => {
+  var o;
+  const e = ((o = t.node()) == null ? void 0 : o.getBBox()) || { width: 0, height: 0, x: 0, y: 0 };
+  return { width: e.width + i * 2, height: e.height + i * 2, x: e.x, y: e.y };
+}, "calculateDimensionsWithPadding"), m = n((t, i, o, e, d) => `${t - d} ${i - d} ${o} ${e}`, "createViewBox");
+export {
+  b as B,
+  $ as b
+};

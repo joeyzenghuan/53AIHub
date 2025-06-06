@@ -1,0 +1,63 @@
+/**
+ * 表单验证规则
+ */
+export const getPasswordRules = () => {
+  return {
+    validator: (rule: any, value: string) => {
+      if (value.length < 8 || value.length > 20) {
+        return Promise.reject(window.$t('form.password_length'))
+      }
+      return Promise.resolve()
+    },
+    trigger: 'blur'
+  }
+}
+
+export const getMobileRules = () => {
+  return {
+    validator: (rule: any, value: string) => {
+      // 手机号正则（中国大陆手机号）
+      const phoneRegex = /^1[3-9]\d{9}$/
+
+      if (!phoneRegex.test(value)) {
+        return Promise.reject(window.$t('form.mobile_format'))
+      }
+      return Promise.resolve()
+    },
+    trigger: 'blur'
+  }
+}
+
+export const getEmailRules = () => {
+  return {
+    validator: (rule: any, value: string) => {
+      if (!value) {
+        return Promise.resolve()
+      }
+      // 邮箱正则
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+      if (!emailRegex.test(value)) {
+        return Promise.reject(window.$t('form.email_format'))
+      }
+      return Promise.resolve()
+    },
+    trigger: 'blur'
+  }
+}
+
+export const getAccountRules = () => {
+  return {
+    validator: (rule: any, value: string) => {
+      value = value.trim()
+      if (value.length < 5 || value.length > 20) {
+        return Promise.reject(window.$t('form.username_length'))
+      }
+      const reg = /^[a-zA-Z0-9_]+$/
+      if (!reg.test(value)) {
+        return Promise.reject(window.$t('form.account_format'))
+      }
+      return Promise.resolve()
+    },
+    trigger: 'blur'
+  }
+}

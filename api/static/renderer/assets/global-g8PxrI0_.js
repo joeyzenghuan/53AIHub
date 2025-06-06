@@ -1,0 +1,1 @@
+import{p as i}from"./main-B8r1lKmx.js";const l=i("global",{state:()=>({siderVisible:!0,siderCollapsed:!1}),getters:{},actions:{toggleSider(){this.siderVisible=!this.siderVisible,this.siderVisible&&(this.siderCollapsed=!1)},hoverSider(e){this.siderVisible||(this.siderCollapsed=e)}}});export{l as u};

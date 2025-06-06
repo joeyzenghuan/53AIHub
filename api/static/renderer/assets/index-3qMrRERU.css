@@ -1,0 +1,22 @@
+
+.sidebar-transition[data-v-527e9881] {
+  transition: width 0.3s ease-in-out;
+}
+.list-move[data-v-527e9881],
+.list-enter-active[data-v-527e9881],
+.list-leave-active[data-v-527e9881] {
+  transition: all 0.3s ease;
+}
+.list-enter-from[data-v-527e9881],
+.list-leave-to[data-v-527e9881] {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+.fade-enter-active[data-v-527e9881],
+.fade-leave-active[data-v-527e9881] {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from[data-v-527e9881],
+.fade-leave-to[data-v-527e9881] {
+  opacity: 0;
+}

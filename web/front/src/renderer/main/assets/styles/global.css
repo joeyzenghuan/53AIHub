@@ -1,0 +1,73 @@
+/* 针对WebKit内核浏览器（Chrome, Safari等） */
+body {
+  padding-bottom: constant(safe-area-inset-bottom);
+  padding-bottom: env(safe-area-inset-bottom);
+  font-family: -apple-system-font, BlinkMacSystemFont, 'Helvetica Neue', 'PingFang SC',
+    'Hiragino Sans GB', 'Microsoft YaHei UI', 'Microsoft YaHei', Arial, sans-serif;
+}
+
+::-webkit-scrollbar {
+  width: 5px;
+  height: 5px;
+  background: transparent;
+  /* 设置滚动条背景透明 */
+}
+
+::-webkit-scrollbar-thumb {
+  background: transparent;
+  /* 滑块透明 */
+}
+
+:hover::-webkit-scrollbar-thumb {
+  cursor: pointer;
+  border-radius: 4px;
+  background-color: rgba(0, 0, 0, 0.25);
+}
+
+.cursor-blink {
+  animation: cursor-blink 0.8s infinite;
+  border-right: 1px solid #333;
+  margin-left: 4px;
+}
+
+@keyframes cursor-blink {
+  0%,
+  100% {
+    border-color: transparent;
+  }
+
+  50% {
+    border-color: #333;
+  }
+}
+
+.index-tabs .el-tabs__header {
+  margin-bottom: 0;
+}
+
+.index-tabs .el-tabs__nav-prev,
+.index-tabs .el-tabs__nav-next {
+  line-height: 38px;
+}
+
+.index-tabs .el-tabs__nav-wrap:after {
+  display: none;
+}
+
+.index-tabs .el-tabs__item {
+  height: 36px;
+  padding: 0 14px !important;
+  border-radius: 6px;
+  line-height: 36px;
+  text-align: center;
+  font-size: 16px;
+}
+
+.index-tabs .el-tabs__item.is-active {
+  color: white;
+  background-color: var(--el-color-primary);
+}
+
+.index-tabs .el-tabs__active-bar {
+  display: none;
+}

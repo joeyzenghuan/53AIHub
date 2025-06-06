@@ -1,0 +1,22 @@
+
+.sidebar-transition[data-v-68a6346c] {
+  transition: width 0.3s ease-in-out;
+}
+.list-move[data-v-68a6346c],
+.list-enter-active[data-v-68a6346c],
+.list-leave-active[data-v-68a6346c] {
+  transition: all 0.3s ease;
+}
+.list-enter-from[data-v-68a6346c],
+.list-leave-to[data-v-68a6346c] {
+  opacity: 0;
+  transform: translateY(-10px);
+}
+.fade-enter-active[data-v-68a6346c],
+.fade-leave-active[data-v-68a6346c] {
+  transition: opacity 0.3s ease;
+}
+.fade-enter-from[data-v-68a6346c],
+.fade-leave-to[data-v-68a6346c] {
+  opacity: 0;
+}

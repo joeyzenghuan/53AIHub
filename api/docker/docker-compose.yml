@@ -1,0 +1,39 @@
+version: '3.8'
+
+services:
+  53aihub:
+    build: ..
+    ports:
+      - "3000:3000"
+    environment:
+      - REDIS_HOST=redis
+      - MYSQL_HOST=mysql
+    depends_on:
+      - redis
+      - mysql
+    restart: unless-stopped
+
+  redis:
+    image: redis:6-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    restart: unless-stopped
+
+  mysql:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: rootpassword
+      MYSQL_DATABASE: 53ai_hub
+      MYSQL_USER: agent
+      MYSQL_PASSWORD: agentpassword
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+    restart: unless-stopped
+
+volumes:
+  redis_data:
+  mysql_data:

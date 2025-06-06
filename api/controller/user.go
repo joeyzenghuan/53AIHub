@@ -1,0 +1,1208 @@
+package controller
+
+import (
+	"encoding/json"
+	"fmt"
+	"net/http"
+	"strconv"
+	"time"
+
+	"github.com/53AI/53AIHub/common"
+	"github.com/53AI/53AIHub/common/session"
+	"github.com/53AI/53AIHub/common/utils/helper"
+	"github.com/53AI/53AIHub/config"
+	"github.com/53AI/53AIHub/model"
+	"github.com/53AI/53AIHub/service"
+
+	"github.com/gin-gonic/gin"
+)
+
+type LoginRequest struct {
+	Username string `json:"username" example:"john_doe" binding:"required,min=1"`
+	Password string `json:"password" example:"password123" binding:"required,min=1"`
+}
+
+type LoginResponse struct {
+	AccessToken string `json:"access_token"`
+	UserID      int64  `json:"user_id"`
+}
+
+type PasswordRegisterUserRequest struct {
+	Username   string `json:"username" example:"john_doe"`
+	Nickname   string `json:"nickname" example:"John Doe"`
+	Password   string `json:"password" validate:"min=8,max=20" example:"password123"`
+	VerifyCode string `json:"verify_code" example:"123456"` // Add verification code field
+}
+
+type EnterpriseAddUserRequest struct {
+	Username    string `json:"username" example:"Json"`
+	Nickname    string `json:"nickname" example:"Json Jobs"`
+	Avatar      string `json:"avatar" example:"http://avatar.cc/a.jpg"`
+	Password    string `json:"password" validate:"min=8,max=20" example:"password123"`
+	Mobile      string `json:"mobile" example:"13800138000"`
+	GroupId     int64  `json:"group_id" example:"1"`
+	ExpiredTime int64  `json:"expired_time" example:"1672502400"`
+}
+
+// Modify EnterpriseUserGetRequest struct, add Role field
+type EnterpriseUserGetRequest struct {
+	Keyword string `json:"keyword" form:"keyword" example:"Json"`
+	GroupId int64  `json:"group_id" form:"group_id" example:"0"`
+	Role    string `json:"role" form:"role" example:"1,2"` // Role parameter, allows multiple role values separated by commas
+	Offset  int    `json:"offset" form:"offset" example:"0"`
+	Limit   int    `json:"limit" form:"limit" example:"10"`
+}
+
+type EnterpriseUsersResponse struct {
+	Count int64         `json:"count"`
+	Users []*model.User `json:"users"`
+}
+
+// Register User Login
+// @Summary User Login
+// @Description User Login
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param user body LoginRequest true "User Login Request Data"
+// @Success 200 {object} model.CommonResponse{data=LoginResponse} "Success"
+// @Router /api/login [post]
+func Login(c *gin.Context) {
+	var loginRequest LoginRequest
+	err := json.NewDecoder(c.Request.Body).Decode(&loginRequest)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(nil))
+		return
+	}
+
+	username := loginRequest.Username
+	password := loginRequest.Password
+	eid := config.GetEID(c)
+
+	isEmail := helper.IsValidEmail(username)
+	isMobile := helper.IsValidPhone(username)
+
+	var user model.User
+	if isEmail {
+		user, err = model.GetUserByEmail(eid, username)
+	} else if isMobile {
+		user, err = model.GetUserByMobile(eid, username)
+	} else {
+	}
+
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, model.UnauthorizedError.ToResponse(err))
+		return
+	}
+
+	err = user.VerifyPassword(password)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, model.UnauthorizedError.ToResponse(err))
+		return
+	}
+
+	err = user.RefreshAccessToken()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.SystemError.ToResponse(err))
+		return
+	}
+
+	err = user.UpdateStatusToJoin()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.SystemError.ToResponse(err))
+	}
+
+	LoginResponse := LoginResponse{
+		AccessToken: user.AccessToken,
+		UserID:      user.UserID,
+	}
+	c.JSON(http.StatusOK, model.Success.ToResponse(LoginResponse))
+}
+
+// Register User Register
+// @Summary User Register
+// @Description User Register
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param user body PasswordRegisterUserRequest true "User Registration Data"
+// @Success 200 {object} model.CommonResponse{data=LoginResponse} "Success"
+// @Router /api/register [post]
+func PasswordRegister(c *gin.Context) {
+	// Parse the request body into PasswordRegisterUserRequest struct
+	var userRequest PasswordRegisterUserRequest
+	err := json.NewDecoder(c.Request.Body).Decode(&userRequest)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	username := userRequest.Username
+
+	isEmail := helper.IsValidEmail(username)
+	isMobile := helper.IsValidPhone(username)
+
+	if isMobile && config.IS_SAAS {
+		if userRequest.VerifyCode == "" {
+			c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Verification code is required for mobile registration"))
+			return
+		}
+
+		redisKey := fmt.Sprintf("Api::CheckVerificationCode:%s", username)
+		code, err := common.RedisGet(redisKey)
+		if err != nil || code != userRequest.VerifyCode {
+			c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Invalid or expired verification code"))
+			return
+		}
+	} else if !isEmail && config.IS_SAAS {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Invalid account format, please enter a valid mobile number or email"))
+		return
+	}
+
+	eid := config.GetEID(c)
+
+	// Get the first user group for this enterprise
+	theGroup, err := model.GetFirstGroupByEid(eid, model.USER_GROUP_TYPE)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	user := model.User{
+		Username: userRequest.Username,
+		Nickname: userRequest.Nickname,
+		Password: userRequest.Password,
+		Eid:      eid,
+		GroupId:  theGroup.GroupId, // Assign the group ID from the enterprise's first user group
+	}
+
+	if isMobile {
+		user.Mobile = userRequest.Username
+	}
+
+	if isEmail {
+		user.Email = userRequest.Username
+	}
+
+	if err := common.Validate.Struct(&user); err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToErrorResponse(err))
+		return
+	}
+
+	err = user.Create()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.ParamError.ToErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(LoginResponse{
+		AccessToken: user.AccessToken,
+		UserID:      user.UserID,
+	}))
+}
+
+// Enterprise Admin add User
+// @Summary Add User
+// @Description Add User
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param user body EnterpriseAddUserRequest true "User Data"
+// @Success 200 {object} model.CommonResponse{data=model.User} "Success"
+// @Router /api/users [post]
+func EnterpriseAddUser(c *gin.Context) {
+	var userRequest EnterpriseAddUserRequest
+	err := json.NewDecoder(c.Request.Body).Decode(&userRequest)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	user := model.User{
+		Username:    userRequest.Username,
+		Nickname:    userRequest.Nickname,
+		Avatar:      userRequest.Avatar,
+		Password:    userRequest.Password,
+		Mobile:      userRequest.Mobile,
+		GroupId:     userRequest.GroupId,
+		ExpiredTime: userRequest.ExpiredTime,
+		Eid:         config.GetEID(c),
+		Role:        model.RoleGuestUser,
+	}
+
+	if err := common.Validate.Struct(&user); err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToErrorResponse(err))
+		return
+	}
+
+	err = user.Create()
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.ParamError.ToErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(user))
+}
+
+// Enterprise Admin get User List
+// @Summary Get User List
+// @Description Get User List
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param keyword query string false "Keyword"
+// @Param group_id query int false "Group ID"
+// @Param role query string false "Role IDs, comma separated"
+// @Param offset query int false "Offset"
+// @Param limit query int false "Limit"
+// @Success 200 {object} model.CommonResponse{data=EnterpriseUsersResponse} "Success"
+// @Router /api/users [get]
+// @Router /api/users/admin [get]
+func EnterpriseUsers(c *gin.Context) {
+	var userGetRequest EnterpriseUserGetRequest
+	if err := c.ShouldBindQuery(&userGetRequest); err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	roleStr := userGetRequest.Role
+
+	var userType int64
+	userType = model.UserTypeRegistered
+
+	path := c.Request.URL.Path
+	isAdminPath := path == "/api/users/admin"
+
+	if isAdminPath {
+		userType = 0
+		roleStr = fmt.Sprintf("%d,%d", model.RoleCreatorUser, model.RoleAdminUser)
+	}
+
+	offset := userGetRequest.Offset
+	if offset == 0 {
+		offset = 0
+	}
+
+	limit := userGetRequest.Limit
+	if limit == 0 {
+		limit = 10
+	}
+
+	eid := config.GetEID(c)
+	count, users, err := model.GetUserListWithRoles(eid, userGetRequest.Keyword, userGetRequest.GroupId, roleStr, userType, offset, limit)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(EnterpriseUsersResponse{
+		Count: count,
+		Users: users,
+	}))
+}
+
+// Enterprise Admin delete User
+// @Summary Delete User
+// @Description Delete User
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "User ID"
+// @Success 200 {object} model.CommonResponse "Success"
+// @Router /api/users/{id} [delete]
+func DeleteEnterpriseUser(c *gin.Context) {
+	user_id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(nil))
+		return
+	}
+
+	eid := config.GetEID(c)
+	err = model.DeleteUser(eid, int64(user_id))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(nil))
+}
+
+// Enterprise Admin update User
+// @Summary Update User
+// @Description Update User
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "User ID"
+// @Param user body EnterpriseAddUserRequest true "User Data"
+// @Success 200 {object} model.CommonResponse "Success"
+// @Router /api/users/{id} [put]
+func UpdateEnterpriseUser(c *gin.Context) {
+	user_id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(nil))
+		return
+	}
+	var userRequest EnterpriseAddUserRequest
+	err = json.NewDecoder(c.Request.Body).Decode(&userRequest)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	user, err := model.GetUserByID(int64(user_id))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.NotFound.ToResponse(err))
+		return
+	}
+
+	user.Nickname = userRequest.Nickname
+	user.Avatar = userRequest.Avatar
+	updatePassword := false
+	if userRequest.Password != "" {
+		user.Password = userRequest.Password
+		updatePassword = true
+	}
+	// user.Mobile = userRequest.Mobile
+	user.GroupId = userRequest.GroupId
+	user.ExpiredTime = userRequest.ExpiredTime
+
+	err = user.Update(updatePassword)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.ParamError.ToErrorResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(user))
+}
+
+// GetCurrentUserResponse defines the response structure for current user data
+type GetCurrentUserResponse struct {
+	*model.User
+}
+
+// Get Current User
+// @Summary Get current user info
+// @Description Get information of the currently logged-in user
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} model.CommonResponse{data=GetCurrentUserResponse} "Success"
+// @Router /api/users/me [get]
+func GetCurrentUser(c *gin.Context) {
+	// Retrieve user ID from context (assuming set by auth middleware)
+	userID, success := c.Get(session.SESSION_USER_ID)
+	if !success {
+		c.JSON(http.StatusUnauthorized, model.UnauthorizedError.ToResponse(nil))
+		return
+	}
+
+	// Type assertion for user ID
+	uid, ok := userID.(int64)
+	if !ok {
+		c.JSON(http.StatusUnauthorized, model.UnauthorizedError.ToResponse(nil))
+		return
+	}
+
+	// Query database for user
+	user, err := model.GetUserByID(uid)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(GetCurrentUserResponse{
+		User: user,
+	}))
+}
+
+type UpdatePasswordRequest struct {
+	NewPassword     string `json:"new_password" binding:"required,min=8,max=20" example:"newPassword123"`
+	ConfirmPassword string `json:"confirm_password" binding:"required,min=8,max=20" example:"newPassword123"`
+}
+
+// @Summary Update user password
+// @Description Update the password for the current logged-in user
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body UpdatePasswordRequest true "Password update data"
+// @Success 200 {object} model.CommonResponse "Success"
+// @Router /api/users/password [put]
+func UpdateUserPassword(c *gin.Context) {
+	var req UpdatePasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	if req.NewPassword != req.ConfirmPassword {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("New password and confirm password do not match"))
+		return
+	}
+
+	userID := config.GetUserId(c)
+	if userID == 0 {
+		c.JSON(http.StatusUnauthorized, model.UnauthorizedError.ToResponse(nil))
+		return
+	}
+
+	eid := config.GetEID(c)
+
+	err := model.UpdateUserPassword(eid, userID, req.NewPassword)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(nil))
+}
+
+type UpdateCurrentUserRequest struct {
+	Nickname string `json:"nickname" example:"new nickname"`
+	Avatar   string `json:"avatar" example:"http://example.com/avatar.jpg"`
+}
+
+// @Summary Update current user information
+// @Description Update information for the currently logged-in user
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body UpdateCurrentUserRequest true "User information to update"
+// @Success 200 {object} model.CommonResponse{data=model.User} "Success"
+// @Router /api/users/me [put]
+func UpdateCurrentUser(c *gin.Context) {
+	var req UpdateCurrentUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	userID := config.GetUserId(c)
+	if userID == 0 {
+		c.JSON(http.StatusUnauthorized, model.UnauthorizedError.ToResponse(nil))
+		return
+	}
+
+	user, err := model.GetUserByID(int64(userID))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	if req.Nickname != "" {
+		user.Nickname = req.Nickname
+	}
+
+	if req.Avatar != "" {
+		user.Avatar = req.Avatar
+	}
+
+	if err := model.DB.Save(user).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(user))
+}
+
+// CheckAccountRequest defines the structure for account existence check request
+type CheckAccountRequest struct {
+	Account string `json:"account" binding:"required" example:"user@example.com"`
+}
+
+// CheckAccountResponse defines the structure for account existence check response
+type CheckAccountResponse struct {
+	Exists bool `json:"exists"`
+}
+
+// CheckAccountExists checks if an account exists in the system
+// @Summary Check if account exists
+// @Description Check if the specified account already exists in the system
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param request body CheckAccountRequest true "Account information"
+// @Success 200 {object} model.CommonResponse{data=CheckAccountResponse}
+// @Failure 400 {object} model.CommonResponse "Parameter error"
+// @Failure 500 {object} model.CommonResponse "System error"
+// @Router /api/check_account [post]
+func CheckAccountExists(c *gin.Context) {
+	var req CheckAccountRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	// Get current enterprise ID
+	eid := config.GetEID(c)
+	if eid <= 0 {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(nil))
+		return
+	}
+
+	// Check if account exists
+	exists, err := model.IsUserExistsByAccount(eid, req.Account)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(CheckAccountResponse{
+		Exists: exists,
+	}))
+}
+
+// BatchSetAdminRequest defines the structure for batch admin setting request
+type BatchSetAdminRequest struct {
+	UserIDs []int64 `json:"user_ids" binding:"required" example:"1,2,3"`
+}
+
+// BatchSetAdminResponse defines the structure for batch admin setting response
+type BatchSetAdminResponse struct {
+	Success []int64 `json:"success"` // List of successfully processed user IDs
+	Failed  []int64 `json:"failed"`  // List of failed user IDs
+}
+
+// SetUserAsAdmin sets users as administrators (batch operation)
+// @Summary Set users as admin
+// @Description Set multiple users as administrators for the current enterprise
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body BatchSetAdminRequest true "Batch user ID list"
+// @Success 200 {object} model.CommonResponse{data=BatchSetAdminResponse} "Success"
+// @Failure 400 {object} model.CommonResponse "Parameter error"
+// @Failure 401 {object} model.CommonResponse "Unauthorized"
+// @Failure 403 {object} model.CommonResponse "Forbidden"
+// @Failure 500 {object} model.CommonResponse "System error"
+// @Router /api/users/batch/admin [put]
+func SetUserAsAdmin(c *gin.Context) {
+	eid := config.GetEID(c)
+	if eid <= 0 {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Invalid enterprise ID"))
+		return
+	}
+
+	var batchRequest BatchSetAdminRequest
+	if err := c.ShouldBindJSON(&batchRequest); err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	userIDs := batchRequest.UserIDs
+
+	tx := model.DB.Begin()
+	if tx.Error != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(tx.Error))
+		return
+	}
+
+	response := BatchSetAdminResponse{
+		Success: []int64{},
+		Failed:  []int64{},
+	}
+
+	for _, userID := range userIDs {
+		user, err := model.GetUserByID(userID)
+		if err != nil {
+			response.Failed = append(response.Failed, userID)
+			continue
+		}
+
+		if user.Eid != eid {
+			response.Failed = append(response.Failed, userID)
+			continue
+		}
+
+		if user.Role == model.RoleAdminUser {
+			response.Success = append(response.Success, userID)
+			continue
+		}
+
+		updateMap := map[string]interface{}{
+			"role":           model.RoleAdminUser,
+			"add_admin_time": time.Now().UTC().UnixMilli(),
+		}
+
+		err = tx.Model(user).Where("user_id = ?", userID).Updates(updateMap).Error
+		if err != nil {
+			response.Failed = append(response.Failed, userID)
+			continue
+		}
+
+		response.Success = append(response.Success, userID)
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(response))
+}
+
+// UnsetUserAsAdmin removes administrator privileges from users (batch operation)
+// @Summary Remove admin privileges
+// @Description Remove administrator privileges from multiple users
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body BatchSetAdminRequest true "Batch user ID list"
+// @Success 200 {object} model.CommonResponse{data=BatchSetAdminResponse} "Success"
+// @Failure 400 {object} model.CommonResponse "Parameter error"
+// @Failure 401 {object} model.CommonResponse "Unauthorized"
+// @Failure 403 {object} model.CommonResponse "Forbidden"
+// @Failure 404 {object} model.CommonResponse "User not found"
+// @Failure 500 {object} model.CommonResponse "System error"
+// @Router /api/users/batch/admin [delete]
+func UnsetUserAsAdmin(c *gin.Context) {
+	// Get current enterprise ID
+	eid := config.GetEID(c)
+	if eid <= 0 {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Invalid enterprise ID"))
+		return
+	}
+
+	var batchRequest BatchSetAdminRequest
+	if err := c.ShouldBindJSON(&batchRequest); err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	userIDs := batchRequest.UserIDs
+
+	// Begin transaction
+	tx := model.DB.Begin()
+	if tx.Error != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(tx.Error))
+		return
+	}
+
+	// Define response structure
+	response := BatchSetAdminResponse{
+		Success: []int64{},
+		Failed:  []int64{},
+	}
+
+	// Process each user ID
+	for _, userID := range userIDs {
+		// Get user information
+		user, err := model.GetUserByID(userID)
+		if err != nil {
+			response.Failed = append(response.Failed, userID)
+			continue
+		}
+
+		// Check if user belongs to current enterprise
+		if user.Eid != eid {
+			response.Failed = append(response.Failed, userID)
+			continue
+		}
+
+		// Check if user is an admin
+		if user.Role != model.RoleAdminUser {
+			response.Success = append(response.Success, userID)
+			continue
+		}
+
+		// Update user role to common user and clear admin time
+		updateMap := map[string]interface{}{
+			"role":           model.RoleCommonUser,
+			"add_admin_time": 0, // Clear admin time
+		}
+
+		err = tx.Model(user).Where("user_id = ?", userID).Updates(updateMap).Error
+		if err != nil {
+			response.Failed = append(response.Failed, userID)
+			continue
+		}
+
+		response.Success = append(response.Success, userID)
+	}
+
+	// Commit transaction
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(response))
+}
+
+// BatchAddInternalUserRequest defines the structure for batch adding internal users
+type BatchAddInternalUserRequest struct {
+	Users []BatchInternalUserInfo `json:"users" binding:"required"`
+}
+
+// InternalUserInfo defines the structure for internal user information
+type InternalUserInfo struct {
+	Username string  `json:"username" binding:"required" example:"john@example.com"`
+	Nickname string  `json:"nickname" binding:"required" example:"John Doe"`
+	Did      int64   `json:"did" binding:"required" example:"1"`
+	Dids     []int64 `json:"dids" example:"[1,2,3]"`
+	Password string  `json:"password" binding:"required" example:"password123"`
+}
+
+// BatchInternalUserInfo defines the structure for batch internal user information
+type BatchInternalUserInfo struct {
+	Username string  `json:"username"`
+	Nickname string  `json:"nickname"`
+	Dids     []int64 `json:"dids"`
+	Password string  `json:"password"`
+}
+
+// BatchAddInternalUserResponse defines the structure for batch adding internal users response
+type BatchAddInternalUserResponse struct {
+	Success []service.BatchAddUserResult `json:"success"` // List of successfully added users
+	Failed  []service.BatchAddUserResult `json:"failed"`  // List of failed users
+}
+
+// BatchAddInternalUsers adds multiple internal users
+// @Summary Batch add internal users
+// @Description Add multiple internal users to the system
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body BatchAddInternalUserRequest true "Batch internal user data"
+// @Success 200 {object} model.CommonResponse{data=BatchAddInternalUserResponse} "Success"
+// @Failure 400 {object} model.CommonResponse "Parameter error"
+// @Failure 401 {object} model.CommonResponse "Unauthorized"
+// @Failure 500 {object} model.CommonResponse "System error"
+// @Router /api/users/internal/batch [post]
+func BatchAddInternalUsers(c *gin.Context) {
+	var batchRequest BatchAddInternalUserRequest
+	if err := c.ShouldBindJSON(&batchRequest); err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	eid := config.GetEID(c)
+	if eid <= 0 {
+		c.JSON(http.StatusOK, model.ParamError.ToResponse("Invalid enterprise ID"))
+		return
+	}
+
+	users := make([]service.InternalUserInfo, len(batchRequest.Users))
+	for i, user := range batchRequest.Users {
+		users[i] = service.InternalUserInfo{
+			Username: user.Username,
+			Nickname: user.Nickname,
+			Dids:     user.Dids,
+			Password: user.Password,
+		}
+	}
+
+	userService := service.UserService{}
+	result, err := userService.BatchAddInternalUsers(eid, users)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	if len(result.Failed) > 0 && len(result.Success) == 0 {
+		c.JSON(http.StatusOK, model.ParamError.ToResponse(BatchAddInternalUserResponse{
+			Success: result.Success,
+			Failed:  result.Failed,
+		}))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(BatchAddInternalUserResponse{
+		Success: result.Success,
+		Failed:  result.Failed,
+	}))
+}
+
+// RegisterUserToInternalRequest defines the structure for batch registering internal users request
+type RegisterUserToInternalRequest struct {
+	UserDepartments []struct {
+		UserID int64   `json:"user_id" binding:"required"`
+		DIDs   []int64 `json:"dids" binding:"required"`
+	} `json:"user_departments" binding:"required"`
+}
+
+// RegisterUserToInternal registers users as internal users and associates them with departments
+// @Summary Register users as internal users and associate with departments
+// @Description Batch process user IDs and department IDs, update user information and add department associations within a transaction
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body RegisterUserToInternalRequest true "User-department mapping data"
+// @Success 200 {object} model.CommonResponse
+// @Router /api/users/register/to/internal [put]
+func RegisterUserToInternal(c *gin.Context) {
+	var req RegisterUserToInternalRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	if len(req.UserDepartments) == 0 {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("User-department mapping cannot be empty"))
+		return
+	}
+
+	eid := config.GetEID(c)
+	if eid <= 0 {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Invalid enterprise ID"))
+		return
+	}
+
+	mappings := make([]service.UserDepartmentMapping, len(req.UserDepartments))
+	for i, mapping := range req.UserDepartments {
+		mappings[i] = service.UserDepartmentMapping{
+			UserID: mapping.UserID,
+			DIDs:   mapping.DIDs,
+		}
+	}
+
+	userService := service.UserService{}
+	result, err := userService.RegisterUserToInternal(eid, mappings)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(gin.H{
+		"success_count": result.SuccessCount,
+		"failed_users":  result.FailedUsers,
+		"total":         result.Total,
+	}))
+}
+
+// InternalUserRequest 定义获取内部用户列表的请求参数
+type InternalUserRequest struct {
+	Keyword string `json:"keyword" form:"keyword" example:"张三"` // 关键词，用于搜索部门名称或用户昵称/手机号
+	Status  int    `json:"status" form:"status" example:"-1""`  // 用户状态，-1表示全部，0未加入，1已加入，2被禁用
+	Offset  int    `json:"offset" form:"offset" example:"0"`    // 分页偏移量
+	Limit   int    `json:"limit" form:"limit" example:"10"`     // 每页数量
+	DID     int64  `json:"did" form:"did" example:"0"`          // 部门ID，0表示不按部门筛选
+}
+
+// InternalUserResponse 定义内部用户列表的响应结构
+type InternalUserResponse struct {
+	Count int64         `json:"count"` // 总数量
+	Users []*model.User `json:"users"` // 用户列表
+}
+
+// GetInternalUsers 获取内部用户列表
+// @Summary 获取内部用户列表
+// @Description 获取企业内部用户列表，支持分页、按状态查询、按成员/部门模糊匹配
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param keyword query string false "关键词，用于搜索部门名称或用户昵称/手机号"
+// @Param status query int false "用户状态，-1表示全部，0未加入，1已加入，2被禁用，默认为-1"
+// @Param offset query int false "分页偏移量，默认为0"
+// @Param limit query int false "每页数量，默认为10"
+// @Param did query int false "部门ID，0表示不按部门筛选"
+// @Success 200 {object} model.CommonResponse{data=InternalUserResponse} "成功"
+// @Failure 400 {object} model.CommonResponse "参数错误"
+// @Failure 401 {object} model.CommonResponse "未授权"
+// @Failure 500 {object} model.CommonResponse "系统错误"
+// @Router /api/users/internal [get]
+func GetInternalUsers(c *gin.Context) {
+	eid := config.GetEID(c)
+	if eid <= 0 {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("企业ID无效"))
+		return
+	}
+
+	// 解析请求参数
+	var req InternalUserRequest
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	// 设置默认值
+	if req.Limit <= 0 {
+		req.Limit = 10
+	}
+	if req.Offset < 0 {
+		req.Offset = 0
+	}
+	if req.Status < 0 {
+		req.Status = -1 // 默认查询全部状态
+	}
+
+	// 调用服务层获取内部用户列表
+	userService := service.UserService{}
+	count, users, err := userService.GetInternalUsersWithPagination(
+		eid,
+		req.Keyword,
+		req.Status,
+		req.Offset,
+		req.Limit,
+		req.DID, // 传递部门ID参数
+	)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	// 返回处理结果
+	c.JSON(http.StatusOK, model.Success.ToResponse(InternalUserResponse{
+		Count: count,
+		Users: users,
+	}))
+}
+
+// UpdateUserStatus updates the user status
+// @Summary Update user status
+// @Description Update the status of a specified user (enable/disable)
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "User ID"
+// @Param status body UpdateUserStatusRequest true "Status information"
+// @Success 200 {object} model.CommonResponse{data=model.User} "Success"
+// @Router /api/users/{id}/status [patch]
+func UpdateUserStatus(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	var req UpdateUserStatusRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	// Validate if the status value is valid
+	if req.Status != model.UserStatusJoined && req.Status != model.UserStatusDisabled {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Invalid status value"))
+		return
+	}
+
+	eid := config.GetEID(c)
+
+	// Get user
+	user, err := model.GetUserByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, model.NotFound.ToResponse(err))
+		return
+	}
+
+	// Verify if the user belongs to the current enterprise
+	if user.Eid != eid {
+		c.JSON(http.StatusForbidden, model.NotFound.ToResponse(nil))
+		return
+	}
+
+	// Update user status
+	user.Status = req.Status
+	if err := user.Update(false); err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(user))
+}
+
+// UpdateUserStatusRequest request for updating user status
+type UpdateUserStatusRequest struct {
+	Status int `json:"status" binding:"required" example:"1"` // User status: 1-Joined, 2-Disabled
+}
+
+// UpdateInternalUserRequest defines the structure for updating internal user
+type UpdateInternalUserRequest struct {
+	Nickname   string  `json:"nickname"`
+	Status     int     `json:"status"`
+	Mobile     string  `json:"mobile"`     // Mobile number, can be updated when user status is not joined
+	Email      string  `json:"email"`      // Email address, can be updated when user status is not joined
+	Department []int64 `json:"department"` // Department ID list
+}
+
+// UpdateInternalUser updates internal user information
+// @Summary Update internal user information
+// @Description Update nickname, status and department relationships of internal user
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "User ID"
+// @Param request body UpdateInternalUserRequest true "Update data"
+// @Success 200 {object} model.CommonResponse
+// @Router /api/users/internal/{id} [put]
+func UpdateInternalUser(c *gin.Context) {
+	// Parse user ID from request parameters
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	// Get enterprise ID from context
+	eid := config.GetEID(c)
+	
+	// Retrieve user by ID
+	user, err := model.GetUserByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, model.NotFound.ToResponse(err))
+		return
+	}
+
+	// Verify user belongs to current enterprise
+	if user.Eid != eid {
+		c.JSON(http.StatusForbidden, model.ForbiddenError.ToResponse(nil))
+		return
+	}
+
+	// Parse request body
+	var req UpdateInternalUserRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	// Begin database transaction
+	tx := model.DB.Begin()
+	if tx.Error != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(tx.Error))
+		return
+	}
+
+	// Update basic user information
+	if req.Nickname != "" {
+		user.Nickname = req.Nickname
+	}
+
+	// Only allow editing contact information when user hasn't joined yet
+	if user.Status == model.UserStatusNotJoined {
+		// Update mobile number if provided and not already in use
+		if req.Mobile != "" {
+			// Check if mobile number already exists
+			var count int64
+			if err := tx.Model(&model.User{}).Where("eid = ? AND mobile = ? AND user_id != ?", eid, req.Mobile, id).Count(&count).Error; err != nil {
+				tx.Rollback()
+				c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+				return
+			}
+			if count > 0 {
+				tx.Rollback()
+				c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Mobile number already exists"))
+				return
+			}
+			user.Mobile = req.Mobile
+		}
+
+		// Update email if provided and not already in use
+		if req.Email != "" {
+			// Check if email already exists
+			var count int64
+			if err := tx.Model(&model.User{}).Where("eid = ? AND email = ? AND user_id != ?", eid, req.Email, id).Count(&count).Error; err != nil {
+				tx.Rollback()
+				c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+				return
+			}
+			if count > 0 {
+				tx.Rollback()
+				c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Email already exists"))
+				return
+			}
+			user.Email = req.Email
+		}
+	}
+
+	// Update user status if provided
+	if req.Status != 0 {
+		user.Status = req.Status
+	}
+
+	// Save user changes
+	if err := tx.Save(user).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	// Update department relationships if provided
+	if len(req.Department) > 0 {
+		// Fetch existing department relationships
+		var existingRelations []*model.MemberDepartmentRelation
+		if err := tx.Where("bid = ? AND eid = ?", id, eid).Find(&existingRelations).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+			return
+		}
+
+		// Create map of existing department IDs for quick lookup
+		existingDeptMap := make(map[int64]bool)
+		for _, relation := range existingRelations {
+			existingDeptMap[relation.DID] = true
+		}
+
+		// Identify departments to remove
+		var deptToDelete []int64
+		for _, relation := range existingRelations {
+			found := false
+			for _, newDeptID := range req.Department {
+				if newDeptID > 0 && relation.DID == newDeptID {
+					found = true
+					break
+				}
+			}
+			if !found {
+				deptToDelete = append(deptToDelete, relation.DID)
+			}
+		}
+
+		// Delete removed department relationships
+		if len(deptToDelete) > 0 {
+			if err := tx.Where("bid = ? AND eid = ? AND did IN ?", id, eid, deptToDelete).Delete(&model.MemberDepartmentRelation{}).Error; err != nil {
+				tx.Rollback()
+				c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+				return
+			}
+		}
+
+		// Add new department relationships
+		for _, deptID := range req.Department {
+			// Skip if department already exists or ID is invalid (<=0)
+			if existingDeptMap[deptID] || deptID <= 0 {
+				continue
+			}
+			
+			// Create new department relationship
+			relation := model.MemberDepartmentRelation{
+				EID: eid,
+				BID: id,
+				DID: deptID,
+			}
+			if err := tx.Create(&relation).Error; err != nil {
+				tx.Rollback()
+				c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+				return
+			}
+		}
+	}
+
+	// Commit transaction
+	if err := tx.Commit().Error; err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(user))
+}
