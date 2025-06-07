@@ -3,184 +3,101 @@
 </div>
 
 <div align="center">
-<a href="./README_EN.md"><img alt="README in English" src="https://img.shields.io/badge/English-d9d9d9"></a>
-<a href="./README.md"><img alt="简体中文版自述文件" src="https://img.shields.io/badge/简体中文-d9d9d9"></a>
-<a href="./README_JA.md"><img alt="日本語のREADME" src="https://img.shields.io/badge/日本語-d9d9d9"></a>
-
+<a href="./README.md"><img alt="README（英語）" src="https://img.shields.io/badge/English-d9d9d9"></a>
+<a href="./README_CN.md"><img alt="簡体字中国語README" src="https://img.shields.io/badge/简体中文-d9d9d9"></a>
+<a href="./README_JA.md"><img alt="日本語README" src="https://img.shields.io/badge/日本語-d9d9d9"></a>
 </div>
+
 <div>
-<a href="https://hub.53ai.com" target="_blank">クラウドサービス</a> ·
-<a href="https://docs.53ai.com/%E5%85%A5%E9%97%A8/%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2" target="_blank">ローカルデプロイ</a> ·
-<a href="https://docs.53ai.com/" target="_blank">製品ドキュメント</a> ·
-<a href="https://aihub.53ai.com" target="_blank">デモサイト</a>
-
+<a href="https://hub.53ai.com">クラウドサービス</a> ·
+<a href="https://docs.53ai.com/%E5%85%A5%E9%97%A8/%E6%9C%AC%E5%9C%B0%E9%83%A8%E7%BD%B2">ローカル導入</a> ·
+<a href="https://docs.53ai.com/">製品ドキュメント</a> ·
+<a href="https://aihub.53ai.com">デモサイト</a>
 </div>
 
-**53AIHub** はオープンソースのAIポータルで、エージェント、プロンプト、AIツールの公開と運用を簡単に実現し、プロダクションレベルのAIポータルを迅速に構築できます。ByteDanceのBOT、TencentのYuanqi、Dify、FastGPT、53AI Studioなどのエージェント開発プラットフォームや、AlibabaのBailian、Volcano Engine、BaiduのQianfanなどのMaaSプラットフォームとシームレスに連携します。
+**53AI Hub** は、**オープンソースのAIポータル**です。AIエージェント、プロンプト、AIツールの公開・運用を迅速に構築できます。**ByteDance Coze、Tencent Yuanqi、Dify、FastGPT、RAGFlow、53AI Studio**などの開発プラットフォーム、**Aliyun ModelScope、Tencent Cloud、Volcano Ark、Baidu Qianfan AppBuild**などのクラウドプラットフォームとシームレスに連携できます。技術的な統合作業を必要とせず、非技術者でもAIエージェントの運用に参加できるため、AI活用のハードルを大幅に下げることができます。
 
-主な機能は以下の通りです：</br> </br>
+主な機能：
 
-**1. プラットフォーム連携**:
-主要なエージェント開発プラットフォーム、クラウドコンピューティングプラットフォーム、大規模モデルプラットフォームとの連携。
+**1. プラットフォーム連携**：
+主流のエージェント開発・クラウド・大規模言語モデル（LLM）との接続。サイトテンプレートやスタイルを選択し、UIをカスタマイズ可能。
 
-**2. アプリケーション管理**:
-エージェント、プロンプト、AIツールの公開、管理、グループ化、並べ替え、使用権限などの設定をサポート。
+**2. アプリケーション管理**：
+AIエージェント、プロンプト、ツールの公開、管理、分類、順序、アクセス権限などを設定。
 
-**3. ユーザーサブスクリプション**:
-異なるレベルのサブスクリプション権限と価格を設定。
+**3. ユーザー管理**：
+登録ユーザーと内部ユーザーのログインや利用履歴を確認・管理。
 
-**4. ユーザー運用**:
-登録ユーザーと内部ユーザーの2種類のユーザー運用をサポートし、ユーザーのログインと使用記録を管理・閲覧できます。
+**4. 独立導入**：
+クラウドまたはローカル環境にワンクリックで導入可能。独自ドメインも設定可能。
 
-**5. データ分析**:
-ユーザー、グループ、部門、プラットフォームの4つの次元でデータ分析をサポート。
+## 製品比較
 
-**6. 独自ドメイン**:
-HTTPS証明書をアップロード後、独自ドメインのバインドをサポート。
+| 機能              | 53AI Hub        | NextChat     | lobehub      | Cherry Studio |
+|------------------|------------------|--------------|--------------|----------------|
+| UIカスタマイズ   | 多様なスタイル   | 固定スタイル | 固定スタイル | 固定スタイル   |
+| アクセス制御     | 企業レベル       | なし         | なし         | なし           |
+| エージェント統合 | ✅              | ❌           | ❌           | ❌             |
+| LLM統合          | ✅              | ✅           | ✅           | ✅             |
+| 登録ユーザー     | ✅              | ✅           | ✅           | ✅             |
+| 内部ユーザー     | ✅              | ❌           | ❌           | ❌             |
+| SSO対応          | WeCom、DingTalk、Feishu | ❌ | ❌ | ❌ |
+| ローカル導入     | ✅              | ✅           | ✅           | ✅             |
 
-**7. カスタマイズインターフェース**:
-サイトテンプレートとスタイルを選択し、インターフェースをカスタマイズできます。
-
-## 機能比較
-
-<table style="width:100%;">
-  <tr>
-    <th align="center">機能</th>
-    <th align="center">53AI Hub</th>
-    <th align="center">NextChat</th>
-    <th align="center">lobehub</th>
-    <th align="center">Cherry Studio</th>
-  </tr>
-  <tr>
-    <td align="center">カスタマイズインターフェース</td>
-    <td align="center">複数スタイル</td>
-    <td align="center">固定スタイル</td>
-    <td align="center">固定スタイル</td>
-    <td align="center">固定スタイル</td>
-  </tr>
-  <tr>
-    <td align="center">使用権限</td>
-    <td align="center">エンタープライズレベル</td>
-    <td align="center">なし</td>
-    <td align="center">なし</td>
-    <td align="center">なし</td>
-  </tr>
-  <tr>
-    <td align="center">エージェント連携</td>
-    <td align="center">✅</td>
-    <td align="center">❌</td>
-    <td align="center">❌</td>
-    <td align="center">❌</td>
-  </tr>
-  <tr>
-    <td align="center">大規模モデル連携</td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
-  </tr>
-  <tr>
-    <td align="center">登録ユーザー</td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
-  </tr>
-  <tr>
-    <td align="center">内部ユーザー</td>
-    <td align="center">✅</td>
-    <td align="center">❌</td>
-    <td align="center">❌</td>
-    <td align="center">❌</td>
-  </tr>
-  <tr>
-    <td align="center">シングルサインオン</td>
-    <td align="center">WeCom、DingTalk、Feishu</td>
-    <td align="center">❌</td>
-    <td align="center">❌</td>
-    <td align="center">❌</td>
-  </tr>
-  <tr>
-    <td align="center">ローカルデプロイ</td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
-    <td align="center">✅</td>
-  </tr>
-</table>
-
-## 53AI Hubの使用
+## 利用方法
 
 * **クラウドサービス**
-  [53AI Hubクラウドサービス](https://hub.53ai.com)を提供しており、オンラインで申請できます。無料版、標準版、エンタープライズ版があり、エンタープライズ版は53AI Hubの全機能を提供し、無料版では10のエージェントと100の登録ユーザーをサポートします。
-* **コミュニティ版**
-  従業員数200人未満または収入5000万円未満の中小企業やスタートアップチームは無料でコミュニティ版を使用できます。
-  [スタートガイド](https://docs.53ai.com/%E5%85%A5%E9%97%A8/%E6%AC%A2%E8%BF%8E%E4%BD%BF%E7%94%A8)を参照して、独自のサーバーで53AI Hubを迅速に実行できます。
-  [製品ドキュメント](https://docs.53ai.com)を読んで、さらに詳しく理解してください。
-* **プライベートカスタム版**
-  WeCom、DingTalk、Feishuの組織構造と連携したプライベートデプロイ可能なフラッグシップ版を提供しています。カスタマイズ機能が必要な場合は、[メール](mailto\:hub@53ai.com?subject=\[GitHub]商業授権)を送信して企業の個別ニーズについて話し合ってください。</br>
+  [53AI Hubクラウドサービス](https://hub.53ai.com)から申請可能。無料版、標準版、企業版を提供。無料版では10個のAIエージェントと100人のユーザーが利用可能。
+* **オープンソース版**
+  [入門ガイド](https://docs.53ai.com/%E5%85%A5%E9%97%A8/%E6%AC%A2%E8%BF%8E%E4%BD%BF%E7%94%A8)を参照し、ローカルに迅速導入可能。[製品ドキュメント](https://docs.53ai.com)で詳細を確認。
+* **企業向けカスタム版**
+  WeCom、DingTalk、Feishuとの組織連携など企業向け機能に対応。カスタマイズのご希望は[メール](mailto:hub@53ai.com?subject=[GitHub]カスタマイズ要望)にてご相談ください。
 
-## 最新情報を入手
-
-GitHubで53AI Hubにスターを付けると、製品の更新時に最新バージョンの通知を最初に受け取ります。
-
-## コミュニティ版のインストール
+## コミュニティ版の導入
 
 ### システム要件
 
-53AI Hubをインストールする前に、サーバーが以下の最小システム要件を満たしていることを確認してください：
+最小構成：
 
-* CPU >= 1コア
-* RAM >= 2 GiB
+* CPU：1コア以上
+* メモリ：2GiB以上
 
-### クイックスタート
+### クイックインストール
 
-53AI Hubサーバーを起動する最も簡単な方法は、[docker-compose.yml](docker/docker-compose.yaml)ファイルを実行することです。インストールコマンドを実行する前に、マシンに[Docker](https://docs.docker.com/get-docker/)と[Docker Compose](https://docs.docker.com/compose/install/)がインストールされていることを確認してください：
+[docker-compose.yml](docker/docker-compose.yaml) を使用すると簡単にインストールできます。事前に [Docker](https://docs.docker.com/get-docker/) と [Docker Compose](https://docs.docker.com/compose/install/) をインストールしてください：
 
 ```bash
 cd docker
 cp .env.example .env
 docker compose up -d
-
 ```
 
-実行後、ブラウザで [`http://localhost`](http://localhost) にアクセスして53AI Hubサイトのバックエンドに入り、初期設定を開始できます。
+ブラウザで [`http://localhost`](http://localhost) にアクセスし、管理画面で初期設定を行います。
 
 ### カスタム設定
 
-カスタム設定が必要な場合は、.env.exampleファイルのコメントを参照し、.envという名前でコピーしてファイル内の対応する値を更新してください。 さらに、docker-compose.yamlファイル自体を調整する必要がある場合があります。たとえば、イメージバージョン、ポートマッピング、またはボリュームマウントを変更します。変更が完了したら、docker-compose up -dを再実行してください。利用可能な環境変数の完全なリストはここで見つけることができます。
+`.env.example` を `.env` にコピーし、コメントを参考に必要な値を設定。`docker-compose.yaml`の内容も環境に応じて調整可能です。
 
-## プロジェクトへの参加
+## コミュニティへの参加
 
+> 他言語翻訳の貢献者も募集中です。興味のある方はご連絡ください。
 
-コードを貢献したい方は、コントリビューターになるを参照してください。 また、ソーシャルメディア、イベント、会議を通じて53AI Hubの共有をサポートすることを検討してください。
+コード、アイデア、フィードバックの提供など、あらゆる形での貢献を歓迎します。
 
+* [GitHub Discussion](https://github.com/53ai/53aihub/discussions)：アプリの共有や交流
+* [GitHub Issues](https://github.com/53ai/53aihub/issues)：バグ報告・提案
 
-## コミュニティとサポート
+## 認証取得
 
-> 中国語と英語以外の言語に53AI Hubを翻訳するのを手伝ってくれるコントリビューターを探しています。興味があれば、お問い合わせください。
+53AIは以下の国際認証を取得済み：
 
-
-53AIを改善するための貢献を歓迎します。コード、問題、新しいアイデアの提出、または53AIを使用して作成した興味深く有用なAIアプリケーションの共有などが含まれます。また、さまざまなイベント、会議、ソーシャルメディアで53AIを共有することも歓迎します。
-
-
-* [Github Discussion](https://github.com/53ai/53aihub/discussions)👉：アプリケーションを共有し、コミュニティと交流します。
-* [GitHub Issues](https://github.com/53ai/53aihub/issues)👉：53AI Hub使用中に発生したエラーや問題を報告します。
-
-## コンプライアンス認証
-
-
-53AIは以下の認証を取得しています：
-
-
-* **ISO/IEC 27001:2022  Certification**
-* **ISO 9001:2015**
-
-## セキュリティ問題
-
-プライバシーを保護するため、GitHubでセキュリティ問題を投稿しないでください。問題を<hub@53ai.com>に送信すると、より詳細な回答を提供します。
+* **ISO/IEC 27001:2022 – 情報セキュリティマネジメントシステム**
+* **ISO 9001:2015 – 品質マネジメントシステム**
 
 ## ライセンス
 
-このリポジトリは [53AI Open Source License](https://docs.53ai.com/%E5%85%A5%E9%97%A8/%E5%BC%80%E6%BA%90%E8%AE%B8%E5%8F%AF%E5%8D%8F%E8%AE%AE) に従います。このライセンスは本質的にApache 2.0ですが、いくつかの追加の制限があります。
+このリポジトリは [53AI オープンソースライセンス](https://docs.53ai.com/%E5%85%A5%E9%97%A8/%E5%BC%80%E6%BA%90%E8%AE%B8%E5%8F%AF%E5%8D%8F%E8%AE%AE) の下で提供されており、Apache 2.0をベースに追加制限が加えられています。
 
+## フォローしよう
+
+GitHubで53AI Hubにスターを付けると、最新のアップデート通知を受け取ることができます。
