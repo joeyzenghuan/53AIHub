@@ -121,7 +121,22 @@
 
 ### 快速安装
 
-安装 53AI Hub 社区版最简单方法是运行我们的 [docker-compose.yml](docker/docker-compose.yaml) 文件。在运行安装命令之前，请确保您的机器上安装了 [Docker](https://docs.docker.com/get-docker/) 和 [Docker Compose](https://docs.docker.com/compose/install/)：
+安装 53AI Hub 社区版最简单方法是运行我们的安装包或本地二制运行包[Releases](https://github.com/53AI/53AIHub/releases) 
+
+```bash
+# 根据你的系统环境，下载53AI Hub 最新版Release包，
+
+# windows 环境
+双击运行53aihub.exe文件
+```
+
+```bash
+# linux/mac 环境
+chmod 777 ./53aihub_linux
+
+./53aihub_linux
+```
+如果你有docker环境，也可以运行我们的[docker-compose.yml](docker/docker-compose.yaml) 文件。在运行命令之前，请确保您的机器上安装了 [Docker](https://docs.docker.com/get-docker/) 和 [Docker Compose](https://docs.docker.com/compose/install/)：
 
 ```bash
 cd docker
