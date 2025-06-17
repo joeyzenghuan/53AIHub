@@ -64,25 +64,7 @@ Minimum configuration for installing 53AI Hub:
 
 ### Quick Installation
 
-The easiest way to install the 53AI Hub Community Edition is by using our installation package or local binary from the [Releases](https://github.com/53AI/53AIHub/releases) page.
-
-```bash
-# Download the latest 53AI Hub release package according to your system environment.
-
-# For Windows
-double-click 53aihub.exe
-```
-
-```bash
-# For Linux/Mac
-# grant execute permission:
-chmod 777 ./53aihub_linux
-
-# then run
-./53aihub_linux
-```
-
-If you have a Docker environment, you can also use our [docker-compose.yml](docker/docker-compose.yaml) file. Before running the command, please make sure Docker and Docker Compose are installed:
+The easiest way to install the community edition is by using our [docker-compose.yml](docker/docker-compose.yaml). Make sure Docker and Docker Compose are installed:
 
 ```bash
 cd docker
@@ -94,7 +76,12 @@ Then visit [`http://localhost`](http://localhost) to access the administration p
 
 ### Custom Configuration
 
-Refer to the comments in `.env.example`, copy and rename it to `.env`, and edit the values. You may also modify `docker-compose.yaml` for things like image versions, port mappings, or volume mounts. After changes, rerun `docker-compose up -d`.
+Refer to the comments in `.env.example`, copy and rename it to `.env`, and edit the values. You may also modify `docker-compose.yaml` for things like image versions, port mappings, or volume mounts. After changes, rerun `docker-compose up -d`. You can find the full list of available environment variables here.
+
+## Star History
+
+[![Star History Chart](https://api.star-history.com/svg?repos=53AI/53AIhub&type=Date)](https://star-history.com/#53AI/53AIhub&Date)
+
 
 ## Contributing
 
