@@ -12,7 +12,7 @@ type AppBuilderService struct {
 }
 
 func (a *AppBuilderService) GetApiSdk() *appbuilder.AppBuilderApi {
-	baseUrl := model.GetBaseURLByProviderType(a.Provider.ProviderType)
+	baseUrl := a.Provider.GetBaseURLByProviderType()
 	return &appbuilder.AppBuilderApi{
 		BaseUrl:   baseUrl,
 		AuthToken: a.Provider.AccessToken,

@@ -34,16 +34,26 @@ func SetApiRouter(router *gin.Engine) {
 	{
 		commonRoute.POST("/register", controller.PasswordRegister)
 		commonRoute.POST("/login", controller.Login)
+		commonRoute.POST("/sms_login", controller.SmsLogin)
 		commonRoute.POST("/check_account", controller.CheckAccountExists)
 		commonRoute.POST("/upload", middleware.UserTokenAuth(model.RoleGuestUser), controller.Upload)
 		commonRoute.GET("/preview/*key", controller.PreviewFile)
 		commonRoute.GET("/response_codes", controller.GetAllResponseCodes)
+		commonRoute.POST("/reset_password", controller.ResetPassword)
+	}
+
+	emailRoute := apiRouter.Group("/email")
+	{
+		emailRoute.POST("/send_verification", controller.SendVerificationEmail)
 	}
 
 	userRoute := apiRouter.Group("/users")
 	userRoute.GET("/me", middleware.UserTokenAuth(model.RoleCommonUser), controller.GetCurrentUser)
 	userRoute.PUT("/password", middleware.UserTokenAuth(model.RoleCommonUser), controller.UpdateUserPassword)
+	userRoute.PATCH("/:id/mobile", middleware.UserTokenAuth(model.RoleCommonUser), controller.UpdateUserMobile)
+	userRoute.PATCH("/:id/email", middleware.UserTokenAuth(model.RoleCommonUser), controller.UpdateUserEmail)
 	userRoute.PUT("/me", middleware.UserTokenAuth(model.RoleCommonUser), controller.UpdateCurrentUser)
+	userRoute.POST("/system_log", middleware.UserTokenAuth(model.RoleCommonUser), controller.CreateSystemLogs)
 	userRoute.Use(middleware.UserTokenAuth(model.RoleAdminUser))
 	{
 		userRoute.POST("", controller.EnterpriseAddUser)
@@ -51,6 +61,7 @@ func SetApiRouter(router *gin.Engine) {
 		userRoute.DELETE("/:id", controller.DeleteEnterpriseUser)
 		userRoute.PUT("/:id", controller.UpdateEnterpriseUser)
 		userRoute.GET("/:user_id/agents/:agent_id/messages", controller.GetUserMessages)
+		userRoute.GET("/:user_id/conversations", controller.GetUserConversations)
 		userRoute.PUT("/batch/admin", controller.SetUserAsAdmin)
 		userRoute.DELETE("/batch/admin", controller.UnsetUserAsAdmin)
 		userRoute.POST("/internal/batch", controller.BatchAddInternalUsers)
@@ -63,6 +74,7 @@ func SetApiRouter(router *gin.Engine) {
 
 	groupRoute := apiRouter.Group("/groups")
 	groupRoute.GET("type/current/:group_type", controller.GetGroups)
+	groupRoute.POST("/prompt", middleware.UserTokenAuth(model.RoleCommonUser), controller.CreateGroup)
 	groupRoute.Use(middleware.UserTokenAuth(model.RoleAdminUser))
 	{
 		groupRoute.POST("", controller.CreateGroup)
@@ -81,6 +93,7 @@ func SetApiRouter(router *gin.Engine) {
 
 	aiLinkRoute := apiRouter.Group("/ai_links")
 	aiLinkRoute.GET("/current", controller.GetCurrentSiteAILinks)
+	aiLinkRoute.GET("/default", controller.GetDefaultAILinks)
 	aiLinkRoute.Use(middleware.UserTokenAuth(model.RoleAdminUser))
 	{
 		aiLinkRoute.POST("", controller.CreateAILink)
@@ -88,6 +101,7 @@ func SetApiRouter(router *gin.Engine) {
 		aiLinkRoute.GET("/:id", controller.GetAILink)
 		aiLinkRoute.PUT("/:id", controller.UpdateAILink)
 		aiLinkRoute.DELETE("/:id", controller.DeleteAILink)
+		aiLinkRoute.POST("/batch/sort", controller.BatchSortAILinks)
 	}
 
 	settingRoute := apiRouter.Group("/settings")
@@ -98,6 +112,7 @@ func SetApiRouter(router *gin.Engine) {
 		settingRoute.DELETE("/:id", middleware.UserTokenAuth(model.RoleGuestUser), controller.DeleteSetting)
 		settingRoute.GET("", middleware.UserTokenAuth(model.RoleAdminUser), controller.GetSettings)
 		settingRoute.GET("/group/:group_name", controller.GetSettingsByGroup)
+		settingRoute.GET("/key/:key", controller.GetSettingByKey)
 	}
 
 	channelGroup := apiRouter.Group("/channels")
@@ -114,6 +129,7 @@ func SetApiRouter(router *gin.Engine) {
 
 	agentGroup := apiRouter.Group("/agents")
 	agentGroup.GET("/current", controller.GetCurrentAgents)
+	agentGroup.GET("/available", controller.GetAvailableAgents)
 	agentGroup.Use(middleware.UserTokenAuth(model.RoleGuestUser))
 	{
 		agentGroup.POST("", controller.CreateAgent)
@@ -125,6 +141,7 @@ func SetApiRouter(router *gin.Engine) {
 		agentGroup.GET("/:agent_id/messages", controller.GetMessagesByUserAndAgent)
 		agentGroup.PATCH("/:agent_id/status", controller.UpdateAgentStatus)
 		agentGroup.GET("/internal_users", controller.GetInternalUserAgents)
+		agentGroup.GET("/:agent_id/conversations", controller.GetAgentConversations)
 	}
 
 	conversationGroup := apiRouter.Group("/conversations")
@@ -174,6 +191,12 @@ func SetApiRouter(router *gin.Engine) {
 		AppBuilderRouter.GET("/bots", controller.GetAppBuilderAllBots)
 	}
 
+	ai53Router := apiRouter.Group("/53ai")
+	ai53Router.Use(middleware.UserTokenAuth(model.RoleAdminUser))
+	{
+		ai53Router.GET("/bots", controller.Get53AIAllBots)
+	}
+
 	apiV1Router := router.Group("/v1")
 	apiV1Router.Use(middleware.CORS())
 	apiV1Router.Use(middleware.Logger())
@@ -217,7 +240,7 @@ func SetApiRouter(router *gin.Engine) {
 	}
 
 	// Department routes
-	departmentGroup := router.Group("/api/departments")
+	departmentGroup := apiRouter.Group("/departments")
 	departmentGroup.Use(middleware.UserTokenAuth(model.RoleAdminUser))
 	{
 		departmentGroup.POST("", controller.CreateDepartment)
@@ -227,5 +250,46 @@ func SetApiRouter(router *gin.Engine) {
 		departmentGroup.DELETE("/:did", controller.DeleteDepartment)
 		departmentGroup.GET("/children/:pdid", controller.GetChildDepartments)
 		departmentGroup.GET("/tree", controller.GetDepartmentTree)
+		departmentGroup.POST("/sync/:from", controller.SyncOrganization)
+		departmentGroup.POST("/bind-member", controller.DepartmentBindMember)
+		departmentGroup.DELETE("/bind-member", controller.DepartmentUnbindMember)
 	}
+
+	promptGroup := apiRouter.Group("/prompts")
+	{
+		promptGroup.GET("", controller.GetPrompts)
+		promptGroup.GET("/admin", middleware.UserTokenAuth(model.RoleAdminUser), controller.GetPrompts)
+		promptGroup.POST("/system", middleware.UserTokenAuth(model.RoleAdminUser), controller.CreatePrompt)
+		promptGroup.POST("/personal", middleware.UserTokenAuth(model.RoleCommonUser), controller.CreatePrompt)
+		promptGroup.GET("/:pid", controller.GetPrompt)
+		promptGroup.PUT("/:pid", middleware.UserTokenAuth(model.RoleCommonUser), controller.UpdatePrompt)
+		promptGroup.DELETE("/:pid", middleware.UserTokenAuth(model.RoleCommonUser), controller.DeletePrompt)
+		promptGroup.PATCH("/:pid/like", middleware.UserTokenAuth(model.RoleCommonUser), controller.UpdatePromptLike)
+		promptGroup.GET("/:pid/groups", middleware.UserTokenAuth(model.RoleCommonUser), controller.GetPromptGroups)
+		promptGroup.PATCH("/:pid/status", middleware.UserTokenAuth(model.RoleCommonUser), controller.UpdatePromptStatus)
+	}
+
+	navigationRoute := apiRouter.Group("/navigations")
+	navigationRoute.GET("", controller.GetNavigations)
+	navigationRoute.POST("/init", controller.InitSystemNavigation)
+	navigationRoute.Use(middleware.UserTokenAuth(model.RoleAdminUser))
+	{
+		navigationRoute.GET("/:nav_id", controller.GetNavigation)
+		navigationRoute.POST("", controller.CreateNavigation)
+		navigationRoute.PUT("/:nav_id", controller.UpdateNavigation)
+		navigationRoute.DELETE("/:nav_id", controller.DeleteNavigation)
+		navigationRoute.PATCH("/:nav_id/status", controller.UpdateNavigationStatus)
+		navigationRoute.POST("/sort", controller.SortNavigations)
+		navigationRoute.POST("/:nav_id/content", controller.CreateNavigationContent)
+		navigationRoute.GET("/:nav_id/content", controller.GetNavigationContent)
+	}
+
+	systemLogRouter := apiRouter.Group("/system_logs")
+	systemLogRouter.Use(middleware.UserTokenAuth(model.RoleAdminUser))
+	{
+		systemLogRouter.GET("/modules", controller.GetModules)
+		systemLogRouter.GET("/actions", controller.GetActions)
+		systemLogRouter.GET("", controller.GetSystemLogs)
+	}
+
 }

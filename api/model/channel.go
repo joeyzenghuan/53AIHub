@@ -3,6 +3,7 @@ package model
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/53AI/53AIHub/common/logger"
 	"github.com/53AI/53AIHub/common/utils"
@@ -24,7 +25,50 @@ const (
 	ChannelApiBailian    = 1003
 	ChannelApiVolcengine = 1004
 	ChannelApiAppBuilder = 1005
+	ChannelApiYuanqi     = 1006
+	// FastGpt Reconstruction， Support dialogue id and user id
+	ChannelApiTypeFastGpt = 1007
 )
+
+// ChannelDescription 渠道描述结构体
+type ChannelDescription struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+// channelDescMap 渠道key到描述的映射
+var channelDescMap = map[string]string{
+	"prompt":           "通过Prompt创建",
+	"53ai_agent":       "53AI Studio",
+	"53ai_workflow":    "53AI工作流",
+	"coze_agent_cn":    "扣子",
+	"coze_workflow_cn": "扣子工作流",
+	"coze_agent":       "Coze智能体",
+	"coze_workflow":    "Coze工作流",
+	"dify_agent":       "Dify",
+	"dify_workflow":    "Dify工作流",
+	"app_builder":      "百度千帆Appbuilder",
+	"yuanqi":           "腾讯元器",
+	"bailian":          "阿里百炼",
+	"volcengine":       "火山方舟",
+}
+
+// GetChannelDescription 通过key获取渠道描述
+func GetChannelDescription(key string) string {
+	if desc, ok := channelDescMap[key]; ok {
+		return desc
+	}
+	return ""
+}
+
+// GetAllChannelDescriptions 获取所有渠道描述
+func GetAllChannelDescriptions() []ChannelDescription {
+	descriptions := make([]ChannelDescription, 0, len(channelDescMap))
+	for k, v := range channelDescMap {
+		descriptions = append(descriptions, ChannelDescription{Key: k, Value: v})
+	}
+	return descriptions
+}
 
 type Channel struct {
 	ChannelID          int64   `json:"channel_id" gorm:"primaryKey;autoIncrement"`
@@ -190,6 +234,11 @@ func GetApiType(channelType int) int {
 	if channelType > 1000 {
 		apiType = channelType
 	}
+	// Refactoring and modification
+	switch channelType {
+	case channeltype.FastGPT:
+		return ChannelApiTypeFastGpt
+	}
 
 	return apiType
 }
@@ -201,4 +250,33 @@ func GetFirstChannelByEidAndProviderType(eid int64, providerType int64) (*Channe
 		return nil, err
 	}
 	return &channel, nil
+}
+
+func StandardizationBotId(botId string) string {
+	if !strings.HasPrefix(botId, "bot-") {
+		return "bot-" + botId
+	}
+	return botId
+}
+
+func StandardizationBotIdByChannelType(botId string, channelType int) string {
+	switch channelType {
+	case ChannelApiDify, ChannelApi53AI, ChannelApiBailian, ChannelApiVolcengine, ChannelApiAppBuilder, ChannelApiYuanqi, ChannelApiTypeFastGpt:
+		return StandardizationBotId(botId)
+	}
+	return botId
+}
+
+func ProcessModelNames(models string, channelType int) string {
+	modelArr := strings.Split(models, ",")
+	if len(modelArr) == 0 {
+		return ""
+	}
+
+	var newModels []string
+	for _, modelName := range modelArr {
+		newModels = append(newModels, StandardizationBotIdByChannelType(modelName, channelType))
+	}
+
+	return strings.Join(newModels, ",")
 }

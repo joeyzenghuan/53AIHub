@@ -79,3 +79,15 @@ func GetSettingsBySettingsGroup(eid int64, group_name string) ([]Setting, error)
 	}
 	return settings, nil
 }
+
+func GetSettingByEidAndKey(eid int64, key string) (*Setting, error) {
+	var setting Setting
+	result := DB.Where("eid =?", eid).Where("`key` =?", key).First(&setting)
+	if result.Error != nil {
+		if result.Error.Error() == "record not found" {
+			return nil, nil
+		}
+		return nil, result.Error
+	}
+	return &setting, nil
+}

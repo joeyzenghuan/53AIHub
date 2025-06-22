@@ -1,5 +1,7 @@
 package model
 
+import "errors"
+
 // CommonResponse represents the standard API response format
 // @Description Standard API response structure
 // @Description Code: Status code of the response
@@ -54,6 +56,7 @@ const (
 	TokenExpiredError                        // 11 - Token expired, need to re-login
 	ChatError                                // 12 - Chat operation failed
 	ProviderNoFoundError                     // 13 - Provider not found
+	OperateTooFast                           // 14 - Operate too fast
 )
 
 // Response code descriptions
@@ -75,7 +78,16 @@ var CodeMessage = map[ResponseCode]string{
 	TokenExpiredError:    "token expired",
 	ChatError:            "chat error",
 	ProviderNoFoundError: "provider not found",
+	OperateTooFast:       "operate too fast",
 }
+
+const (
+	InvalidEnterpriseID     = "invalid enterprise id"
+	InvalidVerificationCode = "invalid or expired verification code"
+	InvalidMobileOrEmail    = "invalid mobile number or email format"
+	InvalidMobileFormat = "invalid mobile number format"
+	PasswordNotMatch = "password not match"
+)
 
 func (c ResponseCode) Message() string {
 	if msg, ok := CodeMessage[c]; ok {
@@ -96,6 +108,15 @@ func (c ResponseCode) ToResponse(data interface{}) CommonResponse {
 }
 
 func (c ResponseCode) ToErrorResponse(err error) CommonResponse {
+	return CommonResponse{
+		Code:    int(c),
+		Message: c.Message() + ": " + err.Error(),
+		Data:    nil,
+	}
+}
+
+func (c ResponseCode) ToNewErrorResponse(message string) CommonResponse {
+	err := errors.New(message)
 	return CommonResponse{
 		Code:    int(c),
 		Message: c.Message() + ": " + err.Error(),

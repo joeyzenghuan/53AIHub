@@ -14,6 +14,7 @@ import (
 	"strings"
 
 	"github.com/53AI/53AIHub/common/storage"
+	"github.com/53AI/53AIHub/common/utils"
 	"github.com/53AI/53AIHub/config"
 	"github.com/53AI/53AIHub/model"
 	"github.com/gin-gonic/gin"
@@ -94,6 +95,17 @@ func CreatePaySetting(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
 		return
 	}
+
+	log := model.SystemLog{
+		Eid:      eid,
+		UserID:   config.GetUserId(c),
+		Nickname: config.GetUserNickname(c),
+		Module:   model.SystemLogModulePayment,
+		Action:   model.SystemLogActionCreate,
+		Content:  "设置微信支付",
+		IP:       utils.GetClientIP(c),
+	}
+	model.CreateSystemLog(&log)
 
 	c.JSON(http.StatusOK, model.Success.ToResponse(paySetting))
 }
@@ -329,6 +341,17 @@ func UpdatePayConfig(c *gin.Context) {
 		return
 	}
 
+	log := model.SystemLog{
+		Eid:      config.GetEID(c),
+		UserID:   config.GetUserId(c),
+		Nickname: config.GetUserNickname(c),
+		Module:   model.SystemLogModulePayment,
+		Action:   model.SystemLogActionUpdate,
+		Content:  "设置微信支付",
+		IP:       utils.GetClientIP(c),
+	}
+	model.CreateSystemLog(&log)
+
 	c.JSON(http.StatusOK, model.Success.ToResponse(paySetting))
 }
 
@@ -368,6 +391,17 @@ func UpdatePayStatus(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
 		return
 	}
+
+	log := model.SystemLog{
+		Eid:      paySetting.Eid,
+		UserID:   config.GetUserId(c),
+		Nickname: config.GetUserNickname(c),
+		Module:   model.SystemLogModuleAdmin,
+		Action:   model.SystemLogActionToggle,
+		Content:  "禁用微信支付",
+		IP:       utils.GetClientIP(c),
+	}
+	model.CreateSystemLog(&log)
 
 	c.JSON(http.StatusOK, model.Success.ToResponse(paySetting))
 }

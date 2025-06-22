@@ -1,1 +1,0 @@
-import{q as i}from"./main-aAIm056l.js";const l=i("global",{state:()=>({siderVisible:!0,siderCollapsed:!1}),getters:{},actions:{toggleSider(){this.siderVisible=!this.siderVisible,this.siderVisible&&(this.siderCollapsed=!1)},hoverSider(e){this.siderVisible||(this.siderCollapsed=e)}}});export{l as u};

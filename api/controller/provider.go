@@ -13,10 +13,11 @@ import (
 )
 
 type ProviderRequest struct {
-	Name         string `json:"name" example:"Coze.cn"`                                                                // Platform name
-	ProviderType int64  `json:"provider_type" example:"1"`                                                             // Platform type: 1 for coze.cn, 2 for coze.com
-	Configs      string `json:"configs" example:"{\"client_id\":\"client_id\", \"client_secret\": \"client_secret\"}"` // Platform configuration
-	AccessToken  string `json:"access_token" example:"access_token"`
+	Name         string  `json:"name" example:"Coze.cn"`                                                                // Platform name
+	ProviderType int64   `json:"provider_type" example:"1"`                                                             // Platform type: 1 for coze.cn, 2 for coze.com
+	Configs      string  `json:"configs" example:"{\"client_id\":\"client_id\", \"client_secret\": \"client_secret\"}"` // Platform configuration
+	AccessToken  string  `json:"access_token" example:"access_token"`
+	BaseURL      *string `json:"base_url" example:""`
 }
 
 func validateCozeConfig(providerType int64, configStr string) error {
@@ -38,7 +39,7 @@ func validateCozeConfig(providerType int64, configStr string) error {
 func checkSaveAccessToken(ProviderType int64, req ProviderRequest) (bool, error) {
 	saveAccessToken := false
 	switch ProviderType {
-	case model.ProviderTypeAppBuilder:
+	case model.ProviderTypeAppBuilder, model.ProviderType53AI:
 		if req.AccessToken == "" {
 			return saveAccessToken, errors.New("access_token is required for provider")
 		}
@@ -77,6 +78,7 @@ func CreateProvider(c *gin.Context) {
 		Name:         req.Name,
 		ProviderType: req.ProviderType,
 		Configs:      req.Configs,
+		BaseURL:      req.BaseURL,
 	}
 	saveAccessToken, err := checkSaveAccessToken(req.ProviderType, req)
 	if err != nil {
@@ -210,6 +212,9 @@ func UpdateProvider(c *gin.Context) {
 	existingProvider.Name = req.Name
 	existingProvider.ProviderType = req.ProviderType
 	existingProvider.Configs = req.Configs
+	if req.BaseURL != nil {
+		existingProvider.BaseURL = req.BaseURL
+	}
 
 	saveAccessToken, err := checkSaveAccessToken(req.ProviderType, req)
 	if err != nil {

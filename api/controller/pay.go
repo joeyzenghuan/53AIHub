@@ -16,7 +16,7 @@ import (
 	"github.com/53AI/53AIHub/config"
 	"github.com/53AI/53AIHub/model"
 	"github.com/53AI/53AIHub/tasks"
-	"github.com/53AI/53AIHub/utils"
+	"github.com/53AI/53AIHub/common/utils"
 	"github.com/gin-gonic/gin"
 	"github.com/go-pay/gopay"
 	"github.com/go-pay/gopay/wechat/v3"

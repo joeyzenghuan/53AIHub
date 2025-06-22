@@ -11,7 +11,7 @@ import (
 // Department source constants
 const (
 	DepartmentFromBackend = 0 // Created from Backend
-	DepartmentFromWeChat  = 1 // Imported from Enterprise WeChat
+	DepartmentFromWecom   = 1 // Imported from WecomChat
 )
 
 // Department status constants
@@ -146,9 +146,9 @@ func GetDepartmentByID(eid int64, did int64) (*Department, error) {
 }
 
 // GetDepartmentsByEID retrieves all departments for a specific enterprise
-func GetDepartmentsByEID(eid int64) ([]*Department, error) {
+func GetDepartmentsByEID(eid int64, from int) ([]*Department, error) {
 	var departments []*Department
-	result := DB.Where("eid = ?", eid).Order("sort DESC").Find(&departments)
+	result := DB.Where("eid = ? and `from` = ?", eid, from).Order("sort DESC").Find(&departments)
 	if result.Error != nil {
 		return nil, result.Error
 	}
@@ -436,9 +436,9 @@ func SearchDepartments(eid int64, keyword string, limit int) ([]*Department, err
 }
 
 // GetDepartmentTree returns a hierarchical structure of departments
-func GetDepartmentTree(eid int64) ([]*DepartmentNode, error) {
+func GetDepartmentTree(eid int64, from int) ([]*DepartmentNode, error) {
 	// Get all departments for the enterprise
-	allDepts, err := GetDepartmentsByEID(eid)
+	allDepts, err := GetDepartmentsByEID(eid, from)
 	if err != nil {
 		return nil, err
 	}

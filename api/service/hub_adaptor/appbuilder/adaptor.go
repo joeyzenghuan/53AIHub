@@ -18,7 +18,6 @@ import (
 	"github.com/53AI/53AIHub/service/hub_adaptor/openai"
 	"github.com/gin-gonic/gin"
 	"github.com/songquanpeng/one-api/common/helper"
-	"github.com/songquanpeng/one-api/relay/adaptor"
 	"github.com/songquanpeng/one-api/relay/meta"
 	"github.com/songquanpeng/one-api/relay/model"
 )
@@ -33,11 +32,15 @@ func (a *Adaptor) Init(meta *meta.Meta) {
 }
 
 func (a *Adaptor) GetRequestURL(meta *meta.Meta) (string, error) {
-	return fmt.Sprintf("%s/v2/app/conversation/runs", meta.BaseURL), nil
+	baseUrl, err := custom.GetBaseURL(meta.BaseURL)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s/v2/app/conversation/runs", baseUrl), nil
 }
 
 func (a *Adaptor) SetupRequestHeader(c *gin.Context, req *http.Request, meta *meta.Meta) error {
-	adaptor.SetupCommonRequestHeader(c, req, meta)
+	custom.SetupCommonRequestHeader(c, req, meta)
 	req.Header.Set("Authorization", "Bearer "+meta.APIKey)
 	req.Header.Set("Content-Type", "application/json")
 	return nil
@@ -123,7 +126,7 @@ func ConvertRequest(botID string, meta *meta.Meta, textRequest model.GeneralOpen
 }
 
 func (a *Adaptor) DoRequest(c *gin.Context, meta *meta.Meta, requestBody io.Reader) (*http.Response, error) {
-	return adaptor.DoRequestHelper(a, c, meta, requestBody)
+	return custom.DoRequestHelper(a, c, meta, requestBody)
 }
 
 func (a *Adaptor) ConvertImageRequest(request *model.ImageRequest) (any, error) {

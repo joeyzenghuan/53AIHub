@@ -5,6 +5,10 @@ go 1.24.1
 require (
 	github.com/gin-contrib/cors v1.7.4
 	github.com/gin-gonic/gin v1.10.0
+	github.com/go-pay/gopay v1.5.110
+	github.com/go-pay/xlog v0.0.3
+	github.com/jordan-wright/email v4.0.1-0.20210109023952-943e75fe5223+incompatible
+	github.com/pkoukk/tiktoken-go v0.1.7
 	github.com/swaggo/swag v1.16.4
 	gorm.io/gorm v1.25.10
 )

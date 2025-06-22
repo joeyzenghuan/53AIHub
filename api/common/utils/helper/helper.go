@@ -5,6 +5,7 @@ import (
 	"crypto/md5"
 	"fmt"
 	"math/rand"
+	"net/url"
 	"regexp"
 	"strconv"
 	"strings"
@@ -133,6 +134,25 @@ func HasIntersection(a, b []int64) bool {
 	}
 	for _, v := range b {
 		if _, ok := set[v]; ok {
+			return true
+		}
+	}
+	return false
+}
+
+func GetHost(u string) (string, error) {
+	parsed, err := url.Parse(u)
+	if err != nil {
+		return "", err
+	}
+
+	host := parsed.Scheme + "://" + parsed.Host
+	return host, nil
+}
+
+func StrInArray(str string, arr []string) bool {
+	for _, v := range arr {
+		if v == str {
 			return true
 		}
 	}

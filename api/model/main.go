@@ -136,6 +136,14 @@ func migrateDB() error {
 		&Department{},
 		&MemberDepartmentRelation{},
 		&MemberBinding{},
+		&Prompt{},
+		&Like{},
+		&Navigation{},
+		&NavigationContent{},
+		&VerificationCode{},
+		&SystemLog{},
+		&WecomSuite{},
+		&WecomCorp{},
 	); err != nil {
 		return err
 	}

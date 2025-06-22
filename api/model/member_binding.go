@@ -106,13 +106,25 @@ func GetMemberBindingByMID(mid int64) ([]*MemberBinding, error) {
 	return bindings, nil
 }
 
+func GetMemberBindingByMidAndFrom(mid int64, from int) (*MemberBinding, error) {
+	var binding MemberBinding
+	result := DB.Where("mid =? AND `from` =?", mid, from).First(&binding)
+	if result.Error != nil {
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, result.Error
+	}
+	return &binding, nil
+}
+
 // GetMemberBindingByBindValue retrieves a member binding by bind value and source
 func GetMemberBindingByBindValue(eid int64, bindValue string, from int) (*MemberBinding, error) {
 	var binding MemberBinding
 	result := DB.Where("eid = ? AND bindvalue = ? AND `from` = ?", eid, bindValue, from).First(&binding)
 	if result.Error != nil {
 		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
-			return nil, fmt.Errorf("member binding not found with bind value %s", bindValue)
+			return nil, nil
 		}
 		return nil, result.Error
 	}
@@ -241,7 +253,9 @@ func GetMemberBindingsBySource(eid int64, from int) ([]*MemberBinding, error) {
 	var bindings []*MemberBinding
 	result := DB.Where("eid = ? AND `from` = ?", eid, from).Find(&bindings)
 	if result.Error != nil {
-		return nil, result.Error
+		if errors.Is(result.Error, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
 	}
 	return bindings, nil
 }

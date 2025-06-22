@@ -1,11 +1,15 @@
 package controller
 
 import (
+	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
 	"strings"
 
 	"github.com/53AI/53AIHub/common"
+	"github.com/53AI/53AIHub/common/utils"
 	"github.com/53AI/53AIHub/config"
 	"github.com/53AI/53AIHub/model"
 	"github.com/gin-gonic/gin"
@@ -25,20 +29,22 @@ type AgentsResponse struct {
 }
 
 type AgentRequest struct {
-	Name         string  `json:"name" example:"OpenAI-ChatGPT"`
-	Logo         string  `json:"logo" example:"http://URL_ADDRESS.com/logo.png"`
-	Sort         int     `json:"sort" example:"0"`
-	Description  string  `json:"description" example:"A ChatGPT based agent for general conversation"`
-	Configs      string  `json:"configs" example:"{\"model\":\"gpt-3.5-turbo\",\"temperature\":0.7}"`
-	Prompt       string  `json:"prompt" example:"You are a helpful AI assistant"`
-	ChannelType  int     `json:"channel_type"`
-	Model        string  `json:"model" example:"gpt-3.5-turbo"`
-	GroupId      int64   `json:"group_id" example:"0"`
-	UseCases     string  `json:"use_cases" example:"[]"`
-	Tools        string  `json:"tools"  example:"[]"`
-	CustomConfig string  `json:"custom_config" example:"{}"`
-	UserGroupIds []int64 `json:"user_group_ids"`
-	Enable       bool    `json:"enable" example:"true"`
+	Name                 string  `json:"name" example:"OpenAI-ChatGPT"`
+	Logo                 string  `json:"logo" example:"http://URL_ADDRESS.com/logo.png"`
+	Sort                 int     `json:"sort" example:"0"`
+	Description          string  `json:"description" example:"A ChatGPT based agent for general conversation"`
+	Configs              string  `json:"configs" example:"{\"model\":\"gpt-3.5-turbo\",\"temperature\":0.7}"`
+	Prompt               string  `json:"prompt" example:"You are a helpful AI assistant"`
+	ChannelType          int     `json:"channel_type"`
+	Model                string  `json:"model" example:"gpt-3.5-turbo"`
+	GroupId              int64   `json:"group_id" example:"0"`
+	UseCases             string  `json:"use_cases" example:"[]"`
+	Tools                string  `json:"tools"  example:"[]"`
+	CustomConfig         string  `json:"custom_config" example:"{}"`
+	UserGroupIds         []int64 `json:"user_group_ids"`
+	Enable               bool    `json:"enable" example:"true"`
+	SubscriptionGroupIds []int64 `json:"subscription_group_ids"` // 订阅分组IDs
+	Settings             string  `json:"settings" example:"{}"`
 }
 
 type UpdateAgentEnableRequest struct {
@@ -66,6 +72,12 @@ func CreateAgent(c *gin.Context) {
 		return
 	}
 
+	agentReq.Model = model.ProcessModelNames(agentReq.Model, agentReq.ChannelType)
+	if agentReq.Model == "" {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(errors.New("model is required")))
+		return
+	}
+
 	// Start transaction
 	tx := model.DB.Begin()
 	if tx.Error != nil {
@@ -89,6 +101,7 @@ func CreateAgent(c *gin.Context) {
 		UseCases:     agentReq.UseCases,
 		CreatedBy:    config.GetUserId(c),
 		Enable:       agentReq.Enable,
+		Settings:     agentReq.Settings,
 	}
 
 	if err := tx.Create(&agent).Error; err != nil {
@@ -97,9 +110,19 @@ func CreateAgent(c *gin.Context) {
 		return
 	}
 
-	// Add permissions for user groups
+	allGroupIds := make([]int64, 0)
+
+	if len(agentReq.SubscriptionGroupIds) > 0 {
+		allGroupIds = append(allGroupIds, agentReq.SubscriptionGroupIds...)
+	}
+
 	if len(agentReq.UserGroupIds) > 0 {
-		for _, groupID := range agentReq.UserGroupIds {
+		allGroupIds = append(allGroupIds, agentReq.UserGroupIds...)
+	}
+
+	// Add permissions for user groups
+	if len(allGroupIds) > 0 {
+		for _, groupID := range allGroupIds {
 			permission := model.ResourcePermission{
 				GroupID:      groupID,
 				ResourceID:   agent.AgentID,
@@ -119,6 +142,29 @@ func CreateAgent(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(nil))
 		return
 	}
+
+	// Parse CustomConfig to get agent_type
+	var customConfig map[string]interface{}
+	if err := json.Unmarshal([]byte(agentReq.CustomConfig), &customConfig); err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToErrorResponse(err))
+		return
+	}
+
+	agentType, ok := customConfig["agent_type"].(string)
+	if !ok {
+		agentType = "unknown"
+	}
+
+	log := model.SystemLog{
+		Eid:      agent.Eid,
+		UserID:   agent.CreatedBy,
+		Nickname: config.GetUserNickname(c),
+		Module:   model.SystemLogModuleAgent,
+		Action:   model.SystemLogActionCreate,
+		Content:  fmt.Sprintf("新建智能体【】名称：【%s】；类型：%s", agent.Name, model.GetChannelDescription(agentType)),
+		IP:       utils.GetClientIP(c),
+	}
+	model.CreateSystemLog(&log)
 
 	c.JSON(http.StatusOK, model.Success.ToResponse(agent))
 }
@@ -195,12 +241,20 @@ func UpdateAgent(c *gin.Context) {
 		return
 	}
 
+	agentReq.Model = model.ProcessModelNames(agentReq.Model, agentReq.ChannelType)
+	if agentReq.Model == "" {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(errors.New("model is required")))
+		return
+	}
+
 	// Start transaction
 	tx := model.DB.Begin()
 	if tx.Error != nil {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(nil))
 		return
 	}
+
+	oldAgent := *agent
 
 	// Update agent fields
 	agent.Name = agentReq.Name
@@ -216,6 +270,7 @@ func UpdateAgent(c *gin.Context) {
 	agent.Logo = agentReq.Logo
 	agent.CustomConfig = agentReq.CustomConfig
 	agent.Enable = agentReq.Enable
+	agent.Settings = agentReq.Settings
 
 	if err := tx.Save(agent).Error; err != nil {
 		tx.Rollback()
@@ -230,9 +285,19 @@ func UpdateAgent(c *gin.Context) {
 		return
 	}
 
-	// Add new permissions
+	allGroupIds := make([]int64, 0)
+
+	if len(agentReq.SubscriptionGroupIds) > 0 {
+		allGroupIds = append(allGroupIds, agentReq.SubscriptionGroupIds...)
+	}
+
 	if len(agentReq.UserGroupIds) > 0 {
-		for _, groupID := range agentReq.UserGroupIds {
+		allGroupIds = append(allGroupIds, agentReq.UserGroupIds...)
+	}
+
+	// Add new permissions
+	if len(allGroupIds) > 0 {
+		for _, groupID := range allGroupIds {
 			permission := model.ResourcePermission{
 				GroupID:      groupID,
 				ResourceID:   agent.AgentID,
@@ -252,6 +317,24 @@ func UpdateAgent(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(nil))
 		return
 	}
+
+	// Prepare for logging
+	fieldMap := map[string]string{
+		"Name":        "名称",
+		"Description": "描述",
+	}
+	model.LogEntityChange(
+		fmt.Sprintf("智能体【%s】", oldAgent.Name),
+		model.SystemLogActionUpdate,
+		eid,
+		config.GetUserId(c),
+		config.GetUserNickname(c),
+		model.SystemLogModuleAgent,
+		oldAgent,
+		agent,
+		utils.GetClientIP(c),
+		fieldMap,
+	)
 
 	if err := agent.LoadUserGroupIds(); err != nil {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(nil))
@@ -314,6 +397,17 @@ func DeleteAgent(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(nil))
 		return
 	}
+
+	log := model.SystemLog{
+		Eid:      agent.Eid,
+		UserID:   agent.CreatedBy,
+		Nickname: config.GetUserNickname(c),
+		Module:   model.SystemLogModuleAgent,
+		Action:   model.SystemLogActionDelete,
+		Content:  fmt.Sprintf("删除智能体【%s】", agent.Name),
+		IP:       utils.GetClientIP(c),
+	}
+	model.CreateSystemLog(&log)
 
 	c.JSON(http.StatusOK, model.Success.ToResponse(nil))
 }
@@ -430,6 +524,53 @@ func GetAgentsByGroup(c *gin.Context) {
 	}))
 }
 
+// @Summary Get available agents
+// @Description Retrieve paginated list of available agents
+// @Tags Agent
+// @Produce json
+// @Param offset query int false "Pagination offset" default(0)
+// @Param limit query int false "Pagination limit" default(10)
+// @Success 200 {object} model.CommonResponse{data=AgentsResponse} "Success response with available agent list"
+// @Router /api/agents/available [get]
+func GetAvailableAgents(c *gin.Context) {
+	var agentListRequest AgentListRequest
+	if err := c.ShouldBindQuery(&agentListRequest); err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	if agentListRequest.Limit == 0 {
+		agentListRequest.Limit = 10
+	}
+
+	var total, agents, err = model.GetAvailableAgentList(
+		config.GetEID(c),
+		agentListRequest.Offset,
+		agentListRequest.Limit,
+	)
+
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(nil))
+		return
+	}
+
+	for _, agent := range agents {
+		if err = agent.LoadUserGroupIds(); err != nil {
+			c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(nil))
+			return
+		}
+		if err = agent.LoadConversationCount(); err != nil {
+			c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(AgentsResponse{
+		Count:  total,
+		Agents: agents,
+	}))
+}
+
 // Get Current Agents
 // @Summary Get current agent list
 // @Description Get agents list under the first agent-type group of current enterprise (no pagination required)
@@ -509,7 +650,7 @@ func UpdateAgentStatus(c *gin.Context) {
 	}
 
 	var updateAgentEnableReq UpdateAgentEnableRequest
-	if err := c.ShouldBindJSON(&updateAgentEnableReq); err != nil {
+	if err = c.ShouldBindJSON(&updateAgentEnableReq); err != nil {
 		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(nil))
 		return
 	}
@@ -526,6 +667,28 @@ func UpdateAgentStatus(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(nil))
 		return
 	}
+
+	agent, err := model.GetAgentByID(eid, agentID)
+	if err != nil {
+		c.JSON(http.StatusNotFound, model.NotFound.ToResponse(nil))
+		return
+	}
+	statusText := "启用"
+	if !agent.Enable {
+		statusText = "禁用"
+	}
+
+	log := model.SystemLog{
+		Eid:      eid,
+		UserID:   config.GetUserId(c),
+		Nickname: config.GetUserNickname(c),
+		Module:   model.SystemLogModuleAgent,
+		Action:   model.SystemLogActionToggle,
+		Content:  fmt.Sprintf("%s智能体【%s】", statusText, agent.Name),
+		IP:       utils.GetClientIP(c),
+	}
+	model.CreateSystemLog(&log)
+
 	c.JSON(http.StatusOK, model.Success.ToResponse(nil))
 }
 
@@ -567,7 +730,7 @@ func GetInternalUserAgents(c *gin.Context) {
 
 	var groupIDs []int64
 	groupIDs, err = model.GetGroupsByUserID(userID)
-	if err!= nil {
+	if err != nil {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
 		return
 	}
@@ -598,7 +761,7 @@ func GetInternalUserAgents(c *gin.Context) {
 		for _, id := range groupIDs {
 			groupIDMap[id] = true
 		}
-		
+
 		for _, id := range departmentGroupIDs {
 			if !groupIDMap[id] {
 				groupIDs = append(groupIDs, id)

@@ -30,7 +30,6 @@ func GetCozeAllWorkspaces(c *gin.Context) {
 		Provider: provider,
 	}
 
-	ser.CheckAndRefreshToken()
 	workspaces, err := ser.GetAllWorkspace()
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, model.ProviderNoFoundError.ToResponse(err))
@@ -66,7 +65,6 @@ func GetCozeAllBots(c *gin.Context) {
 	ser := service.CozeService{
 		Provider: provider,
 	}
-	ser.CheckAndRefreshToken()
 	bots, err := ser.GetAllBot(workspaceID)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, model.ProviderNoFoundError.ToResponse(err))

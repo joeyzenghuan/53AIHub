@@ -22,7 +22,7 @@
 	</style>
 	<script>
 		const user_info = JSON.parse(localStorage.getItem('user_info') || '{}')
-		if (user_info.access_token && user_info.eid) window.location.replace(`//${location.host}/console${location.search}#/index`)
+		if (user_info.access_token && user_info.eid) window.location.replace(`//${location.host}/console${location.search}#/`)
 		else {
 			const iframe_el = document.createElement('iframe')
 			iframe_el.width = '100%'

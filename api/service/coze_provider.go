@@ -254,7 +254,7 @@ func (ser *CozeService) UpdateCozeChannel(botIds []string) error {
 
 		// Prepare channel update with default configuration
 		configStr := `{"region":"","sk":"","ak":"","user_id":"53AIHub","vertex_ai_project_id":"","vertex_ai_adc":""}`
-		baseURL := model.GetBaseURLByProviderType(ser.Provider.ProviderType)
+		baseURL := ser.Provider.GetBaseURLByProviderType()
 
 		// Create channel object with updated information
 		channel := &model.Channel{

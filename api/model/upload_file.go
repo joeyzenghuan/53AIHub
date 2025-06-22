@@ -7,6 +7,7 @@ import (
 	"strconv"
 
 	"github.com/53AI/53AIHub/common/storage"
+	"github.com/53AI/53AIHub/config"
 )
 
 type UploadFile struct {
@@ -86,4 +87,12 @@ func (uploadFile *UploadFile) GetChannelFileMapping(channelId int, model string)
 		return nil
 	}
 	return &channelFileMapping
+}
+
+func (uploadFile *UploadFile) GetPreviewFullUrl() string {
+	if uploadFile.PreviewKey == "" {
+		return ""
+	}
+
+	return config.GetApiHost() + "api/preview/" + uploadFile.PreviewKey
 }

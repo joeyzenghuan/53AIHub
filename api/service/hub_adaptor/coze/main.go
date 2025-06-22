@@ -48,10 +48,9 @@ func ConvertRequest(textRequest model.GeneralOpenAIRequest, meta *meta.Meta, cus
 	modelName := "bot-" + strings.TrimPrefix(meta.ActualModelName, "bot-")
 	channelID := meta.ChannelId
 	cozeRequest := Request{
-		ConversationId: customConfig.ConversationId,
-		Stream:         textRequest.Stream,
-		UserID:         customConfig.UserId,
-		BotId:          strings.TrimPrefix(textRequest.Model, "bot-"),
+		Stream: textRequest.Stream,
+		UserID: customConfig.UserId,
+		BotId:  strings.TrimPrefix(textRequest.Model, "bot-"),
 	}
 	for _, message := range textRequest.Messages {
 		typeStr := TypeQuestion
@@ -136,7 +135,6 @@ func ConvertRequest(textRequest model.GeneralOpenAIRequest, meta *meta.Meta, cus
 			cozeRequest.AdditionalMessages = append(cozeRequest.AdditionalMessages, cozeMessage)
 		}
 	}
-	logger.SysLogf("cozeRequest: ", cozeRequest)
 	return &cozeRequest
 }
 
@@ -201,7 +199,7 @@ func StreamHandler(c *gin.Context, resp *http.Response) (*model.ErrorWithStatusC
 		if data == "" || data == "\n" {
 			continue
 		}
-		logger.SysLog("coze stream :" + data)
+		logger.SysLogf("coze stream : %s", data)
 		if strings.HasPrefix(data, "event:") {
 			eventStr = strings.TrimPrefix(data, "event:")
 		}

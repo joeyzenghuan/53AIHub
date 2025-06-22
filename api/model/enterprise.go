@@ -1,6 +1,7 @@
 package model
 
 import (
+	"errors"
 	"os"
 	"time"
 
@@ -27,6 +28,7 @@ type Enterprise struct {
 	Description  string `json:"description" gorm:"not null" example:"Description Test"`
 	TemplateType string `json:"template_type" gorm:"type:text;not null" example:"default"`
 	LayoutType   string `json:"layout_type" gorm:"type:varchar(10);default:1;not null" example:"1"`
+	WecomCorpID  string `json:"wecom_corp_id" gorm:"type:varchar(100);default:'';not null" example:""`
 	BaseModel
 }
 
@@ -39,6 +41,32 @@ const (
 	EnterpriseTypeEnterprise  = "enterprise"
 	EnterpriseTypeIndustry    = "industry"
 )
+
+type EnterpriseTypeDescription struct {
+	Key   string `json:"key"`
+	Value string `json:"value"`
+}
+
+var enterpriseTypeDescMap = map[string]string{
+	EnterpriseTypeIndependent: "AI 独立站",
+	EnterpriseTypeEnterprise:  "企业 AI 门户",
+	EnterpriseTypeIndustry:    "行业 AI 门户",
+}
+
+func GetEnterpriseTypeDescription(key string) string {
+	if desc, ok := enterpriseTypeDescMap[key]; ok {
+		return desc
+	}
+	return ""
+}
+
+func GetAllEnterpriseTypeDescriptions() []EnterpriseTypeDescription {
+	descriptions := make([]EnterpriseTypeDescription, 0, len(enterpriseTypeDescMap))
+	for k, v := range enterpriseTypeDescMap {
+		descriptions = append(descriptions, EnterpriseTypeDescription{Key: k, Value: v})
+	}
+	return descriptions
+}
 
 func GetEnterpriseModel(id int64) (*Enterprise, error) {
 	var enterprise Enterprise
@@ -472,4 +500,16 @@ func initAILinkData(tx *gorm.DB, eid int64) error {
 	}
 
 	return nil
+}
+
+func GetEnterpriseByWecomCorpID(wecomCorpID string) (*Enterprise, error) {
+	var enterprise Enterprise
+	err := DB.Where("wecom_corp_id = ?", wecomCorpID).First(&enterprise).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			return nil, nil
+		}
+		return nil, err
+	}
+	return &enterprise, nil
 }

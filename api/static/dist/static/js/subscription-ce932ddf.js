@@ -1,0 +1,10 @@
+import { z as t, A as a } from "./index-8579fe4a.js";
+const p = { async list({ params: r = {} } = {}) {
+  const { data: { settings: _ = [] } = {} } = await t.get("/api/subscriptions/settings", { params: r }).catch(a);
+  return _.map((n = {}, i) => (n.group = n.group || {}, n.setting = n.setting || {}, n = { ...n, ...n.group, ...n.setting }, n.delete = !!n.delete || false, n.group_id = n.group_id || 0, n.setting_id = n.setting_id || 0, n.sort = n.sort || _.length - i || 0, n.group_name = n.group_name || "", n.logo_url = n.logo_url || "", n.ai_enabled = !!n.ai_enabled || false, n.relations = n.relations || [], n.year_info = JSON.parse(JSON.stringify(n.relations.find((o = {}) => o.type == 1 && o.time_unit === "year") || {})), n.year_info.amount = (Number(n.year_info.amount || 0) / 100).toFixed(2), n.year_info.currency = n.year_info.currency || "CNY", n.year_info.relation_id = n.year_info.relation_id || 0, n.year_info.time_unit = n.year_info.time_unit || "year", n.year_info.type = n.year_info.type || 1, n.month_info = JSON.parse(JSON.stringify(n.relations.find((o = {}) => o.type == 1 && o.time_unit === "month") || {})), n.month_info.amount = (Number(n.month_info.amount || 0) / 100).toFixed(2), n.month_info.currency = n.month_info.currency || "CNY", n.month_info.relation_id = n.month_info.relation_id || 0, n.month_info.time_unit = n.month_info.time_unit || "month", n.month_info.type = n.month_info.type || 1, n.point_month_info = JSON.parse(JSON.stringify(n.relations.find((o = {}) => o.type == 2) || {})), n.point_month_info.amount = Number(n.point_month_info.amount || 0), n.point_month_info.currency = n.point_month_info.currency || "", n.point_month_info.relation_id = n.point_month_info.relation_id || 0, n.point_month_info.time_unit = n.point_month_info.time_unit || "month", n.point_month_info.type = n.point_month_info.type || 2, n.agents = n.agents || [], n));
+}, async save({ data: r } = {}) {
+  return t.post("/api/subscriptions/batch", r).catch(a);
+} };
+export {
+  p as s
+};

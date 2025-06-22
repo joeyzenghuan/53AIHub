@@ -1,8 +1,10 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
 
+	"github.com/53AI/53AIHub/common/utils"
 	"github.com/53AI/53AIHub/config"
 	"github.com/53AI/53AIHub/model"
 	"github.com/gin-gonic/gin"
@@ -108,6 +110,7 @@ func BatchSubscriptionOperation(c *gin.Context) {
 	eid := config.GetEID(c)
 	userId := config.GetUserId(c)
 
+	var isUpdate bool
 	for _, item := range req.Items {
 		// Delete operation
 		if item.Delete {
@@ -133,6 +136,7 @@ func BatchSubscriptionOperation(c *gin.Context) {
 					return
 				}
 			}
+			isUpdate = true
 			continue
 		}
 
@@ -155,6 +159,7 @@ func BatchSubscriptionOperation(c *gin.Context) {
 			}
 
 			groupId = group.GroupId
+			isUpdate = true
 		} else {
 			// Update existing group
 			group := model.Group{
@@ -166,6 +171,7 @@ func BatchSubscriptionOperation(c *gin.Context) {
 				c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
 				return
 			}
+			isUpdate = true
 		}
 
 		// Create or update subscription settings
@@ -187,6 +193,7 @@ func BatchSubscriptionOperation(c *gin.Context) {
 				c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
 				return
 			}
+			isUpdate = true
 		} else {
 			// Create new settings
 			setting = model.SubscriptionSetting{
@@ -200,6 +207,7 @@ func BatchSubscriptionOperation(c *gin.Context) {
 				c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
 				return
 			}
+			isUpdate = true
 		}
 
 		// Delete old relations
@@ -224,6 +232,7 @@ func BatchSubscriptionOperation(c *gin.Context) {
 				c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
 				return
 			}
+			isUpdate = true
 		}
 	}
 
@@ -231,6 +240,19 @@ func BatchSubscriptionOperation(c *gin.Context) {
 	if err := tx.Commit().Error; err != nil {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
 		return
+	}
+
+	if isUpdate {
+		log := model.SystemLog{
+			Eid:      eid,
+			UserID:   userId,
+			Nickname: config.GetUserNickname(c),
+			Module:   model.SystemLogModuleSubscription,
+			Action:   model.SystemLogActionUpdate,
+			Content:  fmt.Sprint("编辑了订阅版本"),
+			IP:       utils.GetClientIP(c),
+		}
+		model.CreateSystemLog(&log)
 	}
 
 	c.JSON(http.StatusOK, model.Success.ToResponse(nil))

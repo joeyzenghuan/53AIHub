@@ -18,6 +18,7 @@ type Agent struct {
 	UseCases          string  `json:"use_cases" gorm:"not null;type:text"`
 	CreatedBy         int64   `json:"created_by" gorm:"not null"`
 	CustomConfig      string  `json:"custom_config" gorm:"not null;type:text"`
+	Settings          string  `json:"settings" gorm:"not null;type:text"`
 	UserGroupIds      []int64 `json:"user_group_ids" gorm:"-"`
 	Enable            bool    `json:"enable" gorm:"default:false;comment:enable status"`
 	ConversationCount int64   `json:"conversation_count" gorm:"-"`
@@ -90,6 +91,17 @@ func GetAgentListWithIDs(eid int64, keyword string, group_id int64, permittedAge
 	return count, agents, err
 }
 
+func GetAvailableAgentList(eid int64, offset int, limit int) (count int64, agents []*Agent, err error) {
+	db := DB.Model(&Agent{}).Where("eid = ?", eid).
+		Where("Enable = ?", true)
+
+	db.Count(&count)
+
+	err = db.Offset(offset).Limit(limit).Order("sort DESC").Order("agent_id DESC").Find(&agents).Error
+
+	return count, agents, err
+}
+
 func (a *Agent) GetUserGroupIds() ([]int64, error) {
 	var permissions []ResourcePermission
 	var groupIds []int64
@@ -113,6 +125,16 @@ func (a *Agent) LoadUserGroupIds() error {
 		return err
 	}
 	a.UserGroupIds = ids
+	return nil
+}
+
+func (a *Agent) LoadConversationCount() error {
+	var count int64
+	err := DB.Model(&Conversation{}).Where("agent_id =?", a.AgentID).Count(&count).Error
+	if err != nil {
+		return err
+	}
+	a.ConversationCount = count
 	return nil
 }
 
