@@ -1,8 +1,11 @@
 package config
 
 import (
+	"net/smtp"
+
 	"os"
 	"path/filepath"
+	"strings"
 	"time"
 
 	"github.com/53AI/53AIHub/common/session"
@@ -33,6 +36,13 @@ var EnforceIncludeUsage = env.Bool("ENFORCE_INCLUDE_USAGE", false)
 
 var PreConsumedQuota int64 = 500
 
+func GetApiHost() string {
+	if !strings.HasSuffix(ApiHost, "/") {
+		return ApiHost + "/"
+	}
+	return ApiHost
+}
+
 func GetEID(c *gin.Context) int64 {
 	eid, success := c.Get(session.ENV_EID)
 	if success && eid != nil {
@@ -48,6 +58,14 @@ func GetUserId(c *gin.Context) int64 {
 		return user_id.(int64)
 	}
 	return 0
+}
+
+func GetUserNickname(c *gin.Context) string {
+	nickanme, success := c.Get(session.SESSION_USER_NICKNAME)
+	if success && nickanme != nil {
+		return nickanme.(string)
+	}
+	return ""
 }
 
 // GetUserGroup returns the group id of the user
@@ -79,4 +97,15 @@ func GetBinScriptPath(shName string) string {
 	} else {
 		return filepath.Join(workDir, "bin", shName)
 	}
+}
+
+func GetSMTPAuth() (smtp.Auth, string, error) {
+	from := env.String("SMTP_FROM", "")
+	auth := smtp.PlainAuth(
+		"",
+		env.String("SMTP_USERNAME", ""),
+		env.String("SMTP_PASSWORD", ""),
+		env.String("SMTP_HOST", ""),
+	)
+	return auth, from, nil
 }

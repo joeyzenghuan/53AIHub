@@ -196,3 +196,75 @@ func GetCurrentSiteAILinks(c *gin.Context) {
 
 	c.JSON(http.StatusOK, model.Success.ToResponse(links))
 }
+
+// @Summary 获取默认AI链接数据
+// @Description 获取预定义的AI工具分组及对应链接列表（如AI搜索、智能对话等分组）
+// @Tags AI Link
+// @Accept json
+// @Produce json
+// @Success 200 {object} model.CommonResponse{data=[]model.GroupInfo} "成功返回默认AI链接数据"
+// @Router /api/ai_links/default [get]
+func GetDefaultAILinks(c *gin.Context) {
+	links := model.GetDefaultGroupData()
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(links))
+}
+
+type SortItem struct {
+	ID      int64 `json:"id" example:"1"`
+	Sort    int64 `json:"sort" example:"5"`
+	GroupID int64 `json:"group_id" example:"1"`
+}
+
+type BatchSortRequest struct {
+	Items []SortItem `json:"items"`
+}
+
+// @Summary Batch Sort AI Links
+// @Description Batch update sort order of AI links
+// @Tags AI Link
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param data body BatchSortRequest true "Batch sort data"
+// @Success 200 {object} model.CommonResponse
+// @Router /api/ai_links/batch/sort [post]
+func BatchSortAILinks(c *gin.Context) {
+	var req BatchSortRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	eid := config.GetEID(c)
+	tx := model.DB.Begin()
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	for _, item := range req.Items {
+		link, err := model.GetAILinkByID(item.ID)
+		if err != nil || link.Eid != eid {
+			tx.Rollback()
+			c.JSON(http.StatusNotFound, model.NotFound.ToResponse(nil))
+			return
+		}
+
+		link.Sort = item.Sort
+		link.GroupID = item.GroupID
+		if err := tx.Model(&link).Updates(link).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+			return
+		}
+	}
+
+	if err := tx.Commit().Error; err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(nil))
+}

@@ -1,16 +1,17 @@
 package model
 
 type Provider struct {
-	ProviderID   int64  `json:"provider_id" gorm:"primaryKey;autoIncrement"`
-	Eid          int64  `json:"eid" gorm:"not null;index" example:"1"`
-	Name         string `json:"name" gorm:"size:100;not null;index"`
-	ProviderType int64  `json:"provider_type" gorm:"not null;index"`
-	Configs      string `json:"configs" gorm:"type:text;not null"`
-	IsAuthorized bool   `json:"is_authorized" gorm:"not null;default:false"`
-	AccessToken  string `json:"access_token" gorm:"type:text"`
-	RefreshToken string `json:"refresh_token" gorm:"type:text"`
-	ExpiresIn    int64  `json:"expires_in" gorm:"not null"`
-	AuthedTime   int64  `json:"authed_time" gorm:"not null"`
+	ProviderID   int64   `json:"provider_id" gorm:"primaryKey;autoIncrement"`
+	Eid          int64   `json:"eid" gorm:"not null;index" example:"1"`
+	Name         string  `json:"name" gorm:"size:100;not null;index"`
+	ProviderType int64   `json:"provider_type" gorm:"not null;index"`
+	Configs      string  `json:"configs" gorm:"type:text;not null"`
+	IsAuthorized bool    `json:"is_authorized" gorm:"not null;default:false"`
+	AccessToken  string  `json:"access_token" gorm:"type:text"`
+	RefreshToken string  `json:"refresh_token" gorm:"type:text"`
+	ExpiresIn    int64   `json:"expires_in" gorm:"not null"`
+	AuthedTime   int64   `json:"authed_time" gorm:"not null"`
+	BaseURL      *string `json:"base_url" gorm:"column:base_url;default:''"`
 	BaseModel
 }
 
@@ -23,17 +24,24 @@ const (
 	ProviderTypeCozeCn     = 1
 	ProviderTypeCozeCom    = 2
 	ProviderTypeAppBuilder = 3
+	ProviderType53AI       = 4
 )
 
 // GetBaseURLByProviderType returns the base URL based on provider type
-func GetBaseURLByProviderType(providerType int64) string {
-	switch providerType {
+func (provider *Provider) GetBaseURLByProviderType() string {
+	if provider.BaseURL != nil && *provider.BaseURL != "" {
+		return *provider.BaseURL
+	}
+
+	switch provider.ProviderType {
 	case ProviderTypeCozeCn:
 		return "https://api.coze.cn"
 	case ProviderTypeCozeCom:
 		return "https://api.coze.com"
 	case ProviderTypeAppBuilder:
 		return "https://qianfan.baidubce.com"
+	case ProviderType53AI:
+		return "https://api.53ai.com"
 	default:
 		return ""
 	}

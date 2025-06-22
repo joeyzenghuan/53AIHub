@@ -1,9 +1,11 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
+	"github.com/53AI/53AIHub/common/utils"
 	"github.com/53AI/53AIHub/config"
 	"github.com/53AI/53AIHub/model"
 	"github.com/gin-gonic/gin"
@@ -91,9 +93,10 @@ type UpdateEnterpriseRequest struct {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
+// @Param id  path  int  true  "Enterprise ID"
 // @Param request body UpdateEnterpriseRequest true "Enterprise information"
 // @Success 200 {object} model.CommonResponse
-// @Router /api/enterprise [put]
+// @Router /api/enterprises/{id} [put]
 func UpdateEnterprise(c *gin.Context) {
 	var req UpdateEnterpriseRequest
 	if err := c.ShouldBindJSON(&req); err != nil {
@@ -112,6 +115,7 @@ func UpdateEnterprise(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, model.NotFound.ToResponse(nil))
 		return
 	}
+	oldEnterprise := *enterprise
 
 	enterprise.DisplayName = req.DisplayName
 	enterprise.Logo = req.Logo
@@ -126,6 +130,25 @@ func UpdateEnterprise(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
 		return
 	}
+
+	// Prepare for logging
+	fieldMap := map[string]string{
+		"DisplayName": "站点名称",
+		"Type":        "站点类型",
+	}
+
+	model.LogEntityChange(
+		"站点信息",
+		model.SystemLogActionUpdate,
+		currentEid,
+		config.GetUserId(c),
+		config.GetUserNickname(c),
+		model.SystemLogModuleSiteInfo,
+		oldEnterprise,
+		enterprise,
+		utils.GetClientIP(c),
+		fieldMap,
+	)
 
 	c.JSON(http.StatusOK, model.Success.ToResponse(enterprise))
 }
@@ -396,6 +419,17 @@ func UpdateEnterpriseTemplateType(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
 		return
 	}
+
+	log := model.SystemLog{
+		Eid:      currentEid,
+		UserID:   config.GetUserId(c),
+		Nickname: config.GetUserNickname(c),
+		Module:   model.SystemLogModuleTemplate,
+		Action:   model.SystemLogActionUpdate,
+		Content:  fmt.Sprint("编辑模板风格"),
+		IP:       utils.GetClientIP(c),
+	}
+	model.CreateSystemLog(&log)
 
 	c.JSON(http.StatusOK, model.Success.ToResponse(map[string]string{
 		"template_type": req.TemplateType,

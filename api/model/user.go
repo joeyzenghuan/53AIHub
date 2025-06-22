@@ -8,6 +8,7 @@ import (
 
 	"github.com/53AI/53AIHub/common/utils/helper"
 	"github.com/53AI/53AIHub/common/utils/jwt"
+	"github.com/gin-gonic/gin"
 )
 
 type User struct {
@@ -31,6 +32,7 @@ type User struct {
 	AddAdminTime   int64           `json:"add_admin_time" gorm:"type:bigint;default:0;not null;comment:'Time when user was added as admin'" example:"1672502400"`
 	Departments    []Department    `json:"departments" gorm:"-"`
 	MemberBindings []MemberBinding `json:"memberbindings" gorm:"-"`
+	GroupIds       []int64         `json:"group_ids" gorm:"-"`
 	BaseModel
 }
 
@@ -40,17 +42,11 @@ const (
 	RoleAdminUser   = 10
 	RoleCreatorUser = 10000
 	RoleRootUser    = 100000
-)
 
-// User status constants
-const (
 	UserStatusNotJoined = 0 // Not joined
 	UserStatusJoined    = 1 // Joined
 	UserStatusDisabled  = 2 // Disabled
-)
 
-// User type constants
-const (
 	UserTypeRegistered = 1 // Registered user
 	UserTypeInternal   = 2 // Internal user
 )
@@ -62,10 +58,10 @@ func (user *User) Create() error {
 	}
 	// check if username exists
 	var count int64
-	DB.Model(&User{}).Where("eid = ? AND username = ?", user.Eid, user.Username).Count(&count)
-	if count > 0 {
-		return errors.New("username already exists")
-	}
+	// DB.Model(&User{}).Where("eid = ? AND username = ?", user.Eid, user.Username).Count(&count)
+	// if count > 0 {
+	// 	return errors.New("username already exists")
+	// }
 
 	if user.Mobile != "" {
 		// check if mobile exists
@@ -438,4 +434,29 @@ func (u *User) GetUserGroupIds() ([]int64, error) {
 		return groupIDs, nil
 	}
 	return []int64{}, nil
+}
+
+func (u *User) LoadGroupIds() error {
+	groupIDs, err := u.GetUserGroupIds()
+	if err != nil {
+		return err
+	}
+	u.GroupIds = groupIDs
+	if u.Type == UserTypeInternal {
+		u.GroupIds = append(u.GroupIds, u.GroupId)
+	}
+	return nil
+}
+
+func GetLoginUser(c *gin.Context) (*User, error) {
+	authHeader := c.GetHeader("Authorization")
+	authHeader = strings.Replace(authHeader, "Bearer ", "", 1)
+
+	if authHeader != "" {
+		user := ValidateAccessToken(authHeader)
+		if user != nil {
+			return user, nil
+		}
+	}
+	return nil, errors.New("user not found")
 }

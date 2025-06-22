@@ -31,7 +31,7 @@ func StreamHandler(c *gin.Context, resp *http.Response) (*model.ErrorWithStatusC
 		}
 		data = strings.TrimPrefix(data, "data:")
 		data = strings.TrimSuffix(data, "\r")
-		logger.SysLogf("53AI Stream Data: %s\n", data)
+		// logger.SysLogf("53AI Stream Data: %s\n", data)
 
 		var ai53Response StreamResponse
 		err := json.Unmarshal([]byte(data), &ai53Response)

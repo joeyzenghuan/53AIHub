@@ -32,11 +32,8 @@ type ErrorInformation struct {
 }
 
 type Request struct {
-	ConversationId string `json:"conversation_id,omitempty"`
-	BotId          string `json:"bot_id"`
-	UserID         string `json:"user_id"`
-	// Query          string `json:"query"`
-	//ChatHistory    []Message `json:"chat_history,omitempty"`
+	BotId              string              `json:"bot_id"`
+	UserID             string              `json:"user_id"`
 	AdditionalMessages []AdditionalMessage `json:"additional_messages,omitempty"`
 	Stream             bool                `json:"stream"`
 }

@@ -6,8 +6,10 @@ type Request struct {
 }
 
 type Input struct {
-	Prompt    string `json:"prompt"`
-	SessionID string `json:"session_id,omitempty"`
+	Prompt         string   `json:"prompt"`
+	SessionID      string   `json:"session_id,omitempty"`
+	ImageList      []string `json:"image_list,omitempty"`
+	SessionFileIds []string `json:"session_file_ids,omitempty"`
 }
 
 type Parameters struct {
@@ -34,4 +36,9 @@ type Models []struct {
 	InputTokens  int    `json:"input_tokens"`
 	OutputTokens int    `json:"output_tokens"`
 	ModelID      string `json:"model_id"`
+}
+
+type ErrorResponse struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
 }

@@ -1,9 +1,11 @@
 package controller
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
+	"github.com/53AI/53AIHub/common/utils"
 	"github.com/53AI/53AIHub/config"
 	"github.com/53AI/53AIHub/model"
 	"github.com/gin-gonic/gin"
@@ -15,7 +17,7 @@ type BaseGroupRequest struct {
 }
 
 type GroupRequest struct {
-	GroupType int64 `json:"group_type" example:"1"` // Group type: 1=USER_GROUP_TYPE, 2=AI_LINKS_TYPE, 3=AGENT_TYPE, 4=INTERNAL_USER_GROUP_TYPE
+	GroupType int64 `json:"group_type" example:"1"` // Group type: 1=USER_GROUP_TYPE, 2=AI_LINKS_TYPE, 3=AGENT_TYPE, 4=INTERNAL_USER_GROUP_TYPE， 5=SYSTEM_PROMPT_TYPE 6=PERSONAL_PROMPT_TYPE
 	BaseGroupRequest
 }
 
@@ -34,14 +36,20 @@ type BatchSubmitGroupsRequest struct {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param group body GroupRequest true "Group information (GroupType: 1=USER_GROUP_TYPE, 2=AI_LINKS_TYPE, 3=AGENT_TYPE, 4=INTERNAL_USER_GROUP_TYPE)"
+// @Param group body GroupRequest true "Group information (GroupType: 1=USER_GROUP_TYPE, 2=AI_LINKS_TYPE, 3=AGENT_TYPE, 4=INTERNAL_USER_GROUP_TYPE， 5=SYSTEM_PROMPT_TYPE 6=PERSONAL_PROMPT_TYPE)"
 // @Success 200 {object} model.CommonResponse "Success"
 // @Router /api/groups [post]
+// @Router /api/groups/prompt [post]
 func CreateGroup(c *gin.Context) {
 	var groupRequest GroupRequest
 	if err := c.ShouldBindJSON(&groupRequest); err != nil {
 		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
 		return
+	}
+
+	path := c.Request.URL.Path
+	if path == "/api/groups/prompt" {
+		groupRequest.GroupType = model.PERSONAL_PROMPT_TYPE
 	}
 
 	group := model.Group{
@@ -102,7 +110,7 @@ func UpdateGroup(c *gin.Context) {
 	}
 
 	var groupRequest GroupRequest
-	if err := c.ShouldBindJSON(&groupRequest); err != nil {
+	if err = c.ShouldBindJSON(&groupRequest); err != nil {
 		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
 		return
 	}
@@ -256,6 +264,17 @@ func BatchSubmitGroups(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
 		return
 	}
+
+	log := model.SystemLog{
+		Eid:      eid,
+		UserID:   config.GetUserId(c),
+		Nickname: config.GetUserNickname(c),
+		Module:   model.GetModuleByGroupType(int64(groupType)),
+		Action:   model.SystemLogActionUpdate,
+		Content:  fmt.Sprint("管理了分组"),
+		IP:       utils.GetClientIP(c),
+	}
+	model.CreateSystemLog(&log)
 
 	c.JSON(http.StatusOK, model.Success.ToResponse(nil))
 }

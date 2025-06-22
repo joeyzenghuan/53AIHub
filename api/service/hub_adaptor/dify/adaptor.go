@@ -17,7 +17,6 @@ import (
 	"github.com/53AI/53AIHub/service/hub_adaptor/custom"
 	"github.com/gin-gonic/gin"
 	"github.com/songquanpeng/one-api/common/helper"
-	"github.com/songquanpeng/one-api/relay/adaptor"
 	"github.com/songquanpeng/one-api/relay/adaptor/openai"
 	"github.com/songquanpeng/one-api/relay/meta"
 	"github.com/songquanpeng/one-api/relay/model"
@@ -33,11 +32,15 @@ func (a *Adaptor) Init(meta *meta.Meta) {
 }
 
 func (a *Adaptor) GetRequestURL(meta *meta.Meta) (string, error) {
-	return fmt.Sprintf("%s/chat-messages", meta.BaseURL), nil
+	baseUrl, err := custom.GetBaseURL(meta.BaseURL)
+	if err != nil {
+		return "", err
+	}
+	return fmt.Sprintf("%s/v1/chat-messages", baseUrl), nil
 }
 
 func (a *Adaptor) SetupRequestHeader(c *gin.Context, req *http.Request, meta *meta.Meta) error {
-	adaptor.SetupCommonRequestHeader(c, req, meta)
+	custom.SetupCommonRequestHeader(c, req, meta)
 	req.Header.Set("Authorization", "Bearer "+meta.APIKey)
 	return nil
 }
@@ -137,7 +140,7 @@ func ConvertRequest(textRequest model.GeneralOpenAIRequest, meta *meta.Meta, cus
 }
 
 func (a *Adaptor) DoRequest(c *gin.Context, meta *meta.Meta, requestBody io.Reader) (*http.Response, error) {
-	return adaptor.DoRequestHelper(a, c, meta, requestBody)
+	return custom.DoRequestHelper(a, c, meta, requestBody)
 }
 
 func (a *Adaptor) ConvertImageRequest(request *model.ImageRequest) (any, error) {
@@ -230,7 +233,11 @@ func (a *Adaptor) GetChannelName() string {
 }
 
 func DIFYUploadFile(meta *meta.Meta, uploadFile *db_model.UploadFile, fileMapping *db_model.ChannelFileMapping) error {
-	url := fmt.Sprintf("%s/files/upload", meta.BaseURL)
+	baseUrl, err := custom.GetBaseURL(meta.BaseURL)
+	if err != nil {
+		return err
+	}
+	url := fmt.Sprintf("%s/v1/files/upload", baseUrl)
 	fileContent, err := storage.StorageInstance.Load(uploadFile.Key)
 	if err != nil {
 		return err

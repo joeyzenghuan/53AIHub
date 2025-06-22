@@ -15,6 +15,7 @@ type Conversation struct {
 	ChannelConversationExpirationTime int64  `json:"channel_conversation_expiration_time" gorm:"column:channel_conversation_expiration_time;default:0"`
 	Model                             string `json:"model" gorm:"column:model;type:varchar(255)"`
 	Agent                             *Agent `json:"agent" gorm:"-"`
+	User                              *User  `json:"user" gorm:"-"`
 	BaseModel
 }
 
@@ -62,12 +63,67 @@ func GetConversationsByUserID(eid int64, userID int64) ([]*Conversation, error) 
 	return conversations, nil
 }
 
+// GetUserConversationsWithFilter retrieves conversations with filter and pagination
+func GetUserConversationsWithFilter(eid, userID int64, keyword string, createdAtStart, createdAtEnd int64, offset, limit int) ([]*Conversation, int64, error) {
+	query := DB.Where("eid = ? AND user_id = ?", eid, userID)
+
+	if createdAtStart > 0 {
+		query = query.Where("created_time >= ?", createdAtStart)
+	}
+	if createdAtEnd > 0 {
+		query = query.Where("created_time <= ?", createdAtEnd)
+	}
+
+	if keyword != "" {
+		query = query.Where("title LIKE ?", "%"+keyword+"%")
+	}
+
+	var total int64
+	if err := query.Model(&Conversation{}).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	var conversations []*Conversation
+	if err := query.Order("created_time DESC").Offset(offset).Limit(limit).Find(&conversations).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return conversations, total, nil
+}
+
+// GetMessageCountByConversationID 获取会话消息数量
+func GetMessageCountByConversationID(conversationID int64) (int, error) {
+	var count int64
+	if err := DB.Model(&Message{}).Where("conversation_id = ?", conversationID).Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return int(count), nil
+}
+
+// GetFirstMessageByConversationID 获取会话的第一条消息
+func GetFirstMessageByConversationID(conversationID int64) (string, error) {
+	var msg Message
+	if err := DB.Where("conversation_id = ?", conversationID).Order("created_time ASC").First(&msg).Error; err != nil {
+		return "", err
+	}
+	return msg.Message, nil
+}
+
 func (c *Conversation) LoadAgent() error {
 	agent, err := GetAgentByID(c.Eid, c.AgentID)
-	if err!= nil {
+	if err != nil {
 		return err
 	}
 	c.Agent = agent
+	return nil
+}
+
+func (c *Conversation) LoadUser() error {
+	user, err := GetUserByID(c.UserID)
+	if err != nil {
+		return err
+	}
+	c.User = user
 	return nil
 }
 
@@ -79,6 +135,34 @@ func GetConversationsByAgentID(eid int64, agentID int64) ([]*Conversation, error
 		return nil, err
 	}
 	return conversations, nil
+}
+
+// GetAgentConversationsWithFilter retrieves conversations with filter and pagination for agent
+func GetAgentConversationsWithFilter(eid, agentID int64, keyword string, createdAtStart, createdAtEnd int64, offset, limit int) ([]*Conversation, int64, error) {
+	query := DB.Where("eid = ? AND agent_id = ?", eid, agentID)
+
+	if createdAtStart > 0 {
+		query = query.Where("created_time >= ?", createdAtStart)
+	}
+	if createdAtEnd > 0 {
+		query = query.Where("created_time <= ?", createdAtEnd)
+	}
+
+	if keyword != "" {
+		query = query.Where("title LIKE ?", "%"+keyword+"%")
+	}
+
+	var total int64
+	if err := query.Model(&Conversation{}).Count(&total).Error; err != nil {
+		return nil, 0, err
+	}
+
+	var conversations []*Conversation
+	if err := query.Order("created_time DESC").Offset(offset).Limit(limit).Find(&conversations).Error; err != nil {
+		return nil, 0, err
+	}
+
+	return conversations, total, nil
 }
 
 // UpdateConversation updates a conversation record

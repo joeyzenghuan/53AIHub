@@ -32,6 +32,16 @@ type DepartmentTreeResponse struct {
 	Tree []*model.DepartmentNode `json:"tree"`
 }
 
+type BindRequest struct {
+	Bid    int64 `json:"bid"`
+	From   int   `json:"from"`
+	UserID int64 `json:"user_id"`
+}
+type UnBindRequest struct {
+	From   int   `json:"from"`
+	UserID int64 `json:"user_id"`
+}
+
 // CreateDepartment creates a new department
 // @Summary Create a new department
 // @Description Create a new department in the organization
@@ -242,11 +252,17 @@ func GetChildDepartments(c *gin.Context) {
 // @Tags Department
 // @Produce json
 // @Security BearerAuth
+// @Param from query int false "Filter by source (0: backend [default], 1: wecom)" default(0)
 // @Success 200 {object} model.CommonResponse{data=DepartmentTreeResponse} "Success"
 // @Failure 500 {object} model.CommonResponse "Internal server error"
 // @Router /api/departments/tree [get]
 func GetDepartmentTree(c *gin.Context) {
-	tree, err := model.GetDepartmentTree(config.GetEID(c))
+	fromStr := c.Query("from")
+	from, err := strconv.Atoi(fromStr)
+	if err != nil {
+		from = model.DepartmentFromBackend
+	}
+	tree, err := model.GetDepartmentTree(config.GetEID(c), from)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
 		return
@@ -255,4 +271,96 @@ func GetDepartmentTree(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Success.ToResponse(DepartmentTreeResponse{
 		Tree: tree,
 	}))
+}
+
+// @Summary Bind member to department
+// @Description Bind a member to specific department with given role
+// @Tags Department
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body BindRequest true "Binding request parameters"
+// @Success 200 {object} model.CommonResponse "Success"
+// @Router /api/departments/bind-member [post]
+func DepartmentBindMember(c *gin.Context) {
+	eid := config.GetEID(c)
+	// Replace query params with body params
+	var req BindRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	// Now use req.Bid, req.From, req.UserID instead of the query params
+	bid := req.Bid
+	from := req.From
+	userID := req.UserID
+
+	var user *model.User
+	err := model.DB.Where("eid = ? AND user_id = ?", eid, userID).First(&user).Error
+	if err != nil {
+		c.JSON(http.StatusBadRequest, model.NotFound.ToResponse(err))
+		return
+	}
+
+	var memberBinding *model.MemberBinding
+	memberBinding, _ = model.GetMemberBindingByMidAndFrom(user.UserID, from)
+
+	if memberBinding != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("user already bound"))
+		return
+	}
+
+	err = model.DB.Where("eid =? AND id =? AND `from` =? AND mid = 0", eid, bid, from).First(&memberBinding).Error
+	if err != nil || memberBinding == nil {
+		c.JSON(http.StatusBadRequest, model.NotFound.ToResponse(err))
+		return
+	}
+
+	memberBinding.MID = user.UserID
+	memberBinding.Status = model.MemberBindingStatusActive
+
+	err = model.UpdateMemberBinding(memberBinding)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(nil))
+}
+
+// @Summary Unbind member from department
+// @Description Remove a member's binding from department
+// @Tags Department
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body UnBindRequest true "Unbinding request parameters"
+// @Success 200 {object} model.CommonResponse "Success"
+// @Router /api/departments/bind-member [delete]
+func DepartmentUnbindMember(c *gin.Context) {
+	eid := config.GetEID(c)
+	var req UnBindRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+	var user *model.User
+	err := model.DB.Where("eid = ? AND user_id = ?", eid, req.UserID).First(&user).Error
+	if err != nil {
+		c.JSON(http.StatusBadRequest, model.NotFound.ToResponse(err))
+		return
+	}
+
+	memberBinding, err := model.GetMemberBindingByMidAndFrom(user.UserID, req.From)
+	if err != nil || memberBinding == nil {
+		c.JSON(http.StatusBadRequest, model.NotFound.ToResponse("user bind not bound"))
+		return
+	}
+
+	memberBinding.MID = 0
+	memberBinding.Status = model.MemberBindingStatusInactive
+	err = model.UpdateMemberBinding(memberBinding)
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(nil))
 }

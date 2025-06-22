@@ -161,3 +161,25 @@ func GetSettingsByGroup(c *gin.Context) {
 
 	c.JSON(http.StatusOK, model.Success.ToResponse(settings))
 }
+
+// @Summary Get setting by key
+// @Description Retrieve a specific setting by its key
+// @Tags Setting
+// @Produce json
+// @Param key path string true "Setting key"
+// @Success 200 {object} model.CommonResponse
+// @Router /api/settings/key/{key} [get]
+func GetSettingByKey(c *gin.Context) {
+	key := c.Param("key")
+	setting, err := model.GetSettingByEidAndKey(config.GetEID(c), key)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	if setting == nil {
+		c.JSON(http.StatusOK, model.Success.ToResponse(nil))
+		return
+	}
+	c.JSON(http.StatusOK, model.Success.ToResponse(setting))
+}

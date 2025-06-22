@@ -51,6 +51,12 @@ func CreateChannel(c *gin.Context) {
 		BaseURL:      req.BaseURL,
 	}
 
+	channel.Models = model.ProcessModelNames(req.Models, channel.Type)
+	if channel.Models == "" {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(strings.NewReader("models is required")))
+		return
+	}
+
 	if err := model.CreateChannel(&channel); err != nil {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
 		return
@@ -105,10 +111,17 @@ func UpdateChannel(c *gin.Context) {
 		return
 	}
 
+	channel.Models = model.ProcessModelNames(req.Models, channel.Type)
+
+	if channel.Models == "" {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(strings.NewReader("models is required")))
+		return
+	}
+
 	channel.Type = req.Type
 	channel.Key = req.Key
 	channel.Name = req.Name
-	channel.Models = req.Models
+
 	channel.Config = req.Config
 	channel.ModelMapping = req.ModelMapping
 	channel.Weight = req.Weight
@@ -177,8 +190,3 @@ func GetChannels(c *gin.Context) {
 
 	c.JSON(http.StatusOK, model.Success.ToResponse(channels))
 }
-
-// func TestChannel(c *gin.Context) {
-// 	ctx := c.Request.Context()
-// 	id, err := strconv.Atoi(c.Param("id"))
-// }

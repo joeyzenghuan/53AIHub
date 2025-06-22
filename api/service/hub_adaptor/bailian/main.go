@@ -3,6 +3,7 @@ package bailian
 import (
 	"bufio"
 	"encoding/json"
+	"errors"
 	"io"
 	"net/http"
 	"strings"
@@ -25,13 +26,31 @@ func StreamHandler(c *gin.Context, resp *http.Response) (*model.ErrorWithStatusC
 	var modelName string
 
 	channelConversationId := ""
+	var IsError bool
+	IsError = false
+	var EventStr string
+	var ErrorStr string
 	for scanner.Scan() {
 		data := scanner.Text()
+		if strings.HasPrefix(data, "event:") {
+			EventStr = strings.TrimPrefix(data, "event:")
+			if EventStr == "error" {
+				IsError = true
+				continue
+			}
+		}
+
 		if len(data) < 5 || !strings.HasPrefix(data, "data:") {
 			continue
 		}
 		data = strings.TrimPrefix(data, "data:")
 		data = strings.TrimSuffix(data, "\r")
+
+		if IsError {
+			logger.SysError("bailian response: " + data)
+			ErrorStr += data + ";"
+			continue
+		}
 
 		var bailianResponse Response
 		err := json.Unmarshal([]byte(data), &bailianResponse)
@@ -57,6 +76,14 @@ func StreamHandler(c *gin.Context, resp *http.Response) (*model.ErrorWithStatusC
 
 	if err := scanner.Err(); err != nil {
 		logger.SysError("error reading stream: " + err.Error())
+	}
+
+	if IsError {
+		return openai.ErrorWrapper(
+			errors.New(ErrorStr),
+			"stream_error",
+			resp.StatusCode,
+		), nil, ""
 	}
 
 	render.Done(c)

@@ -52,6 +52,7 @@ func UserTokenAuth(role int64) func(c *gin.Context) {
 		}
 
 		c.Set(session.SESSION_USER_ID, user_id)
+		c.Set(session.SESSION_USER_NICKNAME, user.Nickname)
 		c.Set(session.SESSION_USER_ROLE, user.Role)
 		c.Set(session.SESSION_USER_GROUP_ID, user.GroupId)
 		c.Set(session.ENV_EID, eid)

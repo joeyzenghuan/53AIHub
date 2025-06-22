@@ -2,6 +2,7 @@ package controller
 
 import (
 	"errors"
+	"fmt"
 	"io"
 	"net/http"
 	"net/url"
@@ -140,6 +141,7 @@ func PreviewFile(c *gin.Context) {
 
 	c.Header("Content-Disposition", `inline; filename="`+filename+`"; filename*=UTF-8''`+encodedFilename)
 	c.Header("Content-Type", uploadFile.MimeType)
+	c.Header("Content-Length", fmt.Sprintf("%d", uploadFile.Size))
 
 	c.Data(http.StatusOK, uploadFile.MimeType, fileContent)
 }

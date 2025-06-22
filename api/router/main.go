@@ -29,6 +29,7 @@ func SetRouter(router *gin.Engine, buildFS embed.FS) {
 	router.GET("/heath", controller.HealthCheck)
 	router.Use(middleware.CORS())
 	setStaticImagesRouter(router, buildFS)
+	setStaticLibsRouter(router, buildFS)
 	SetApiRouter(router)
 	// SetWebRouter(router, buildFS)
 	SetStaticRouter(router, buildFS)
@@ -37,4 +38,9 @@ func SetRouter(router *gin.Engine, buildFS embed.FS) {
 func setStaticImagesRouter(router *gin.Engine, buildFS embed.FS) {
 	subFS, _ := fs.Sub(buildFS, "static/images")
 	router.StaticFS("/api/images", http.FS(subFS))
+}
+
+func setStaticLibsRouter(router *gin.Engine, buildFS embed.FS) {
+	subFS, _ := fs.Sub(buildFS, "static/libs")
+	router.StaticFS("/api/libs", http.FS(subFS))
 }

@@ -95,7 +95,7 @@ func CozeCallBack(c *gin.Context) {
 	// todo Call interface user ID all use the same
 	configStr := `{"region":"","sk":"","ak":"","user_id":"53AIHub","vertex_ai_project_id":"","vertex_ai_adc":""}`
 	// Create or update channel record
-	baseURL := model.GetBaseURLByProviderType(providerType)
+	baseURL := provider.GetBaseURLByProviderType()
 	channel := &model.Channel{
 		Eid:        eid,
 		Name:       ser.Provider.Name,

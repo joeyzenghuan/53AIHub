@@ -2,17 +2,21 @@ package controller
 
 import (
 	"encoding/json"
+	"errors"
 	"fmt"
 	"net/http"
 	"strconv"
+	"strings"
 	"time"
 
 	"github.com/53AI/53AIHub/common"
 	"github.com/53AI/53AIHub/common/session"
+	"github.com/53AI/53AIHub/common/utils"
 	"github.com/53AI/53AIHub/common/utils/helper"
 	"github.com/53AI/53AIHub/config"
 	"github.com/53AI/53AIHub/model"
 	"github.com/53AI/53AIHub/service"
+	"gorm.io/gorm"
 
 	"github.com/gin-gonic/gin"
 )
@@ -71,7 +75,7 @@ func Login(c *gin.Context) {
 	var loginRequest LoginRequest
 	err := json.NewDecoder(c.Request.Body).Decode(&loginRequest)
 	if err != nil {
-		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(nil))
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
 		return
 	}
 
@@ -112,11 +116,88 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, model.SystemError.ToResponse(err))
 	}
 
+	log := model.SystemLog{
+		Eid:      eid,
+		UserID:   user.UserID,
+		Nickname: user.Nickname,
+		Module:   model.SystemLogModuleSystem,
+		Action:   model.SystemLogActionLoginOut,
+		Content:  "登录",
+		IP:       utils.GetClientIP(c),
+	}
+	model.CreateSystemLog(&log)
+
 	LoginResponse := LoginResponse{
 		AccessToken: user.AccessToken,
 		UserID:      user.UserID,
 	}
 	c.JSON(http.StatusOK, model.Success.ToResponse(LoginResponse))
+}
+
+// SmsLoginRequest 手机号登录请求结构体
+type SmsLoginRequest struct {
+	Mobile     string `json:"mobile" binding:"required"`      // 手机号
+	VerifyCode string `json:"verify_code" binding:"required"` // 验证码
+}
+
+type SmsLoginResponse struct {
+	LoginResponse
+	Username string `json:"username"`
+	Nickname string `json:"nickname"`
+}
+
+// @Summary 手机号验证码登录
+// @Description 使用手机号和验证码登录
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param request body SmsLoginRequest true "登录信息"
+// @Success 200 {object} model.CommonResponse{data=SmsLoginResponse} "Success"
+// @Router /api/sms_login [post]
+func SmsLogin(c *gin.Context) {
+	var req SmsLoginRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	if !helper.IsValidPhone(req.Mobile) {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToNewErrorResponse(model.InvalidMobileOrEmail))
+		return
+	}
+
+	if req.VerifyCode == "" {
+		c.JSON(http.StatusUnauthorized, model.UnauthorizedError.ToNewErrorResponse(model.InvalidVerificationCode))
+		return
+	}
+
+	redisKey := fmt.Sprintf("Api::CheckVerificationCode:%s", req.Mobile)
+	code, err := common.RedisGet(redisKey)
+	if err != nil || code != req.VerifyCode {
+		c.JSON(http.StatusUnauthorized, model.UnauthorizedError.ToNewErrorResponse(model.InvalidVerificationCode))
+		return
+	}
+
+	eid := config.GetEID(c)
+	existingUser, err := model.GetUserByMobile(eid, req.Mobile)
+	if err != nil {
+		c.JSON(http.StatusUnauthorized, model.UnauthorizedError.ToResponse(err))
+		return
+	}
+
+	if err := existingUser.RefreshAccessToken(); err != nil {
+		c.JSON(http.StatusInternalServerError, model.SystemError.ToResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(&SmsLoginResponse{
+		LoginResponse: LoginResponse{
+			AccessToken: existingUser.AccessToken,
+			UserID:      existingUser.UserID,
+		},
+		Username: existingUser.Username,
+		Nickname: existingUser.Nickname,
+	}))
 }
 
 // Register User Register
@@ -144,19 +225,25 @@ func PasswordRegister(c *gin.Context) {
 
 	if isMobile && config.IS_SAAS {
 		if userRequest.VerifyCode == "" {
-			c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Verification code is required for mobile registration"))
+			c.JSON(http.StatusBadRequest, model.ParamError.ToNewErrorResponse(model.InvalidVerificationCode))
 			return
 		}
 
 		redisKey := fmt.Sprintf("Api::CheckVerificationCode:%s", username)
 		code, err := common.RedisGet(redisKey)
 		if err != nil || code != userRequest.VerifyCode {
-			c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Invalid or expired verification code"))
+			c.JSON(http.StatusBadRequest, model.ParamError.ToNewErrorResponse(model.InvalidVerificationCode))
 			return
 		}
 	} else if !isEmail && config.IS_SAAS {
-		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Invalid account format, please enter a valid mobile number or email"))
+		c.JSON(http.StatusBadRequest, model.ParamError.ToNewErrorResponse(model.InvalidMobileOrEmail))
 		return
+	} else if isEmail && config.IS_SAAS {
+		_, err = common.VerifyEmailCode(username, userRequest.VerifyCode)
+		if err != nil {
+			c.JSON(http.StatusUnauthorized, model.AuthFailed.ToResponse(err))
+			return
+		}
 	}
 
 	eid := config.GetEID(c)
@@ -322,11 +409,37 @@ func DeleteEnterpriseUser(c *gin.Context) {
 	}
 
 	eid := config.GetEID(c)
+	user, err := model.GetUserByID(int64(user_id))
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, model.NotFound.ToResponse(err))
+			return
+		}
+	}
 	err = model.DeleteUser(eid, int64(user_id))
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
 		return
 	}
+
+	var module uint8
+	module = model.SystemLogModuleRegistered
+	if user.Type == model.UserTypeInternal {
+		module = model.SystemLogModuleInternalUser
+	}
+
+	model.LogEntityChange(
+		fmt.Sprintf("账号【%s】", user.Nickname),
+		model.SystemLogActionDelete,
+		eid,
+		config.GetUserId(c),
+		config.GetUserNickname(c),
+		module,
+		nil,
+		nil,
+		utils.GetClientIP(c),
+		nil,
+	)
 
 	c.JSON(http.StatusOK, model.Success.ToResponse(nil))
 }
@@ -345,7 +458,7 @@ func DeleteEnterpriseUser(c *gin.Context) {
 func UpdateEnterpriseUser(c *gin.Context) {
 	user_id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(nil))
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
 		return
 	}
 	var userRequest EnterpriseAddUserRequest
@@ -361,6 +474,16 @@ func UpdateEnterpriseUser(c *gin.Context) {
 		return
 	}
 
+	fieldMap := map[string]string{
+		"Nickname":    "姓名",
+		"Avatar":      "头像",
+		"Password":    "密码",
+		"GroupId":     "分组ID",
+		"ExpiredTime": "过期时间",
+	}
+
+	oldUser := *user
+
 	user.Nickname = userRequest.Nickname
 	user.Avatar = userRequest.Avatar
 	updatePassword := false
@@ -371,6 +494,19 @@ func UpdateEnterpriseUser(c *gin.Context) {
 	// user.Mobile = userRequest.Mobile
 	user.GroupId = userRequest.GroupId
 	user.ExpiredTime = userRequest.ExpiredTime
+
+	model.LogEntityChange(
+		fmt.Sprintf("账号【%s】", oldUser.Nickname),
+		model.SystemLogActionUpdate,
+		user.Eid,
+		user.UserID,
+		user.Nickname,
+		model.SystemLogModuleRegistered,
+		oldUser,
+		user,
+		utils.GetClientIP(c),
+		fieldMap,
+	)
 
 	err = user.Update(updatePassword)
 	if err != nil {
@@ -416,6 +552,7 @@ func GetCurrentUser(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
 		return
 	}
+	user.LoadGroupIds()
 
 	c.JSON(http.StatusOK, model.Success.ToResponse(GetCurrentUserResponse{
 		User: user,
@@ -444,7 +581,7 @@ func UpdateUserPassword(c *gin.Context) {
 	}
 
 	if req.NewPassword != req.ConfirmPassword {
-		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("New password and confirm password do not match"))
+		c.JSON(http.StatusBadRequest, model.ParamError.ToNewErrorResponse(model.PasswordNotMatch))
 		return
 	}
 
@@ -589,7 +726,7 @@ type BatchSetAdminResponse struct {
 func SetUserAsAdmin(c *gin.Context) {
 	eid := config.GetEID(c)
 	if eid <= 0 {
-		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Invalid enterprise ID"))
+		c.JSON(http.StatusBadRequest, model.ParamError.ToNewErrorResponse(model.InvalidEnterpriseID))
 		return
 	}
 
@@ -612,6 +749,7 @@ func SetUserAsAdmin(c *gin.Context) {
 		Failed:  []int64{},
 	}
 
+	nicknames := make([]string, 0, len(userIDs))
 	for _, userID := range userIDs {
 		user, err := model.GetUserByID(userID)
 		if err != nil {
@@ -641,6 +779,7 @@ func SetUserAsAdmin(c *gin.Context) {
 		}
 
 		response.Success = append(response.Success, userID)
+		nicknames = append(nicknames, user.Nickname)
 	}
 
 	if err := tx.Commit().Error; err != nil {
@@ -648,6 +787,17 @@ func SetUserAsAdmin(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
 		return
 	}
+
+	log := model.SystemLog{
+		Eid:      eid,
+		UserID:   config.GetUserId(c),
+		Nickname: config.GetUserNickname(c),
+		Module:   model.SystemLogModuleAdmin,
+		Action:   model.SystemLogActionCreate,
+		Content:  fmt.Sprintf("新建管理员【%s】", strings.Join(nicknames, "】【")),
+		IP:       utils.GetClientIP(c),
+	}
+	model.CreateSystemLog(&log)
 
 	c.JSON(http.StatusOK, model.Success.ToResponse(response))
 }
@@ -671,7 +821,7 @@ func UnsetUserAsAdmin(c *gin.Context) {
 	// Get current enterprise ID
 	eid := config.GetEID(c)
 	if eid <= 0 {
-		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Invalid enterprise ID"))
+		c.JSON(http.StatusBadRequest, model.ParamError.ToNewErrorResponse(model.InvalidEnterpriseID))
 		return
 	}
 
@@ -696,6 +846,7 @@ func UnsetUserAsAdmin(c *gin.Context) {
 		Failed:  []int64{},
 	}
 
+	nicknames := make([]string, 0, len(userIDs))
 	// Process each user ID
 	for _, userID := range userIDs {
 		// Get user information
@@ -730,6 +881,7 @@ func UnsetUserAsAdmin(c *gin.Context) {
 		}
 
 		response.Success = append(response.Success, userID)
+		nicknames = append(nicknames, user.Nickname)
 	}
 
 	// Commit transaction
@@ -738,6 +890,17 @@ func UnsetUserAsAdmin(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
 		return
 	}
+
+	log := model.SystemLog{
+		Eid:      eid,
+		UserID:   config.GetUserId(c),
+		Nickname: config.GetUserNickname(c),
+		Module:   model.SystemLogModuleAdmin,
+		Action:   model.SystemLogActionUpdate,
+		Content:  fmt.Sprintf("删除管理员【%s】", strings.Join(nicknames, "】【")),
+		IP:       utils.GetClientIP(c),
+	}
+	model.CreateSystemLog(&log)
 
 	c.JSON(http.StatusOK, model.Success.ToResponse(response))
 }
@@ -792,10 +955,11 @@ func BatchAddInternalUsers(c *gin.Context) {
 
 	eid := config.GetEID(c)
 	if eid <= 0 {
-		c.JSON(http.StatusOK, model.ParamError.ToResponse("Invalid enterprise ID"))
+		c.JSON(http.StatusOK, model.ParamError.ToNewErrorResponse(model.InvalidEnterpriseID))
 		return
 	}
 
+	nicknames := make([]string, len(batchRequest.Users))
 	users := make([]service.InternalUserInfo, len(batchRequest.Users))
 	for i, user := range batchRequest.Users {
 		users[i] = service.InternalUserInfo{
@@ -804,6 +968,7 @@ func BatchAddInternalUsers(c *gin.Context) {
 			Dids:     user.Dids,
 			Password: user.Password,
 		}
+		nicknames[i] = user.Nickname
 	}
 
 	userService := service.UserService{}
@@ -820,6 +985,19 @@ func BatchAddInternalUsers(c *gin.Context) {
 		}))
 		return
 	}
+
+	model.LogEntityChange(
+		fmt.Sprintf("账号【%s】", strings.Join(nicknames, "; ")),
+		model.SystemLogActionCreate,
+		eid,
+		config.GetUserId(c),
+		config.GetUserNickname(c),
+		model.SystemLogModuleInternalUser,
+		nil,
+		nil,
+		utils.GetClientIP(c),
+		nil,
+	)
 
 	c.JSON(http.StatusOK, model.Success.ToResponse(BatchAddInternalUserResponse{
 		Success: result.Success,
@@ -853,13 +1031,13 @@ func RegisterUserToInternal(c *gin.Context) {
 	}
 
 	if len(req.UserDepartments) == 0 {
-		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("User-department mapping cannot be empty"))
+		c.JSON(http.StatusBadRequest, model.ParamError.ToNewErrorResponse("User-department mapping cannot be empty"))
 		return
 	}
 
 	eid := config.GetEID(c)
 	if eid <= 0 {
-		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Invalid enterprise ID"))
+		c.JSON(http.StatusBadRequest, model.ParamError.ToNewErrorResponse(model.InvalidEnterpriseID))
 		return
 	}
 
@@ -920,7 +1098,7 @@ type InternalUserResponse struct {
 func GetInternalUsers(c *gin.Context) {
 	eid := config.GetEID(c)
 	if eid <= 0 {
-		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("企业ID无效"))
+		c.JSON(http.StatusBadRequest, model.ParamError.ToNewErrorResponse(model.InvalidEnterpriseID))
 		return
 	}
 
@@ -984,14 +1162,14 @@ func UpdateUserStatus(c *gin.Context) {
 	}
 
 	var req UpdateUserStatusRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if err = c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
 		return
 	}
 
 	// Validate if the status value is valid
 	if req.Status != model.UserStatusJoined && req.Status != model.UserStatusDisabled {
-		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Invalid status value"))
+		c.JSON(http.StatusBadRequest, model.ParamError.ToNewErrorResponse("Invalid status value"))
 		return
 	}
 
@@ -1016,6 +1194,22 @@ func UpdateUserStatus(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
 		return
 	}
+
+	statusText := "激活"
+	if user.Status == model.UserStatusDisabled {
+		statusText = "禁用"
+	}
+
+	log := model.SystemLog{
+		Eid:      eid,
+		UserID:   config.GetUserId(c),
+		Nickname: config.GetUserNickname(c),
+		Module:   model.SystemLogModuleSystem,
+		Action:   model.SystemLogActionToggle,
+		Content:  fmt.Sprintf("%s账号【%s】", statusText, user.Nickname),
+		IP:       utils.GetClientIP(c),
+	}
+	model.CreateSystemLog(&log)
 
 	c.JSON(http.StatusOK, model.Success.ToResponse(user))
 }
@@ -1055,14 +1249,14 @@ func UpdateInternalUser(c *gin.Context) {
 
 	// Get enterprise ID from context
 	eid := config.GetEID(c)
-	
+
 	// Retrieve user by ID
 	user, err := model.GetUserByID(id)
 	if err != nil {
 		c.JSON(http.StatusNotFound, model.NotFound.ToResponse(err))
 		return
 	}
-
+	oldUser := *user
 	// Verify user belongs to current enterprise
 	if user.Eid != eid {
 		c.JSON(http.StatusForbidden, model.ForbiddenError.ToResponse(nil))
@@ -1101,7 +1295,7 @@ func UpdateInternalUser(c *gin.Context) {
 			}
 			if count > 0 {
 				tx.Rollback()
-				c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Mobile number already exists"))
+				c.JSON(http.StatusBadRequest, model.ParamError.ToNewErrorResponse("Mobile number already exists"))
 				return
 			}
 			user.Mobile = req.Mobile
@@ -1118,7 +1312,7 @@ func UpdateInternalUser(c *gin.Context) {
 			}
 			if count > 0 {
 				tx.Rollback()
-				c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Email already exists"))
+				c.JSON(http.StatusBadRequest, model.ParamError.ToNewErrorResponse("Email already exists"))
 				return
 			}
 			user.Email = req.Email
@@ -1183,7 +1377,7 @@ func UpdateInternalUser(c *gin.Context) {
 			if existingDeptMap[deptID] || deptID <= 0 {
 				continue
 			}
-			
+
 			// Create new department relationship
 			relation := model.MemberDepartmentRelation{
 				EID: eid,
@@ -1200,6 +1394,227 @@ func UpdateInternalUser(c *gin.Context) {
 
 	// Commit transaction
 	if err := tx.Commit().Error; err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	// Prepare for logging
+	fieldMap := map[string]string{
+		"Nickname": "昵称",
+		"Mobile":   "手机号",
+		"Email":    "邮箱",
+		"Status":   "状态",
+	}
+	model.LogEntityChange(
+		fmt.Sprintf("账号【%s】", oldUser.Nickname),
+		model.SystemLogActionUpdate,
+		eid,
+		config.GetUserId(c),
+		config.GetUserNickname(c),
+		model.SystemLogModuleInternalUser,
+		oldUser,
+		user,
+		utils.GetClientIP(c),
+		fieldMap,
+	)
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(user))
+}
+
+// ResetPasswordRequest 重置密码请求结构体
+type ResetPasswordRequest struct {
+	Mobile          string `json:"mobile"`                                // 手机号（与邮箱二选一）
+	Email           string `json:"email"`                                 // 邮箱（与手机号二选一）
+	VerifyCode      string `json:"verify_code" binding:"required"`        // 验证码
+	NewPassword     string `json:"new_password" binding:"required,min=6"` // 新密码（至少6位）
+	ConfirmPassword string `json:"confirm_password" binding:"required"`   // 确认新密码
+}
+
+// ResetPassword 重置用户密码
+// @Summary 重置用户密码
+// @Description 通过手机号或邮箱验证码重置密码
+// @Tags User
+// @Accept json
+// @Produce json
+// @Param request body ResetPasswordRequest true "重置密码请求"
+// @Success 200 {object} model.CommonResponse "密码重置成功"
+// @Router /api/reset_password [post]
+func ResetPassword(c *gin.Context) {
+	var req ResetPasswordRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	user, err := model.GetLoginUser(c)
+	if err == nil {
+		if req.Mobile != "" {
+			req.Mobile = user.Mobile
+		}
+		if req.Email != "" {
+			req.Email = user.Email
+		}
+	}
+
+	// 验证至少提供手机号或邮箱
+	if req.Mobile == "" && req.Email == "" {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToNewErrorResponse(model.InvalidMobileOrEmail))
+		return
+	}
+
+	// 验证新密码一致性
+	if req.NewPassword != req.ConfirmPassword {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToNewErrorResponse(model.PasswordNotMatch))
+		return
+	}
+
+	// 验证格式
+	validMobile := req.Mobile != "" && helper.IsValidPhone(req.Mobile)
+	validEmail := req.Email != "" && helper.IsValidEmail(req.Email)
+	if !validMobile && !validEmail {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToNewErrorResponse(model.InvalidMobileOrEmail))
+		return
+	}
+
+	// 验证验证码
+	var code string
+	if validMobile {
+		// 目前 saas 版要求是这样
+		redisKey := fmt.Sprintf("Api::CheckVerificationCode:%s", req.Mobile)
+		code, err = common.RedisGet(redisKey)
+	} else {
+		// 邮箱验证码从数据库查询
+		var vc model.VerificationCode
+		err = model.DB.Where("target = ? AND type = ? AND code = ?", req.Email, model.VerificationCodeTypeEmail, req.VerifyCode).First(&vc).Error
+		if err == nil {
+			code = vc.Code
+		}
+	}
+
+	if err != nil || code != req.VerifyCode {
+		c.JSON(http.StatusUnauthorized, model.UnauthorizedError.ToNewErrorResponse(model.InvalidVerificationCode))
+		return
+	}
+
+	if user == nil {
+		eid := config.GetEID(c)
+		// 查询用户
+		query := model.DB
+		if validMobile {
+			query = query.Where("eid = ? AND mobile = ?", eid, req.Mobile)
+		} else {
+			query = query.Where("eid = ? AND email = ?", eid, req.Email)
+		}
+		err = query.First(&user).Error
+		if err != nil {
+			if errors.Is(err, gorm.ErrRecordNotFound) {
+				c.JSON(http.StatusNotFound, model.NotFound.ToNewErrorResponse("User does not exist"))
+			} else {
+				c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+			}
+			return
+		}
+	}
+
+	// 加密新密码
+	salt := helper.RandomString(6)
+	hashedPassword, err := helper.PasswordHash(req.NewPassword, salt)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.SystemError.ToResponse(err))
+		return
+	}
+
+	// 更新用户密码
+	user.Password = hashedPassword
+	user.Salt = salt
+	err = model.DB.Save(&user).Error
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse("Password reset successful"))
+}
+
+// UpdateUserMobileRequest 更新用户手机号请求结构体
+type UpdateUserMobileRequest struct {
+	OldCode   string `json:"old_code"`   // 原手机号验证码
+	NewMobile string `json:"new_mobile" binding:"required"` // 新手机号
+	NewCode   string `json:"new_code" binding:"required"`   // 新手机号验证码
+}
+
+// UpdateUserMobile 绑定、更新用户手机号
+// @Summary 绑定、更新用户手机号
+// @Description 通过原手机号和新手机号验证码验证后更新绑定的手机号
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "用户ID"
+// @Param data body UpdateUserMobileRequest true "原手机号验证码、新手机号及新验证码"
+// @Success 200 {object} model.CommonResponse{data=model.User} "更新成功"
+// @Failure 400 {object} model.CommonResponse "参数错误"
+// @Failure 401 {object} model.CommonResponse "验证码无效"
+// @Failure 409 {object} model.CommonResponse "手机号已被绑定"
+// @Router /api/users/{id}/mobile [patch]
+func UpdateUserMobile(c *gin.Context) {
+	// 解析路径参数ID
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	var req UpdateUserMobileRequest
+	if err = c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	// 获取当前用户
+	user, err := model.GetUserByID(id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, model.NotFound.ToResponse(err))
+		return
+	}
+
+	if user.Mobile != "" {
+		oldMobileRedisKey := fmt.Sprintf("Api::CheckVerificationCode:%s", user.Mobile)
+		oldCode, err := common.RedisGet(oldMobileRedisKey)
+		if err != nil || oldCode != req.OldCode {
+			c.JSON(http.StatusUnauthorized, model.AuthFailed.ToNewErrorResponse(model.InvalidVerificationCode))
+			return
+		}
+	}
+
+	// 验证新手机号格式
+	if !helper.IsValidPhone(req.NewMobile) {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(model.InvalidMobileFormat))
+		return
+	}
+
+	// 验证新手机号验证码（Redis）
+	newMobileRedisKey := fmt.Sprintf("Api::CheckVerificationCode:%s", req.NewMobile)
+	newCode, err := common.RedisGet(newMobileRedisKey)
+	if err != nil || newCode != req.NewCode {
+		c.JSON(http.StatusUnauthorized, model.AuthFailed.ToNewErrorResponse(model.InvalidVerificationCode))
+		return
+	}
+
+	// 检查新手机号是否已被其他用户绑定
+	existingUser, err := model.GetUserByMobile(user.Eid, req.NewMobile)
+	if err != nil && !errors.Is(err, gorm.ErrRecordNotFound) {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+	if existingUser.UserID > 0 && existingUser.UserID != id {
+		err := errors.New("This mobile has been bound by another user")
+		c.JSON(http.StatusConflict, model.AuthFailed.ToErrorResponse(err))
+		return
+	}
+
+	user.Mobile = req.NewMobile
+	if err := user.Update(false); err != nil {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
 		return
 	}

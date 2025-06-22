@@ -1,0 +1,1 @@
+import{P as o}from"./view-Cr_218x0.js";import{B as r,h as t,b as e}from"./main-BkqrklTl.js";import"./el-empty-CCBCNL7H.js";import"./el-dropdown-item-Ca9Z_2s8.js";/* empty css                  */import"./el-tab-pane-BrDfsG7z.js";import"./index-1x5IBe2-.js";const d=r({__name:"index",setup(p){return(m,i)=>(e(),t(o))}});export{d as default};

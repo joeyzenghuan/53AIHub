@@ -35,7 +35,7 @@ func GetAppBuilderAllBots(c *gin.Context) {
 
 	apps, err := ser.GetAllDescribeApps()
 	if err != nil {
-		logger.SysLogf("GetAppBuilderAllBots:", err.Error())
+		logger.SysLogf("GetAppBuilderAllBots: %s", err.Error())
 		if len(apps) == 0 {
 			c.JSON(http.StatusInternalServerError, model.ProviderNoFoundError.ToResponse(err))
 			return
@@ -57,7 +57,7 @@ func UpdateAppBuilderChannel(provider model.Provider, apps []appbuilder.AppInfo)
 	// todo Call interface user ID all use the same
 	configStr := `{"region":"","sk":"","ak":"","user_id":"53AIHub","vertex_ai_project_id":"","vertex_ai_adc":""}`
 	// Create or update channel record
-	baseURL := model.GetBaseURLByProviderType(provider.ProviderType)
+	baseURL := provider.GetBaseURLByProviderType()
 	channel := &model.Channel{
 		Eid:        provider.Eid,
 		Name:       provider.Name,

@@ -5,6 +5,7 @@ const (
 	ResourceTypeAgent      = "agent"      // Agent resource type
 	ResourceTypeUser       = "user"       // User resource type
 	ResourceTypeDepartment = "department" // Department resource type
+	ResourceTypePrompt     = "prompt"     // Prompt resource type
 )
 
 // Permission defines constants for permission types
