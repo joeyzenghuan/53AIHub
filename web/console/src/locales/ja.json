@@ -16,7 +16,8 @@
   },
   "response_message": {
     "user_not_found": "ユーザーが見つかりません",
-    "username_or_password_is_incorrect": "ユーザー名またはパスワードが間違っています"
+    "username_or_password_is_incorrect": "ユーザー名またはパスワードが間違っています",
+    "operate_too_fast": "操作が速すぎます。後でもう一度試してください"
   },
   "response_data": {
     "domain_already_bound": "ドメイン名はすでに使用されています。別のドメイン名を使用してください",
@@ -32,6 +33,9 @@
     "agent_type_coze_workflow": "Cozeアプリケーションインテリジェント",
     "agent_type_dify_agent": "Difyインテリジェントエージェント",
     "agent_type_dify_workflow": "Difyアプリケーションインテリジェント",
+    "agent_type_yuanqi": "Tencent Yuanqi",
+    "agent_type_bailian": "Alibaba Bailian",
+    "agent_type_volcengine": "Volcengine",
     "agent_sort_desc": "数字が大きいほど、順位が高くなります",
     "dialogue": "業務対話",
     "draft": "インテリジェントプラン",
@@ -55,7 +59,7 @@
     "agent": "インテリジェントエージェント",
     "agent_search_placeholder": "インテリジェントエージェントを検索",
     "ai_toolbox": "AIツールボックス",
-    "ai_toolbox_search_placeholder": "製品を検索",
+    "ai_toolbox_search_placeholder": "ツールを検索",
     "operation_management": "運用管理",
     "operation_user": "ユーザーデータ",
     "operation_user_delete_confirm": "このユーザーを削除してもよろしいですか？",
@@ -92,7 +96,6 @@
     "website_info_template": "サイトテンプレート",
     "website_info_layout": "ウェブサイトレイアウト",
     "platform": "プラットフォーム連携",
-    "platform_header_title": "エージェントプラットフォーム",
     "platform_delete_confirm": "このインテリジェントエージェントプラットフォームを削除してもよろしいですか？",
     "platform_tools": "拡張ツール",
     "platform_auth_client_id": "クライアントID",
@@ -100,6 +103,8 @@
     "platform_auth_client_secret": "クライアントシークレット",
     "platform_auth_client_secret_placeholder": "クライアントシークレットを入力してください",
     "platform_auth_coze_confirm": "確認你在扣子已經保存",
+    "platform_auth_url": "URL",
+    "platform_auth_secret": "Secret",
     "platform_search_online": "ネットワーク検索",
     "platform_search_online_desc": "ウェブコンテンツを検索し、結果を要約します。",
     "platform_search_online_delete_confirm": "このネットワーク検索ツールを削除してもよろしいですか？",
@@ -110,7 +115,7 @@
     "platform_model_organization_id": "組織ID",
     "platform_model_organization_id_placeholder": "組織IDを入力してください",
     "platform_model_base_url": "API Base",
-    "platform_model_base_url_placeholder": "API Baseを入力してください、例：https://api.openai,com",
+    "platform_model_base_url_placeholder": "API Baseを入力してください、例：https://api.openai.com",
     "platform_model_api_endpoint": "カスタムAPIエンドポイント",
     "platform_model_api_endpoint_placeholder": "カスタムAPIエンドポイントを入力してください、例：https://api.deepseek.com/v1 or https://api.deepseek.com",
     "platform_model_models": "有効なモデル",
@@ -320,7 +325,8 @@
       "pending": "待支払い",
       "paid": "支払い済み",
       "expired": "超时"
-    }
+    },
+    "confirm_tip": "確認すると、注文は確定されます。"
   },
   "payment": {
     "type": {
@@ -328,6 +334,12 @@
       "wechat": "WeChat",
       "manual": "手動送金",
       "paypal": "PayPal"
+    },
+    "manual": {
+      "qrcode": "収款コード",
+      "qrcode_placeholder": "収款コードをアップロードしてください",
+      "desc": "備考",
+      "desc_placeholder": "例：上記金額を支払うには、微信/アリババ のQRコードを使用してください"
     }
   },
   "template_style": {
@@ -357,19 +369,19 @@
     },
     "app_guide": {
       "title": "APPIDの取得方法",
-      "step_1": "1、在微信支付商戶平台的【產品中心 - AppID賬號管理】中點擊“關聯APPID”，將之前獲取的公眾號或小程序的APPID填入並確認關聯。登錄微信開放平台，在消息中心中同意關聯。",
+      "step_1": "1、在微信支付商戶平台的【產品中心 - AppID賬號管理】中點擊\"關聯APPID\"，將之前獲取的公眾號或小程序的APPID填入並確認關聯。登錄微信開放平台，在消息中心中同意關聯。",
       "step_2": "2、將已關聯的APPID，複製填入表單。\n\n補充：如果還未關聯任何公眾號，則需要先關聯公眾號，操作方法：點擊關聯AppID",
       "step_3": "然後登錄微信公眾平台（{url}），進入公眾號後台，在【設置與開發 - 基本配置】中獲取開發者ID（AppID）。如果是小程序，可在微信公眾平台的小程序管理後台獲取小程序APPID。"
     },
     "api_guide": {
       "title": "APIV3密鑰の取得方法",
       "step_1": "1、登錄微信支付商戶平台，進入【賬戶中心 - 賬戶設置 - API安全】，點擊【APIv3密鑰】",
-      "step_2": "2、在彈出窗口中點擊“已溝通”，輸入一個32位的隨機密鑰（包含數字及大小寫字母），點擊獲取短信驗證碼，輸入驗證碼後點擊“確認”，即可設置成功。"
+      "step_2": "2、在彈出窗口中點擊\"已溝通\"，輸入一個32位的隨機密鑰（包含數字及大小寫字母），點擊獲取短信驗證碼，輸入驗證碼後點擊\"確認\"，即可設置成功。"
     },
     "cert_guide": {
       "title": "証書の取得方法",
       "step_1": "1、登錄微信支付商戶平台，進入【賬戶中心 - 賬戶設置 - API安全】，點擊【APIv3密鑰】",
-      "step_2": "2、在彈出窗口中點擊“已溝通”，輸入一個32位的隨機密鑰（包含數字及大小寫字母），點擊獲取短信驗證碼，輸入驗證碼後點擊“確認”，即可設置成功。"
+      "step_2": "2、在彈出窗口中點擊\"已溝通\"，輸入一個32位的隨機密鑰（包含數字及大小寫字母），點擊獲取短信驗證碼，輸入驗證碼後點擊\"確認\"，即可設置成功。"
     },
     "serial_guide": {
       "title": "証書序列号の取得方法",
@@ -383,23 +395,46 @@
     },
     "app_builder": {
       "tip": "Baidu Intelligence Cloud Qianfanへ移動（{url}）\n手順1：ログイン後、左側ナビゲーションバーの\"API Key\"をクリック\n手順2：API Keyを作成（\"サービス\"で\"Qianfan AppBuilder\"を選択し、必要に応じてアプリケーションリソースを設定）\n手順3：作成完了後、API Keyをコピーして下記フォームに入力してください。"
+    },
+    "53ai": {
+      "tip": "前往 53AI（{url}） 第一步：登录后，点击左侧导航栏的 \"设置\"\n第二步：在\"企业信息\"下点击生成Secret Key\n第三步：生成后，复制Sercet Key填入下列表单。"
     }
   },
   "agent_app": {
     "prompt": "プロンプトで作成",
     "53ai_agent": "53AIインテリジェントエージェント",
     "53ai_workflow": "53AIアプリケーションインテリジェント",
-    "coze_cn_agent": "Cozeインテリジェントエージェント",
-    "coze_cn_workflow": "Cozeアプリケーションインテリジェント",
-    "coze_cn_reform": "Cozeアプリケーションインテリジェント",
+    "coze_agent_cn": "Cozeインテリジェントエージェント",
+    "coze_workflow_cn": "Cozeアプリケーションインテリジェント",
     "coze_agent": "Cozeインテリジェントエージェント",
     "coze_workflow": "Cozeアプリケーションインテリジェント",
     "dify_agent": "Difyインテリジェントエージェント",
     "dify_workflow": "Difyアプリケーションインテリジェント",
     "app_builder": "千帆Appbuilder",
-    "bailian": "Bailian",
+    "yuanqi": "Tencent Yuanqi",
+    "bailian": "Alibaba Bailian",
     "volcengine": "Volcengine",
+    "fastgpt_agent": "FastGPT",
     "check_agent_config_tip": "智能体配置が正しいか確認してください"
+  },
+  "provider_platform": {
+    "openai": "OpenAI",
+    "deepseek": "DeepSeek",
+    "coze": "Coze",
+    "siliconflow": "SiliconFlow",
+    "zhipu": "Zhipu",
+    "azure": "Azure OpenAI",
+    "azure_open_ai": "Azure OpenAI",
+    "dark_moon": "Dark Moon",
+    "tongyi": "Tongyi",
+    "coze_cn": "Coze",
+    "app_builder": "BaiduQianfan Appbuilder",
+    "dify": "Dify",
+    "53ai": "53AI",
+    "bailian": "Alibaba Bailian",
+    "volcengine": "Volcengine",
+    "yuanqi": "Tencent Yuanqi",
+    "fastgpt": "FastGPT"
   },
   "register_user": {
     "title": "登録ユーザー"
@@ -430,16 +465,20 @@
     },
     "organization": {
       "title": "組織",
-      "search_placeholder": "メンバー/部門を検索"
+      "all_search_placeholder": "メンバー/部門",
+      "user_search_placeholder": "メンバー",
+      "department_search_placeholder": "部門"
     },
     "group": {
       "title": "グループ",
       "search_placeholder": "グループを検索",
+      "search_placeholder_v2": "グループ名を検索",
       "create": "新しいグループを作成",
       "member": "メンバー",
       "usable": "可使用",
       "remove_user_confirm": "このメンバーを削除してもよろしいですか？",
-      "remove_agent_confirm": "このインテリジェントエージェントを削除してもよろしいですか？"
+      "remove_agent_confirm": "このインテリジェントエージェントを削除してもよろしいですか？",
+      "create_tip": "グループを先に作成してください"
     },
     "status": {
       "all": "全てのメンバー",
@@ -465,7 +504,7 @@
       "edit": "部門を編集",
       "name": "部門名",
       "name_placeholder": "部門名を入力してください",
-      "member_total_count": "{name}（{total}人）"
+      "member_total_count": "（{total}人）"
     },
     "scope": {
       "title": "可見範圍",
@@ -483,6 +522,79 @@
     "admin": "管理員",
     "creator": "创建者"
   },
+  "prompt": {
+    "title": "プロンプト",
+    "search_placeholder": "プロンプトを検索",
+    "delete_confirm": "このデータを削除してもよろしいですか？",
+    "config": "プロンプト設定",
+    "guide": "使用ガイド",
+    "content": "プロンプト内容"
+  },
+  "navigation": {
+    "title": "ナビゲーション管理",
+    "search_placeholder": "ナビゲーションを検索",
+    "delete_confirm": "このデータを削除してもよろしいですか？",
+    "type": {
+      "system": "システム内蔵",
+      "external": "外部リンク",
+      "custom": "カスタムページ"
+    },
+    "target": {
+      "self": "現在のウィンドウ",
+      "blank": "新しいウィンドウ"
+    },
+    "web_setting": "ページ編集"
+  },
+  "sso": {
+    "title": "シングルサインオン",
+    "sync_corp": "同期企業",
+    "wecom": {
+      "title": "企業微信",
+      "abbr_title": "企微",
+      "access_title": "接入企微",
+      "access_desc": "企業微信管理員掃碼安裝接入",
+      "sync_desc": "完成企業微信憑據授權の綁定後，可綁定企業微信賬號源，導入企業微信成員目錄",
+      "sync_tip": "企業微信組織構造が同期されています"
+    },
+    "dingtalk": {
+      "title": "釘釘",
+      "abbr_title": "釘釘",
+      "access_title": "接入釘釘",
+      "access_desc": "創建企業內部應用實現接入",
+      "sync_desc": "完成釘釘授權の綁定後，可綁定釘釘賬號源，導入釘釘成員目錄"
+    },
+    "ad_ldap": {
+      "title": "AD/LDAP",
+      "abbr_title": "AD/LDAP",
+      "access_title": "接入AD/LDAP",
+      "access_desc": "綁定 AD/LDAP 後，可導入 AD/LDAP 成員目錄，實現 AD/LDAP 帳號單点登錄 53Hub"
+    },
+    "feishu": {
+      "title": "飛書",
+      "abbr_title": "飛書",
+      "access_title": "接入飛書",
+      "access_desc": "企業管理員掃碼安裝接入",
+      "sync_desc": "完成飛書授權の綁定後，可綁定飛書賬號源，導入飛書成員目錄"
+    },
+    "auth_access": "授權接入",
+    "organization_sync": "組織同步",
+    "access_title": "接入{title}",
+    "access_desc": "需要{title}管理員掃碼安裝",
+    "access_desc_v2": "已有{title}可直接掃碼授權，尚未註冊{title}請先註冊",
+    "goto_access": "前往{title}授權",
+    "goto_register": "去註冊{title}",
+    "sync_confirm": "同步後{title}組織將會覆蓋當前組織，不可恢復",
+    "sync_cancel": "取消同步將會恢復到最初始組織狀態",
+    "sync_cancel_tip": "取消同步",
+    "authorized_enterprise": "授權企業",
+    "unauthorized": "解除授權",
+    "bind_member": "メンバーを関連付ける",
+    "unbind_member": "メンバーを関連付け解除する",
+    "bind_member_tip": "このメンバーを現在のユーザーに関連付けますか？",
+    "unbind_member_tip": "このメンバーを関連付け解除しますか？",
+    "auth_completed_tip": "確認您已完成應用綁定，確認後將刷新頁面"
+  },
+  "action_visit": "訪問します",
   "action_add": "追加",
   "action_add_success": "追加しました",
   "action_create": "作成",
@@ -496,6 +608,7 @@
   "action_remove": "削除",
   "action_remove_success": "削除しました",
   "action_confirm": "確認",
+  "action_confirm_success": "確認しました",
   "action_cancel": "キャンセル",
   "action_select": "選択",
   "action_sort": "並べ替え",
@@ -516,6 +629,7 @@
   "action_copy": "コピー",
   "action_copy_success": "コピーしました",
   "action_replace": "置換",
+  "action_clear": "クリア",
   "action_search": "検索",
   "action_close": "閉じる",
   "action_view_more": "もっと見る",
@@ -543,6 +657,12 @@
   "action_manage": "管理",
   "action_go": "前往",
   "action_rename": "名前を変更",
+  "action_bind": "関連付ける",
+  "action_unbind": "関連付け解除する",
+  "action_bind_success": "関連付けました",
+  "action_unbind_success": "関連付け解除しました",
+  "completion_completed": "深い思考が完了しました",
+  "completion_thinking": "深く考えています...",
   "form_input_placeholder": "入力してください",
   "form_input_placeholder_max_length": "最大入力{max}文字",
   "form_select_placeholder": "選択してください",
@@ -553,6 +673,8 @@
   "form_mobile_or_email_validator": "正しい携帯電話番号または電子メールアドレスを入力してください",
   "form_password_validator": "パスワードには日本語やスペースを含めることはできません",
   "form_url_validator": "正しいURLアドレスを入力してください",
+  "form_path_validator": "正しいパスアドレスを入力してください(例:/index)",
+  "form_path_same_tip": "すでに同じパスアドレスが存在します。再入力してください",
   "image_cropper": "画像裁剪",
   "reupload": "再アップロード",
   "wechat": "WeChat",
@@ -567,7 +689,9 @@
   "not_setting": "未設定",
   "updated_at": "更新日時",
   "yearly": "年間",
+  "year": "年",
   "monthly": "月間",
+  "month": "月",
   "version": "バージョン",
   "expired_time": "有効期限",
   "basic_info": "基本情報",
@@ -599,6 +723,7 @@
   "agent": "インテリジェントエージェント",
   "user_count": "ユーザー数",
   "create_time": "作成日時",
+  "update_time": "更新日時",
   "service_expired_time": "サービス期限",
   "configuration_completion": "設定完了度",
   "description": "説明",
@@ -606,6 +731,7 @@
   "type": "タイプ",
   "usage_record": "使用記録",
   "usage_guide": "使用ガイド",
+  "dialogue_record": "対話記録",
   "user_info": "ユーザー情報",
   "avatar": "アバター",
   "login_password": "ログインパスワード",
@@ -665,6 +791,8 @@
   "group_management": "グループ管理",
   "display_order": "表示順",
   "permission_setting": "権限設定",
+  "expand_setting": "拡張設定",
+  "base_setting": "欢迎语",
   "visible_range": "表示範囲",
   "dialogue_frequency": "会話頻度",
   "dialogue_total": "会話総数",
@@ -689,7 +817,6 @@
   "output_variable": "出力変数",
   "model_name": "モデル名",
   "model_name_placeholder": "モデル名を入力してください",
-  "prompt": "プロンプト",
   "prompt_placeholder": "プロンプトを入力してください",
   "copyright_desc": "Copyright © 2014-{year} 53AI. All rights reserved.",
   "no_permission_tip": "この機能を使用する権限がありません。管理者に問い合わせてください。",
@@ -712,9 +839,14 @@
   "chat_glm": "ChatGLM",
   "tongyi": "通義千問",
   "coze_cn": "扣子",
+  "dify": "Dify",
+  "app_builder": "百度千帆AppBuilder",
   "coze": "Coze",
   "53ai": "53AI",
   "fast_gpt": "FastGPT",
+  "yuanqi": "Tencent Yuanqi",
+  "bailian": "Alibaba Bailian",
+  "volcengine": "Volcengine",
   "sort": "ソート",
   "official_website": "公式サイト",
   "apply_open": "申請開通",
@@ -728,14 +860,21 @@
   "permanent_effect": "永久効果",
   "empty_to_not_change": "空のままにすると変更しません",
   "api_host": "後端サービスAPI",
+  "ap_host_fastgpt": "APIルートアドレス",
   "api_screet": "APIシークレットキー",
   "api_botid": "Bot ID",
+  "api_botid_en": "Bot ID",
+  "api_appid": "App ID",
   "api_key": "API Key",
   "agent_type": "インテリジェントエージェントタイプ",
   "agent_type_chat": "会話型アプリケーション",
   "agent_type_completion": "ワークフロー型アプリケーション",
   "agent_type_workflow": "ワークフロー編排会話型アプリケーション",
-  "app_type": "アプリケーションタイプ",
+
+  "agent_file_parse": "ドキュメント解析",
+  "agent_image_parse": "画像認識",
+
+  "app_type": "应用类型",
   "how_get": "如何获取",
   "53ai_api_endpoint": "API Endpoint",
   "53ai_api_screet": "Secret Key",
@@ -743,14 +882,56 @@
   "usage_range": "使用範囲",
   "dify_agent_get_tip": "Difyにログイン（{url}） \nステップ1：アクセスするインテリジェントエージェントを選択し、\"APIアクセス\"をクリック \nステップ2：右上の\"APIサーバー\"と\"APIシークレットキー\"をコピーし、以下のフォームに入力してください。",
   "53ai_agent_get_tip": "53AIにログイン（{url}） \n ステップ1：アクセスするインテリジェントエージェントを選択し、\"APIアクセス\"をクリック \n ステップ2：\"APIエンドポイント\" 、 \"Bot-Id\" と \"SECRET_KEY\"をコピーし、以下のフォームに入力してください。",
+  "bailian_agent_get_tip": "Alibaba Bailianにログイン（{ url }）\n ステップ1：Alibaba Bailianにログインし、アプリケーションを選択（または作成）し、\"公開\"をクリックし、API-KEYを取得し、以下に入力してください。\n ステップ2：Alibaba Bailianの現在のURLからassistant/の後の部分をコピーし、以下に入力してください。\n 付帯ヘルプ：APP IDとWorkspace IDの取得方法（{ help_url }）",
+  "volcengine_agent_get_tip": "Volcano Engine（{ url }）にアクセス \n手順1：Volcano Arkにログインし、マイアプリケーション（{ my_url }）をクリック\n手順2：既存のアプリケーション（または新規作成）をクリックし、左上のbot-xxxxxx（コピーボタンあり）をコピーして下のフォームに貼り付け\n手順3：右上の「APIコールガイド」をクリックし、API Keyを選択してコピーし、キーを下のフォームに貼り付け",
+  "yuanqi_agent_get_tip": "テンセントYuanqi（{ url }）にアクセス \n手順1：テンセントYuanqiにログインし、マイクリエイションに移動。\n手順2：AIエージェントカードの右下にある詳細ボタンをクリックし、API呼び出しをクリック（新規エージェントは審査後に利用可能）。\n手順3：エージェントIDをコピーし、下のフォームに貼り付け。\n手順4：トークンをコピーし、下のフォームに貼り付け。",
+  "fastgpt_agent_get_tip": "FastGPT（ {url} ）にアクセス \n手順1：FastGPTにログインし、「ワークスペース」に入り、接続したいアプリケーションを選択。\n手順2：アプリケーションに入り、「配信チャネル」で「APIアクセス」を選択。\n手順3：APIキー管理で新規作成をクリックし、作成後「API KEY」をコピーしてフォームに入力。\n手順4：「APIルートアドレス」をコピーし、フォームに入力。",
   "tip": "ヒント",
   "coze_cn_not_auth": "ボタンは許可されていません",
   "app_builder_not_auth": "AppBuilder許可されていません",
   "intelligent_agent_platform": "インテリジェントエージェントプラットフォーム",
   "cloud_computing_platform": "クラウドコンピューティングプラットフォーム",
+  "model_platform": "モデルプラットフォーム",
   "local_config_limited_tip": "設定受限提示",
   "local_config_limited_desc": "現在のシステムアクセスが内部ネットワークアドレス({url})であるため、Coze インテリジェントエージェントとWeChat支払いを追加/設定できません。外部からアクセスできるアドレスにデプロイして設定する必要があります。",
   "know_it": "わかった",
   "selected_tip": "選択済み {total} 個",
-  "support_image": "画像をサポート"
+  "support_image": "画像をサポート",
+  "debugger_config_change_confirm": "設定を変更するとデバッグ領域がリセットされます。保存して再開する必要があります",
+  "save_and_restart": "保存して再開",
+  "title": "タイトル",
+  "commom": {
+    "add_manual": "手動追加",
+    "add_market": "アプリケーションマーケットから追加"
+  },
+  "jump_path": "ジャンプパス",
+  "open_method": "オープンメソッド",
+  "navigation_is_open": "ナビゲーション表示",
+  "page_edit": "ページ編集",
+  "last_edit": "最近編集",
+  "opening_statement": "開場白",
+  "suggested_questions": "提問引導",
+  "max_add_tip": "最大{max}個",
+  "join_group": "グループに参加",
+  "join_group_desc": "グループに参加して、一緒に学び、進歩しましょう",
+  "start_time": "開始時間",
+  "end_time": "結束時間",
+  "filter": "フィルター",
+  "user/mobile": "ユーザー/携帯電話番号",
+  "summary": "要約",
+  "message_count": "メッセージ数",
+  "detail": "詳細",
+  "dialogue_detail": "対話詳細",
+  "more": "もっと",
+  "keyword": "キーワード",
+  "software_style": "ソフトウェアスタイル",
+  "website_style": "ウェブサイトスタイル",
+  "system_log": {
+    "log_label": "ログ",
+    "log_action": "動作",
+    "log_module": "モジュール",
+    "log_operator": "操作人",
+    "log_time": "時間",
+    "log_ip": "IP"
+  }
 }

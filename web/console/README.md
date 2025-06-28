@@ -27,32 +27,29 @@ v18.12.0
 ### 安装依赖
 
 ```bash
-
-```bash
 $ npm install
-```
-
 ```
 
 ### 开发模式
 
 ```bash
-
-```bash
 $ npm run dev
-```
-
 ```
 
 ### 构建项目
 
 ```bash
-
-```bash
 $ npm run build
 ```
 
-```
+### 服务端后台代码更新
+复制`dist/`文件夹下的所有代码， 粘贴到`api/static/dist`文件夹中
+
+
+### 百度编辑器相关
+
+如有附件上传相关的操作，请在 `public\UEditor\third-party\webuploader\webuploader.min.js` 中修改`oss-api-key` 和 `oss-url.cn`
+
 
 ## 技术文档
 
@@ -67,8 +64,6 @@ $ npm run build
 
 ```bash
 $ npm run lint
-```
-
 ```
 
 ## 目录结构

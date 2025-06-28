@@ -158,7 +158,7 @@ func SetApiRouter(router *gin.Engine) {
 
 	subscription := apiRouter.Group("/subscriptions")
 	{
-		subscription.GET("/settings", middleware.UserTokenAuth(model.RoleCommonUser), controller.GetSubscriptionList)
+		subscription.GET("/settings", controller.GetSubscriptionList)
 		subscription.
 			POST("/batch", middleware.UserTokenAuth(model.RoleAdminUser), controller.BatchSubscriptionOperation)
 	}
@@ -220,15 +220,14 @@ func SetApiRouter(router *gin.Engine) {
 
 	orderRouter := apiRouter.Group("/orders")
 	{
-		// Create order when scanning QR code
 		orderRouter.POST("", middleware.UserTokenAuth(model.RoleCommonUser), controller.CreateOrder)
-		// Only manual transfer orders can be added
+		orderRouter.PUT("/:id/manual", middleware.UserTokenAuth(model.RoleAdminUser), controller.UpdateManualTransferOrder)
 		orderRouter.GET("", middleware.UserTokenAuth(model.RoleAdminUser), controller.GetOrders)
 		orderRouter.GET("/:id", middleware.UserTokenAuth(model.RoleAdminUser), controller.GetOrder)
 		orderRouter.PATCH("/:id/status", middleware.UserTokenAuth(model.RoleAdminUser), controller.UpdateOrderStatus) // Only manual transfers can be marked as paid
-		orderRouter.DELETE("/:id", controller.DeleteOrder)                                                            // Only manual transfers can be deleted, but paid ones cannot be deleted
+		orderRouter.DELETE("/:id", middleware.UserTokenAuth(model.RoleAdminUser), controller.DeleteOrder)                                                            // Only manual transfers can be deleted, but paid ones cannot be deleted
 		orderRouter.GET("/status/:order_id", middleware.UserTokenAuth(model.RoleCommonUser), controller.QueryOrderStatus)
-		// orderRouter.GET("/:id/confirm", middleware.UserTokenAuth(model.RoleCommonUser), controller.ConfirmManualPayment)
+		orderRouter.POST("/:id/confirm", middleware.UserTokenAuth(model.RoleCommonUser), controller.ConfirmManualPayment)
 		orderRouter.GET("/user", middleware.UserTokenAuth(model.RoleAdminUser), controller.GetUserOrders)
 	}
 

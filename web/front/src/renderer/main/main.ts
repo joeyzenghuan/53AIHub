@@ -16,6 +16,7 @@ import './assets/styles/global.css' // 引入css文件
 import './assets/styles/element-plus.css' // 引入css文件
 import './assets/styles/tailwind.css' // 引入css文件
 import './assets/styles/custom.css' // 引入css文件
+import './assets/styles/animate.css' // 引入css文件
 
 import 'element-plus/theme-chalk/el-message.css'
 import 'element-plus/theme-chalk/el-notification.css'

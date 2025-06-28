@@ -10,6 +10,7 @@ export default {
     find: '発見',
     library: 'ナレッジベース',
     crop_space: '企業スペース',
+    prompt: 'プロンプト',
   },
 
   // ブラウザ関連
@@ -75,8 +76,14 @@ export default {
     confirm_delete: 'このアイテムを削除しますか？',
     copied: 'コピーしました',
     image_cropper: '画像トリミング',
-    back_home: 'ホームに戻る',
+    back: '戻る',
     go_admin: '管理画面に移動',
+    related_prompt: "関連プロンプト",
+    related_agent: "関連エージェント",
+    view_more: 'もっと見る',
+    expand_more: 'もっと見る',
+    collapse_more: 'もっと見る',
+    or: 'または',
   },
 
   // ステータス通知
@@ -89,13 +96,23 @@ export default {
     sent: '送信済み',
     login_success: 'ログインしました',
     logout_success: 'ログアウトしました',
-    not_found_account: 'アカウントが見つかりません。認証後に直接ログインします',
+    not_found_account: 'アカウントが見つかりません。登録後にログインします',
+    existing_account: '既存のアカウント',
+    approve_success: 'いいねしました',
+    approve_cancel: 'いいねを取り消しました',
+    register_success: '登録成功',
+    update_success: '更新成功',
   },
 
   // アクションボタン
   action: {
     login: 'ログイン',
+    login_directly: '直接ログイン',
     logout: 'ログアウト',
+    register: '登録',
+    user_register: 'ユーザー登録',
+    forget_password: 'パスワードを忘れましたか？',
+    update_password: 'パスワードを更新',
     search: '検索',
     setting: '設定',
     confirm: '確認',
@@ -163,26 +180,37 @@ export default {
     account_alias: '電話番号',
     password: 'パスワード',
     email: 'メールアドレス',
+    new_email: '新しいメールアドレス',
     mobile: '電話番号',
+    new_mobile: '新しい電話番号',
     verify_code: '認証コード',
     get_verify_code: '認証コードを取得',
+    verify_old_mobile: '古い携帯電話番号を確認してください',
+    reset_password: 'パスワードをリセット',
+    reset_password_method: 'パスワードをリセットする方法を選択',
     new_password: '新しいパスワード',
     new_password_placeholder: '新しいパスワードを入力してください',
     new_password_confirm: 'パスワードの確認',
     new_password_confirm_placeholder: '新しいパスワードを再入力してください',
     mobile_format: '正しい電話番号を入力してください',
     email_format: '正しいメールアドレスを入力してください',
+    account_format: '正しい電話番号またはメールアドレスを入力してください',
     verify_code_format: '正しい認証コードを入力してください',
+    username_length: 'アカウント名の長さは 5~20 文字でなければなりません',
     password_length: 'パスワードは8〜20文字である必要があります',
     password_format: 'パスワードは大文字、小文字、数字を含む必要があります',
     password_not_match: '入力されたパスワードが一致しません',
     change: '変更',
+    existing_mobile: 'この電話番号は既に登録されています。このアカウントでログインしてください。',
+    existing_email: 'このメールアドレスはすでに登録されています。ご登録済みのアカウントでログインしてください。'
   },
 
   // ホーム関連
   index: {
     agent_recommend: 'おすすめエージェント',
     agent_recommend_desc: '第二の生産力エンジンを構築する',
+    prompt_recommend: 'おすすめプロンプト',
+    prompt_recommend_desc: 'プロンプトを使いこなすことで、常に先進的な状態を維持できます',
     toolbox_recommend: 'おすすめAIツール',
     toolbox_recommend_desc: 'ワークフローに応じた AI リソースを選択し、AI を生産性ツールに変えます',
     use_history: '{count}人が利用',
@@ -198,9 +226,29 @@ export default {
     terms_of_service: '利用規約',
     privacy_policy: 'プライバシーポリシー',
     password_login: 'パスワードでログイン',
-    unregistered_account_desc: '未登録のアカウントは認証後に自動的にログインします',
-
+    password_login_title: 'パスワードでログイン',
+    message_login: 'SMSログイン',
+    message_login_title: 'SMSログイン',
+    wechat_login: 'WeChatログイン',
+    wechat_login_title: 'WeChatログイン',
+    wecom_login: 'WeComログイン',
+    wecom_login_title: 'WeComログイン',
+    unregistered_account_desc: '未登録のアカウントは、登録後に自動的にログインします',
+    unregistered_account_confirm: '未登録の携帯電話番号を認証した後、自動的にログインします',
     quit: '終了',
+    login_by_wechat: 'WeChatでログイン',
+    login_by_password: 'パスワードでログイン',
+    login_by_mobile: '携帯電話でログイン',
+    bind_mobile: '携帯電話番号をバインド',
+    other_login_way: '他のログイン方式',
+  },
+
+  // 登録関連
+  register: {
+    agree: '登録することで、あなたは同意したとみなされます',
+    terms_of_service: '利用規約',
+    privacy_policy: 'プライバシーポリシー',
+    unregister: '未登録'
   },
 
   // チャット関連
@@ -260,6 +308,18 @@ export default {
     docs_dingtalk_import: 'Feishuドキュメントからインポート',
   },
 
+  agent: {
+    no_data: '管理者がまだエージェントを公開していません',
+  },
+
+  prompt: {
+    default_sort: 'デフォルト順',
+    likes_sort: 'いいね順',
+    views_sort: '閲覧順',
+    content: 'プロンプト内容',
+    auth_tip: 'あなたの所属グループにアクセス権がありません',
+  },
+
   toolbox: {
     name: 'ツールボックス',
     title: 'AIの世界を拡大しよう',
@@ -295,7 +355,8 @@ export default {
     info: '個人情報',
     profile: 'プロフィール',
     change_password: 'パスワード変更',
-    bind_accounts: '連携済みアカウント',
+    login_password: 'ログインパスワード',
+    bind_accounts: 'アカウント情報',
     unbind_account: '未連携',
     bind_mobile: '電話番号',
     bind_email: 'メールアドレス',
@@ -303,9 +364,14 @@ export default {
     bind_wechat: 'WeChatOpenId',
     bind: '連携',
     unbind: '連携解除',
+    change: 'さしかえる',
     logined_devices: 'ログイン済みデバイス',
     used_devices: '過去に使用したデバイス',
     current_device: '現在のデバイス',
+    unbind_wechat_confirm_desc: '解綁後、WeChatでログインできなくなります。続行しますか？',
+    unbind_wechat_confirm_title: 'WeChatアカウントのバインドを解除',
+    unbind_wechat_confirm_cancel: '暫時解綁しない',
+    unbind_wechat_confirm_ok: '確認解綁',
   },
   "response_status": {
     "400": 'リクエストパラメータエラー',
@@ -337,7 +403,10 @@ export default {
     "user_not_found": "ユーザーが存在しません",
     "username_or_password_is_incorrect": "ユーザー名またはパスワードが間違っています",
     "username_already_exists": 'ユーザー名が既に存在します',
-    "model_changed": "管理者がモデルを変更しました、新しい会話を作成してください"
+    "mobile_already_bind": "携帯電話番号はすでに他のユーザーに登録されています",
+    "email_already_bind": "メールアドレスは他のユーザーに登録済みです",
+    "model_changed": "管理者がモデルを変更しました、新しい会話を作成してください",
+    "wechat_already_bind": "WeChatアカウントはすでに他のユーザーに登録されています",
   },
   "subscription": {
     "free": "無料版",
@@ -361,6 +430,16 @@ export default {
     "pay_amount": "支払金額",
     "pay_by_wechat": "WeChat支払い",
     "pay_policy": "支払いは関連する {policy} に同意したことを意味します",
-    "pay_success": "支払い成功"
+    "pay_success": "支払い成功",
+    "pay_confirm": "支払いが完了したことを確認してください、クリックしてください",
+    "payed": "支払い済み",
+    "manual_pay_success_title": "注文が生成されました",
+    "manual_pay_success_desc": "支払い情報を確認するか、管理者に連絡してください",
+  },
+  "authority": {
+    "group_not_permission": "あなたが所属するグループにはアクセス権限がありません",
+    "payment_not_setting": "サイトが支払い方法を設定していません、管理者に直接連絡してください",
+    "agent_not_permission": "このエージェントを使用する権限がありません、管理者に直接連絡してください",
+    "use_range": "使用范围"
   }
 }

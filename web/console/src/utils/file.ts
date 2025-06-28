@@ -1,6 +1,4 @@
 import axios from 'axios'
-import loadLib from './loadLib'
-import aliyun from '@/utils/aliyun'
 
 /**
  * 获取视频/音频信息 时长、宽高
@@ -186,31 +184,6 @@ export function downloadFile(fileUrl: string, fileName?: string) {
   // 清理DOM
   link.remove()
 }
-
-export function parseDocxToHtml(file: File): Promise<string> {
-  return new Promise((resolve, reject) => {
-    const reader = new FileReader()
-    reader.onload = (e) => {
-      loadLib('mammoth')
-        .then(() => {
-          mammoth.convertToHtml({
-            arrayBuffer: e.target.result,
-          })
-            .then((result) => {
-              resolve(result.value)
-            })
-            .catch((error) => {
-              reject(error)
-            })
-        })
-    }
-    reader.onerror = (e) => {
-      reject(e)
-    }
-    reader.readAsArrayBuffer(file)
-  })
-}
-
 export function getOssPath(): string {
   const bot_token = localStorage.getItem('bot_batch_send_token') || ''
   const nowDate = new Date()
@@ -219,11 +192,6 @@ export function getOssPath(): string {
   if (month.length < 2)
     month = `0${month}`
   return `${bot_token || '53ai'}/${year}/${month}/`
-}
-
-export function ossUpload({ file, ossPath, onProgress }: { file: File; ossPath?: string; onProgress?: (precent: string) => {} }): Promise<{ oss_url: string; file_md5: string; raw: File }> {
-  ossPath = ossPath || getOssPath()
-  return aliyun.upload(file, ossPath, onProgress).then(({ oss_url = '', file_md5 = '' }) => ({ oss_url, file_md5, raw: file }))
 }
 
 export function getExtname(fileName = '') {

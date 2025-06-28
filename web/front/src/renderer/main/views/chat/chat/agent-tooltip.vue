@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { reactive, computed, ref } from 'vue'
+import { reactive, computed, ref, onMounted, onUnmounted } from 'vue'
 import { Close, Search } from '@element-plus/icons-vue'
 
 import { useAgentStore } from '@/stores/modules/agent'
@@ -11,6 +11,22 @@ const emits = defineEmits<{
 const agentStore = useAgentStore()
 
 const tooltipRef = ref()
+
+const isMobile = ref(false)
+
+// 监听窗口大小变化
+const updatePlacement = () => {
+  isMobile.value = window.innerWidth < 768 // md breakpoint
+}
+
+onMounted(() => {
+  updatePlacement()
+  window.addEventListener('resize', updatePlacement)
+})
+
+onUnmounted(() => {
+  window.removeEventListener('resize', updatePlacement)
+})
 
 const state: {
   keyword: string
@@ -39,7 +55,7 @@ const showAgentList = computed(() => {
 const handleClose = () => {
   tooltipRef.value.hide()
 }
-const handleSelct = (item: Agent.State) => {
+const handleSelect = (item: Agent.State) => {
   emits('select', item)
   handleClose()
 }
@@ -50,22 +66,24 @@ const handleSelct = (item: Agent.State) => {
     ref="tooltipRef"
     effect="light"
     trigger="click"
-    popper-class="el-popper--plain"
-    placement="top-start"
+    :popper-class="['el-popper--plain', { 'el-popper--m': isMobile }]"
+    :placement="isMobile ? 'bottom' : 'top-start'"
   >
     <template #content>
-      <div class="p-5 w-[596px]">
-        <div class="flex items-center justify-between">
-          <h4 class="text-lg text-primary">{{ $t('action.find') }}{{ $t('module.agent') }}</h4>
-          <div
-            class="size-5 flex-center rounded cursor-pointer hover:bg-[#E1E2E3]"
-            v-tooltip="{ content: $t('action.close') }"
-            @click="handleClose"
-          >
-            <el-icon>
-              <Close />
-            </el-icon>
+      <div class="p-5 w-[596px] max-md:w-full" >
+        <div class="flex items-center justify-between relative">
+          <div class="absolute right-0">
+            <div
+              class="size-5 flex-center rounded cursor-pointer hover:bg-[#E1E2E3]"
+              v-tooltip="{ content: $t('action.close') }"
+              @click="handleClose"
+            >
+              <el-icon>
+                <Close />
+              </el-icon>
+            </div>
           </div>
+          <h4 class="text-lg text-primary w-full max-md:text-center">{{ $t('action.find') }}</h4>
         </div>
         <el-input
           size="large"
@@ -80,11 +98,16 @@ const handleSelct = (item: Agent.State) => {
           </template>
         </el-tabs>
         <div class="h-[300px] overflow-y-auto mt-5">
-          <div class="grid grid-cols-2 gap-4">
-            <template v-for="(item, index) in showAgentList" :key="index">
+          <div class="grid gap-4 grid-cols-2 max-md:grid-cols-1">
+            <template v-for="item in showAgentList" :key="item.name">
               <div
                 class="flex items-center p-3 bg-[#F8F9FA] rounded-lg cursor-pointer"
-                @click="handleSelct(item)"
+                v-permission="{
+                  group_ids: item.user_group_ids,
+                  onclick: () => {
+                    handleSelect(item)
+                  }
+                }"
               >
                 <el-avatar :size="36" :src="item.logo" class="mr-2" />
                 <div class="flex-1 overflow-hidden">

@@ -9,6 +9,10 @@ export const useSettingStore = defineStore('setting-store', {
       const res = await settingApi.list()
       return res.data
     },
+    async get(key: string) {
+      const res = await settingApi.get(key)
+      return res.data
+    },
     async loadDetailData(group_name: string) {
       const { data = [] } = await settingApi.detail(group_name)
       return data
@@ -25,6 +29,6 @@ export const useSettingStore = defineStore('setting-store', {
         })
         return res.data
       }
-		},
+    },
   },
 })

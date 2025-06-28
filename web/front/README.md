@@ -44,6 +44,8 @@ $ npm run dev
 ```bash
 $ npm run build
 ```
+### 服务端前台代码更新
+复制`dist/`文件夹下的所有代码， 粘贴到`api/static/renderer`文件夹中
 
 ## 技术文档
 

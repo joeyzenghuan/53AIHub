@@ -61,6 +61,42 @@ type Order struct {
 	BaseModel
 }
 
+// CalculateNewExpiredTime calculates the new expiration time based on user's current status and order information
+func (o *Order) CalculateNewExpiredTime(user *User) (int64, error) {
+	// Determine start time for calculation
+	now := time.Now().UTC()
+	var startTime time.Time
+
+	// If user has expired, calculate from current time
+	// If user has not expired, calculate from original expiration time
+	if user.ExpiredTime < now.UnixMilli() {
+		startTime = now
+	} else {
+		startTime = time.UnixMilli(user.ExpiredTime).UTC()
+	}
+
+	// Calculate new expiration time based on time unit
+	var endTime time.Time
+
+	switch o.TimeUnit {
+	case "day":
+		endTime = startTime.AddDate(0, 0, o.Duration)
+	case "week":
+		endTime = startTime.AddDate(0, 0, o.Duration*7)
+	case "month":
+		endTime = startTime.AddDate(0, o.Duration, 0)
+	case "quarter":
+		endTime = startTime.AddDate(0, o.Duration*3, 0)
+	case "year":
+		endTime = startTime.AddDate(o.Duration, 0, 0)
+	default:
+		return 0, errors.New("unsupported time unit: " + o.TimeUnit)
+	}
+
+	// Convert to milliseconds for storage
+	return endTime.UnixMilli(), nil
+}
+
 // GetOrderByID gets an order by order ID
 func GetOrderByID(eid int64, id int64) (*Order, error) {
 	var order Order
@@ -131,39 +167,11 @@ func UpdateOrderPaidWithTime(eid int64, orderId string, transactionId string, pa
 			return errors.New("user not found for order: " + err.Error())
 		}
 
-		// Determine start time for calculation
-		now := time.Now().UTC()
-		var startTime time.Time
-
-		// If user has expired, calculate from current time
-		// If user has not expired, calculate from original expiration time
-		if user.ExpiredTime < now.UnixMilli() {
-			startTime = now
-		} else {
-			startTime = time.UnixMilli(user.ExpiredTime).UTC()
-		}
-
-		// Calculate new expiration time based on time unit
-		var endTime time.Time
-
-		switch order.TimeUnit {
-		case "day":
-			endTime = startTime.AddDate(0, 0, order.Duration)
-		case "week":
-			endTime = startTime.AddDate(0, 0, order.Duration*7)
-		case "month":
-			endTime = startTime.AddDate(0, order.Duration, 0)
-		case "quarter":
-			endTime = startTime.AddDate(0, order.Duration*3, 0)
-		case "year":
-			endTime = startTime.AddDate(order.Duration, 0, 0)
-		default:
+		newExpiredTime, err := order.CalculateNewExpiredTime(&user)
+		if err != nil {
 			tx.Rollback()
-			return errors.New("unsupported time unit: " + order.TimeUnit)
+			return err
 		}
-
-		// Convert to milliseconds for storage
-		newExpiredTime := endTime.UnixMilli()
 
 		// Update user expiration time
 		if err := tx.Model(&User{}).

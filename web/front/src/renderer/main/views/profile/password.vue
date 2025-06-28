@@ -3,6 +3,13 @@ import { ref, reactive } from 'vue'
 import { getPasswordRules } from '@/utils/form-rules'
 import userApi from '@/api/modules/user'
 
+const props = withDefaults(defineProps<{
+  hideSubmit?: boolean
+}>(), {
+  hideSubmit: false
+})
+const emits = defineEmits(['success'])
+
 const formRef = ref(null)
 
 const form = reactive({
@@ -42,6 +49,7 @@ const handleSubmit = () => {
       })
       .then(() => {
         ElMessage.success(window.$t('status.success'))
+        emits('success')
       })
   })
 }
@@ -92,9 +100,9 @@ const handleSubmit = () => {
       ></el-input>
     </el-form-item>
   </el-form>
-  <el-button v-debounce type="primary" class="mt-5" size="large" @click="handleSubmit">{{
-    $t('action.save')
-  }}</el-button>
+  <ElButton v-if="!hideSubmit" v-debounce class="!w-full rounded-3xl mt-5" size="large" type="primary" :disabled="!form.newPassword.trim() || !form.confirmPassword.trim()" @click="handleSubmit">
+    {{ $t('action.update_password') }}
+  </ElButton>
 </template>
 
 <style scoped></style>

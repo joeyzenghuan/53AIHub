@@ -9,6 +9,7 @@
   <!-- <meta http-equiv="Content-Security-Policy"
     content="default-src 'self' 'unsafe-eval' 'unsafe-inline' data: http: https:;"> -->
   <!-- <meta http-equiv="Content-Security-Policy" content="script-src 'self'; style-src 'self' 'unsafe-inline'; " /> -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
   <style>
     html,
     body,
@@ -43,39 +44,14 @@
       return search
     }
     const search_params = getSearchParam()
-    if (search_params.api_host)
-      window.api_host = `http://${search_params.api_host.replace(/^https?:\/\//, '').replace(/\/$/, '')}`
-    if (search_params.qyy_host)
-      window.qyy_host = `http://${search_params.qyy_host.replace(/^https?:\/\//, '').replace(/\/$/, '')}`
-    if (search_params.oss_host)
-      window.oss_host = `http://${search_params.oss_host.replace(/^https?:\/\//, '').replace(/\/$/, '')}`
-    if (search_params.admin_url)
-      window.admin_url = `http://${search_params.admin_url.replace(/^https?:\/\//, '').replace(/\/$/, '')}`
-
     if (search_params.access_token) {
       localStorage.removeItem('access_token')
       localStorage.setItem('access_token', search_params.access_token)
       delete search_params.access_token
       delete search_params.eid
-      location.search = joinSearchParam(search_params)
+      delete search_params.from_origin
+      location.href = location.origin + location.pathname
     }
-    // 兼容开源项目api环境
-    // let protocol = location.protocol === 'file:' ? 'http:' : location.protocol
-    // window.api_host = (
-    //   window.api_host ||
-    //   window.location.origin ||
-    //   'http://agenthubdev.53ai.com'
-    // ).replace(/^https?:\/\//, `${protocol}//`)
-    // window.qyy_host = (
-    //   window.qyy_host ||
-    //   window.location.origin ||
-    //   'http://testapi.qunyingyong.net'
-    // ).replace(/^https?:\/\//, `${protocol}//`)
-    // window.admin_url = (
-    //   window.admin_url ||
-    //   window.location.origin + '/console' ||
-    //   'http://hubtest.53ai.com/console'
-    // ).replace(/^https?:\/\//, `${protocol}//`)
   </script>
   <div id="app"></div>
   <script type="module" src="/main/main.ts"></script>

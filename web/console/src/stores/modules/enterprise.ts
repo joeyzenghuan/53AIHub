@@ -53,20 +53,22 @@ export const useEnterpriseStore = defineStore('enterprise-store', {
       data.apply_name = data.apply.enterprise_name || ''
       data.name = data.name || data.enterprise.display_name || data.apply_name || ''
       data.is_process = data.apply.status == 0
-			data.is_reject = data.apply.status == 2
-			data.reject_reason = data.apply.reject_reason || data.apply.reason || ''
+      data.is_reject = data.apply.status == 2
+      data.reject_reason = data.apply.reject_reason || data.apply.reason || ''
       data.expired_time = (data.apply.expired_time || 0)
-			data.is_expired = data.expired_time < Date.now()
+      data.is_expired = data.expired_time < Date.now()
       data.expired_time = getSimpleDateFormatString({ date: new Date(data.expired_time) })
       data.created_time = (data.enterprise.created_time || 0)
       data.created_time = getSimpleDateFormatString({ date: new Date(data.created_time) })
       data.version = +data.version || +data.apply.version || 1
-			data.version = WEBSITE_VERSION_VALUE_MAP[data.version] || WEBSITE_VERSION_FREE
-			data.is_loading = false
+      data.version = WEBSITE_VERSION_VALUE_MAP[data.version] || WEBSITE_VERSION_FREE
+      data.is_loading = false
 
-			data.is_independent = data.type === WEBSITE_TYPE_INDEPENDENT
-			data.is_enterprise = data.type === WEBSITE_TYPE_ENTERPRISE
-			data.is_industry = data.type === WEBSITE_TYPE_INDUSTRY
+      data.is_independent = data.type === WEBSITE_TYPE_INDEPENDENT
+      data.is_enterprise = data.type === WEBSITE_TYPE_ENTERPRISE
+      data.is_industry = data.type === WEBSITE_TYPE_INDUSTRY
+      data.is_install_wecom = data.wecom_install_info?.install_wecom_app
+      data.wecom_info = data.wecom_install_info?.auth_corp_info || {}
 
       return data
     },
@@ -93,18 +95,24 @@ export const useEnterpriseStore = defineStore('enterprise-store', {
       const is_invalid_user = !user_info.access_token || !user_info.eid
       if (is_invalid_user)
         return this
-      const { data: { is_saas = false } = {} } = await api.enterprise.is_saas()
-      const user_store = useUserStore()
-      user_store.setIsSaasLogin(is_saas)
-      const { data = {} } = await api.enterprise[is_saas ? 'saas_self_info' : 'self_info']()
-			this.info = this.getFormatEnterpriseData(data)
+      try {
+        const { data: { is_saas = false } = {} } = await api.enterprise.is_saas()
+        const user_store = useUserStore()
+        user_store.setIsSaasLogin(is_saas)
+        const { data = {} } = await api.enterprise[is_saas ? 'saas_self_info' : 'self_info']()
+        this.info = this.getFormatEnterpriseData(data)
 
-			const link = document.querySelector('link[rel="icon"]') || document.createElement('link')
-			link.rel = 'icon'
-      link.href = this.info.ico || default_website_logo
-			if (!document.querySelector('link[rel="icon"]')) document.head.appendChild(link)
+        const link = document.querySelector('link[rel="icon"]') || document.createElement('link')
+        link.rel = 'icon'
+        link.href = this.info.ico || default_website_logo
+        if (!document.querySelector('link[rel="icon"]'))
+          document.head.appendChild(link)
 
-			eventBus.emit('enterprise-info-loaded', this.info)
+        eventBus.emit('enterprise-info-loaded', this.info)
+      }
+      catch (error) {
+        console.log(error)
+      }
       return this
     },
     async loadHomeInfo() {

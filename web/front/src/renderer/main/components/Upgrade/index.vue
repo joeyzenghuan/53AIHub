@@ -1,11 +1,14 @@
 <script setup lang="ts">
-import { ArrowLeft, ArrowRight, Close } from '@element-plus/icons-vue';
+import { ArrowLeft, ArrowRight, ArrowUp, Close } from '@element-plus/icons-vue'
 import PaymentQrcode from './payment-qrcode.vue'
-import { ref, computed, h, nextTick, render, Fragment, provide } from 'vue';
-import subscriptionApi from '@/api/modules/subscription';
-import { settingApi, PAYMENT_TYPE_WECHAT, PAYMENT_TYPE_MANUAL } from '@/api/modules/setting';
-import paymentApi from '@/api/modules/payment';
+import { ref, computed, nextTick, provide, onMounted, onUnmounted } from 'vue'
+import subscriptionApi from '@/api/modules/subscription'
+import { PAYMENT_TYPE } from '@/constants/payment'
+import paymentApi from '@/api/modules/payment'
 import { useUserStore } from '@/stores/modules/user'
+import { ElScrollbar } from 'element-plus'
+import eventBus from '@/utils/event-bus'
+import { EVENT_NAMES } from '@/constants/events'
 
 const userStore = useUserStore()
 
@@ -19,11 +22,16 @@ const active_time_unit = ref('month')
 const scroll_left = ref(0)
 const scroll_left_limit = ref(0)
 const scroll_left_distance = ref(0)
-const active_payment = ref(PAYMENT_TYPE_WECHAT)
+const active_payment = ref(PAYMENT_TYPE.WECHAT)
 const payment_options = ref([])
+const display_payment_detail = ref(false)
 
-const active_subscription_info = computed(() => subscription_options.value.find(item => item.group_id == active_group_id.value) || {})
-const active_time_info = computed(() => active_subscription_info.value[`${active_time_unit.value}_info`] || {})
+const active_subscription_info = computed(
+  () => subscription_options.value.find((item) => item.group_id == active_group_id.value) || {}
+)
+const active_time_info = computed(
+  () => active_subscription_info.value[`${active_time_unit.value}_info`] || {}
+)
 const pay_disabled = computed(() => !Number(active_time_info.value.amount || 0))
 
 provide('active_subscription_info', active_subscription_info)
@@ -31,7 +39,8 @@ provide('active_time_info', active_time_info)
 provide('active_payment', active_payment)
 
 async function open() {
-  visible.value = true;
+  visible.value = true
+  loadPaymentSettingData()
   await loadSubscriptionData()
   active_group_id.value = (subscription_options.value[0] || {}).group_id
   await nextTick()
@@ -42,17 +51,20 @@ async function open() {
   if (scrollbar_view_children_el_list.length > 3) {
     const child_el_width = scrollbar_view_children_el_list[0].getBoundingClientRect().width
     scroll_left_distance.value = child_el_width + 16
-    scroll_left_limit.value = scroll_left_distance.value * (scrollbar_view_children_el_list.length - 3)
+    scroll_left_limit.value =
+      scroll_left_distance.value * (scrollbar_view_children_el_list.length - 3)
   }
 }
 function close() {
-  visible.value = false;
+  visible.value = false
 }
 async function loadSubscriptionData() {
+  const { access_token } =  userStore.info
+  if (!access_token) return Promise.resolve(subscription_options.value)
   if (subscription_options.value.length) return Promise.resolve(subscription_options.value)
-  loading.value = true;
+  loading.value = true
   const { list = [] } = await subscriptionApi.list().finally(() => {
-    loading.value = false;
+    loading.value = false
   })
   subscription_options.value = list
   updateUserGroup()
@@ -62,7 +74,10 @@ async function handleVersionSelect({ data = {} } = {}) {
   active_group_id.value = data.group_id || active_group_id.value
   await nextTick()
   active_time_unit.value = 'month'
-  if (!+(active_subscription_info.value.month_info || {}).amount && +(active_subscription_info.value.year_info || {}).amount) {
+  if (
+    !+(active_subscription_info.value.month_info || {}).amount &&
+    +(active_subscription_info.value.year_info || {}).amount
+  ) {
     active_time_unit.value = 'year'
   }
 }
@@ -88,57 +103,89 @@ function handleScrollRight() {
     }, 1)
   }
 }
-async function loadPaymentSettingData({ data = {} } = {}) {
+async function loadPaymentSettingData({ defaultDisabled = false } = {}) {
   const list = await paymentApi.getAvailableList()
-  payment_options.value = list.filter((item = {}) => item.pay_type == PAYMENT_TYPE_WECHAT && item.enabled && item.configured)
+  payment_options.value = list.filter(
+    (item = {}) => [PAYMENT_TYPE.WECHAT, PAYMENT_TYPE.MANUAL].includes(item.pay_type) && item.enabled && item.configured
+  )
+  if (!defaultDisabled) active_payment.value = (payment_options.value[0] || {}).pay_type || PAYMENT_TYPE.WECHAT
 }
 async function validateUpgrade() {
   await loadSubscriptionData()
   if (!subscription_options.value.length) return false
-  await loadPaymentSettingData()
-  if (!payment_options.value.length) return false
+  // 逻辑调整, 支付配置放在支付按钮判断
+  // await loadPaymentSettingData()
+  // if (!payment_options.value.length) return false
   return true
 }
 async function updateUserGroup({ refresh = false } = {}) {
   if (refresh) await userStore.getUserInfo()
-  const subscription_data = subscription_options.value.find((item = {}) => item.group_id == userStore.info.group_id)
+  const subscription_data = subscription_options.value.find(
+    (item = {}) => item.group_id == userStore.info.group_id
+  )
   if (subscription_data) {
     userStore.setGroupName(subscription_data.group_name || userStore.info.group_name)
     userStore.setGroupIcon(subscription_data.logo_url || userStore.info.group_icon)
   }
 }
 
+function handlePaymentDetailToggle() {
+  display_payment_detail.value = !display_payment_detail.value
+}
+async function handleQrcodeOpen({ defaultDisabled = false } = {}) {
+  await loadPaymentSettingData({ defaultDisabled })
+  if (!payment_options.value.length) return ElMessage.warning(window.$t('authority.payment_not_setting'))
+  payment_qrcode_ref.value.open()
+}
+
 defineExpose({
   open,
   close,
-  validateUpgrade,
-});
+  validateUpgrade
+})
 </script>
 
 <template>
   <div>
-    <ElDialog class="max-w-[1200px] rounded-md !p-0 overflow-hidden" header-class="hidden" footer-class="hidden"
-      :show-close="false" append-to-body center destroy-on-close width="90%" v-model="visible">
-      <ElContainer class="h-[74vh]" v-loading="loading">
-        <ElMain class="!flex flex-col gap-4 relative !overflow-hidden !py-8 !pl-12 !pr-2">
-          <h1 class="flex-none text-xl font-semibold text-[#000]">{{ $t('subscription.version_title') }}</h1>
+    <ElDialog class="max-w-[1200px] rounded-md !p-0 overflow-hidden w-[90%] max-md:mt-12 max-md:w-full" header-class="hidden"
+      footer-class="hidden" :show-close="false" append-to-body center destroy-on-close v-model="visible">
+      <ElContainer class="h-[74vh] max-md:h-[90vh] md:!flex-row" v-loading="loading">
+        <!-- <ElScrollbar class="w-full"> -->
+        <ElMain class="!flex flex-col gap-4 relative !overflow-scroll !py-8 !pl-12 max-md:!pl-5 !pr-2">
+          <ElIcon class="cursor-pointer absolute top-6 right-5 text-[#666] md:hidden" :size="20">
+            <Close @click.stop="close" />
+          </ElIcon>
+          <h1 class="flex-none text-xl font-semibold text-[#000]">
+            {{ $t('subscription.version_title') }}
+          </h1>
           <div class="flex-1 h-0 max-h-max relative">
             <ElButton v-show="scroll_left > 0"
               class="absolute -left-4 top-1/2 -translate-y-1/2 z-10 bg-[#F5F2F2] text-[#333] !border-none !outline-none"
               :icon="ArrowLeft" size="default" circle @click.stop="handleScrollLeft" />
-            <ElScrollbar ref="version_scrollbar_ref" class="relative version-scrollbar h-full"
-              view-class="relative  flex flex-nowrap gap-4 transition-all duration-300">
+            <ElScrollbar ref="version_scrollbar_ref" class="relative version-scrollbar"
+              view-class="relative flex flex-nowrap gap-4 transition-all duration-300">
               <div v-for="(item, item_index) in subscription_options" :key="item_index"
-                class="flex-none rounded-md  px-3.5 pt-4 pb-10 box-border border cursor-pointer" :class="[
-                  subscription_options.length > 2 ? 'w-[31%] max-w-[240px]' : subscription_options.length > 1 ? 'w-[47%] max-w-[340px]' : 'w-full',
-                  item.group_id == active_group_id ? `shadow-[0_0_20px_rgba(6, 114, 255, 0.2)] border-[#2F74FF] bg-cover bg-center` : 'border-[#EAEDF7] bg-[#F5F6FC]'
-                ]"
-                :style="{ backgroundImage: item.group_id == active_group_id ? `url(${$getPublicPath('/images/subscription/version-bg.png')})` : 'none' }"
-                @click.stop="handleVersionSelect({ data: item })">
+                class="flex-none rounded-md px-3.5 pt-4 pb-10 box-border border cursor-pointer min-w-[180px] h-max min-h-full max-md:(max-h-[430px] overflow-y-auto)"
+                :class="[
+                  subscription_options.length > 2
+                    ? 'w-[31%] max-w-[240px]'
+                    : subscription_options.length > 1
+                      ? 'w-[47%] max-w-[340px]'
+                      : 'w-full',
+                  item.group_id == active_group_id
+                    ? `shadow-[0_0_20px_rgba(6, 114, 255, 0.2)] border-[#2F74FF] bg-cover bg-center`
+                    : 'border-[#EAEDF7] bg-[#F5F6FC]',
+                ]" :style="{
+                  backgroundImage:
+                    item.group_id == active_group_id
+                      ? `url(${$getPublicPath('/images/subscription/version-bg.png')})`
+                      : 'none'
+                }" @click.stop="handleVersionSelect({ data: item })">
                 <header class="w-full flex items-center gap-3">
-                  <img
-                    :src="!/\.png$/.test(item.logo) ? $getPublicPath(`/images/subscription/${item.logo}.png`) : item.logo"
-                    class="flex-none w-12 h-12 rounded-full overflow-auto" />
+                  <img :src="!/\.png$/.test(item.logo)
+                    ? $getPublicPath(`/images/subscription/${item.logo}.png`)
+                    : item.logo
+                    " class="flex-none w-12 h-12 rounded-full overflow-auto" />
                   <h2 class="text-lg font-semibold text-[#000] truncate"
                     :class="subscription_options.length <= 1 ? 'flex-none' : 'flex-1'" :title="item.group_name">
                     {{ item.group_name }}
@@ -155,7 +202,11 @@ defineExpose({
                       </span>
                     </div>
                     <div class="text-xs text-[#9A9A9A]">
-                      {{ $t(`subscription.credit_month_amount`, { amount: ` ${item.credit_month_info.amount} ` }) }}
+                      {{
+                        $t(`subscription.credit_month_amount`, {
+                          amount: ` ${item.credit_month_info.amount} `
+                        })
+                      }}
                     </div>
                   </div>
                 </header>
@@ -171,7 +222,11 @@ defineExpose({
                     </span>
                   </div>
                   <div class="text-xs text-[#9A9A9A]">
-                    {{ $t(`subscription.credit_month_amount`, { amount: ` ${item.credit_month_info.amount} ` }) }}
+                    {{
+                      $t(`subscription.credit_month_amount`, {
+                        amount: ` ${item.credit_month_info.amount} `
+                      })
+                    }}
                   </div>
                 </template>
                 <div :class="[subscription_options.length > 1 ? '' : 'flex flex-row']">
@@ -223,14 +278,20 @@ defineExpose({
               class="absolute -right-0.5 top-1/2 -translate-y-1/2 z-10 bg-[#F5F2F2] text-[#333] !border-none !outline-none"
               :icon="ArrowRight" size="default" circle @click.stop="handleScrollRight" />
           </div>
-          <template
-            v-if="+(active_subscription_info.month_info || {}).amount || +(active_subscription_info.year_info || {}).amount">
-            <h1 class="flex-none text-xl font-semibold text-[#000]">{{ $t('subscription.time_title') }}</h1>
+          <template v-if="
+            +(active_subscription_info.month_info || {}).amount ||
+            +(active_subscription_info.year_info || {}).amount
+          ">
+            <h1 class="flex-none text-xl font-semibold text-[#000]">
+              {{ $t('subscription.time_title') }}
+            </h1>
             <ul class="flex-none w-full flex items-center gap-5 overflow-x-auto overflow-y-hidden">
               <template v-for="key in ['month', 'year']" :key="key">
                 <li v-if="+(active_subscription_info[`${key}_info`] || {}).amount"
-                  class="h-[128px] w-[36%] max-w-[280px] p-5 box-border border rounded-md" :class="[
-                    key == active_time_unit ? `shadow-[0_0_20px_rgba(6, 114, 255, 0.2)] border-[#2F74FF] bg-[url('https://img.js.design/assets/img/67e3c887985b9b806ee10e09.png#681a27dfb07db7652079a5900c960b9e')] bg-cover bg-center` : 'border-[#EAEDF7] bg-[#F5F6FC]'
+                  class="h-[128px] w-[36%] max-w-[280px] p-5 box-border border rounded-md min-w-[150px]" :class="[
+                    key == active_time_unit
+                      ? `shadow-[0_0_20px_rgba(6, 114, 255, 0.2)] border-[#2F74FF] bg-[url('https://img.js.design/assets/img/67e3c887985b9b806ee10e09.png#681a27dfb07db7652079a5900c960b9e')] bg-cover bg-center`
+                      : 'border-[#EAEDF7] bg-[#F5F6FC]'
                   ]" @click.stop="handleTimeUnitSelect({ unit: key })">
                   <div class="text-sm text-[#000]">
                     {{ $t(`subscription.time_unit_${key}`) }}
@@ -242,22 +303,22 @@ defineExpose({
                     <span class="text-2xl font-bold text-[#000] mx-1">
                       {{ (active_subscription_info[`${key}_info`] || {}).amount || 0 }}
                     </span>
-                    <span class="text-sm text-[#333]">
-                      / {{ $t(`subscription.${key}`) }}
-                    </span>
+                    <span class="text-sm text-[#333]"> / {{ $t(`subscription.${key}`) }} </span>
                   </div>
                 </li>
               </template>
             </ul>
           </template>
         </ElMain>
+        <!-- </ElScrollbar> -->
         <ElAside
-          class="flex flex-col flex-none max-w-[306px] relative bg-[#FAFAFA] border-l border-[#F2F0F0] !py-8 !pl-6 !pr-12"
-          width="30%">
+          class="flex flex-col flex-none max-w-[306px] relative bg-[#FAFAFA] border-l border-[#F2F0F0] !py-8 !pl-6 !pr-12 max-md:hidden w-[30%]">
           <ElIcon class="cursor-pointer absolute top-6 right-5 text-[#666]" :size="20">
             <Close @click.stop="close" />
           </ElIcon>
-          <h2 class="mt-10 text-2xl font-semibold text-[#000]">{{ $t('subscription.aside_title') }}</h2>
+          <h2 class="mt-10 text-2xl font-semibold text-[#000]">
+            {{ $t('subscription.aside_title') }}
+          </h2>
           <p class="mt-2 text-sm text-[#333]">{{ $t('subscription.aside_desc') }}</p>
           <div class="w-full flex items-center gap-2 mt-3">
             <img class="flex-none size-8 rounded-full overflow-hidden object-cover" :src="userStore.info.avatar" />
@@ -269,20 +330,22 @@ defineExpose({
           <div class="w-full flex-1 min-h-[108px]">
             <div class="w-full flex items-center justify-between text-lg text-[#000]">
               <span>{{ active_subscription_info.group_name || '- -' }}</span>
-              <span>{{ active_time_info.currency_symbol || '￥' }}{{ active_time_info.amount || 0 }}</span>
+              <span>{{ active_time_info.currency_symbol || '￥'
+                }}{{ active_time_info.amount || 0 }}</span>
             </div>
           </div>
           <template v-if="+active_time_info.amount">
             <ElDivider class="!my-5 !border-[#E7ECF7]" />
-            <h2 class="text-lg text-[#000]">{{ $t('subscription.payment') }}</h2>
-            <ElRadioGroup v-model="active_payment" class="mt-2" :disabled="pay_disabled">
-              <ElRadio :value="PAYMENT_TYPE_WECHAT">
-                <span class="text-[#333]">
-                  {{ $t('subscription.payment_wechat') }}
-                </span>
-              </ElRadio>
-              <!-- <ElRadio :value="PAYMENT_TYPE_MANUAL">{{ $t('subscription.payment_manual') }}</ElRadio> -->
-            </ElRadioGroup>
+            <template v-if="payment_options.length > 1">
+              <h2 class="text-lg text-[#000]">{{ $t('subscription.payment') }}</h2>
+              <ElRadioGroup v-model="active_payment" class="mt-2" :disabled="pay_disabled">
+                <ElRadio v-for="opt in payment_options" :key="opt.pay_type" :value="opt.pay_type">
+                  <span class="text-[#333]">
+                    {{ $t(`subscription.${opt.pay_type == PAYMENT_TYPE.WECHAT ? 'payment_wechat' : 'payment_manual'}`) }}
+                  </span>
+                </ElRadio>
+              </ElRadioGroup>
+            </template>
             <div class="text-[#000] text-xl mt-8 flex items-center justify-between gap-2">
               <span>
                 {{ $t('subscription.total') }}
@@ -293,11 +356,70 @@ defineExpose({
               </span>
             </div>
             <ElButton class="w-full mt-4" type="primary" size="large" :disabled="pay_disabled"
-              @click.stop="payment_qrcode_ref.open()">
+              @click.stop="handleQrcodeOpen({ defaultDisabled: true })">
               {{ $t('action.pay') }}
             </ElButton>
           </template>
         </ElAside>
+        <ElFooter v-if="+active_time_info.amount"
+          class="flex flex-col flex-none relative bg-[#FAFAFA] border-l border-[#F2F0F0] !py-2 !pl-6 !pr-12 shadow shadow-slate-700 min-h-max md:hidden">
+          <template v-if="+active_time_info.amount">
+            <div class="min-h-1 pb-1" :class="{ 'pb-0': display_payment_detail }">
+              <div v-if="display_payment_detail">
+                <h2 class="mt-10 text-2xl font-semibold text-[#000]">
+                  {{ $t('subscription.aside_title') }}
+                </h2>
+                <p class="mt-2 text-sm text-[#333]">{{ $t('subscription.aside_desc') }}</p>
+                <div class="w-full flex items-center gap-2 mt-3">
+                  <img class="flex-none size-8 rounded-full overflow-hidden object-cover"
+                    :src="userStore.info.avatar" />
+                  <div class="flex-1 text-sm font-medium text-[#333]">
+                    {{ userStore.info.nickname }}
+                  </div>
+                </div>
+                <ElDivider class="!my-5 !border-[#E7ECF7]" />
+                <div class="w-full flex-1 min-h-[108px]">
+                  <div class="w-full flex items-center justify-between text-lg text-[#000]">
+                    <span>{{ active_subscription_info.group_name || '- -' }}</span>
+                    <span>{{ active_time_info.currency_symbol || '￥'
+                      }}{{ active_time_info.amount || 0 }}</span>
+                  </div>
+                </div>
+              </div>
+              <div v-if="payment_options.length > 1" class="flex flex-row items-center gap-4 min-h-max pb-12">
+                <h2 class="text-lg text-[#000]">{{ $t('subscription.payment') }}</h2>
+                <ElRadioGroup v-model="active_payment" class="" :disabled="pay_disabled">
+                  <ElRadio v-for="opt in payment_options" :key="opt.pay_type" :value="opt.pay_type">
+                    <span class="text-[#333]">
+                      {{ $t(`subscription.${opt.pay_type == PAYMENT_TYPE.WECHAT ? 'payment_wechat' : 'payment_manual'}`) }}
+                    </span>
+                  </ElRadio>
+                </ElRadioGroup>
+              </div>
+              <div class="flex flex-row items-end gap-4">
+                <div class="mt-4 flex gap-1 items-end">
+                  <span class="text-lg text-[#000]">
+                    {{ active_time_info.currency_symbol || '￥' }}
+                  </span>
+                  <span class="text-4xl font-semibold text-[#000]">
+                    {{ Number(active_time_info.amount || 0).toFixed(2) }}</span>
+                </div>
+
+                <div class="whitespace-nowrap min-w-max flex items-center gap-1" @click="handlePaymentDetailToggle">
+                  <span class="text-sm text-[#333]">明细</span>
+                  <ElIcon class="text-sm text-[#333]" :class="{ 'rotate-180': display_payment_detail }">
+                    <ArrowUp />
+                  </ElIcon>
+                </div>
+
+                <ElButton class="w-full mt-4" type="primary" size="large" :disabled="pay_disabled"
+                  @click.stop="handleQrcodeOpen({ defaultDisabled: true })">
+                  {{ $t('action.pay') }}
+                </ElButton>
+              </div>
+            </div>
+          </template>
+        </ElFooter>
       </ElContainer>
     </ElDialog>
 

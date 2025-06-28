@@ -1,5 +1,5 @@
 <template>
-  <div class="relative w-full">
+  <div class="relative w-full overflow-hidden">
     <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[1920px] h-[700px] !max-w-none z-1" :style="{
       backgroundImage: `url(${$getPublicPath('/images/index/card_bg_v2.png')})`,
       backgroundSize: '1920px 700px',
@@ -33,23 +33,100 @@
         <div class="hover-text-theme cursor-pointer" @click="handleHotSearch('图片处理')">图片处理</div>
         <div class="hover-text-theme cursor-pointer" @click="handleHotSearch('浏览器自动化')">浏览器自动化</div>
       </div>
-      <AgentView mode="index" ref="agentRef" />
-      <ToolboxView mode="index" ref="toolboxRef" />
+      <!-- 智能体 -->
+      <div class="w-11/12 lg:w-4/5 py-6 md:py-8 lg:py-10 mx-auto box-border"
+        v-if="searchValue ? showAgentList.length > 0 : true">
+        <p class="text-sm md:text-base mt-3 line-clamp-2 text-regular" v-if="searchValue">
+          {{ $t('module.agent') }}
+        </p>
+        <template v-else>
+          <h2 class="text-xl md:text-2xl font-bold" style="color: var(--el-text-color-primary, #1d1e1f)">
+            {{ $t('index.agent_recommend') }}
+          </h2>
+          <p class="text-sm md:text-base mt-3 line-clamp-2 text-regular">
+            {{ $t('index.agent_recommend_desc') }}
+          </p>
+        </template>
+
+        <!-- 功能卡片网格 -->
+        <AgentList class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mt-5 md:mt-8"
+          :list="showAgentList">
+        </AgentList>
+
+        <router-link v-if="!searchValue && showAgentList.length > 0"
+          class="block w-[240px] h-[40px] leading-[40px] border border-primary box-border text-center text-theme mt-[54px] rounded-[24px] mx-auto hover-bg-primary-light-9 transition-all duration-300"
+          :to="{ path: '/index/agent' }">
+          {{ $t('action.view_more') }}
+        </router-link>
+      </div>
+
+      <div class="w-full py-6 md:py-8 lg:py-10 mx-auto box-border" :style="{
+        backgroundImage: !searchValue ? `url(${$getPublicPath('/images/index/card_bg_v3.png')})` : '',
+        backgroundPosition: 'center center',
+        backgroundRepeat: 'no-repeat',
+      }">
+        <PromptView mode="index" hideFilter ref="promptRef" :showLimit="6" />
+      </div>
+      <!-- 工具箱 -->
+      <div class="w-11/12 lg:w-4/5 py-6 md:py-8 lg:py-10 mx-auto box-border"
+        v-if="searchValue ? showToolkitList.length > 0 : true">
+        <p class="text-sm md:text-base mt-3 line-clamp-2 text-regular" v-if="searchValue">
+          {{ $t('module.toolbox') }}
+        </p>
+        <template v-else>
+          <h2 class="text-xl md:text-2xl font-bold" style="color: var(--el-text-color-primary, #1d1e1f)">
+            {{ $t('index.toolbox_recommend') }}
+          </h2>
+          <p class="text-sm md:text-base mt-3 line-clamp-2 text-regular">
+            {{ $t('index.toolbox_recommend_desc') }}
+          </p>
+        </template>
+        <ToolkitList class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mt-7" :list="showToolkitList"
+          onlyAll />
+
+        <router-link v-if="!searchValue && showToolkitList.length > 0"
+          class="block w-[240px] h-[40px] leading-[40px] border border-primary box-border text-center text-theme mt-[54px] rounded-[24px] mx-auto hover-bg-primary-light-9 transition-all duration-300"
+          :to="{ name: 'HomeToolkit' }">
+          {{ $t('action.view_more') }}
+        </router-link>
+      </div>
       <div class="w-full h-[100px]" />
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
+import { onMounted, computed } from 'vue'
 import { Search } from '@element-plus/icons-vue'
-import AgentView from './agent.vue'
-import ToolboxView from '@/views/desktop/tools/toolbox.vue'
+import AgentList from '../agent/components/list.vue'
+import ToolkitList from '../toolkit/components/list.vue'
+import PromptView from '@/views/prompt/view.vue'
 
 import { ref } from 'vue'
+import { useLinksStore } from '@/stores/modules/links'
+import { useAgentStore } from '@/stores/modules/agent'
+import { useRoute, useRouter } from 'vue-router'
 
-const agentRef = ref<InstanceType<typeof AgentView>>()
-const toolboxRef = ref<InstanceType<typeof ToolboxView>>()
+const route = useRoute()
+const router = useRouter()
+const linksStore = useLinksStore()
+const agentStore = useAgentStore()
+const promptRef = ref<InstanceType<typeof PromptView>>()
 const searchValue = ref('')
+
+const showAgentList = computed(() => {
+  if (searchValue.value) {
+    return agentStore.agentList.filter(item => item.name.includes(searchValue.value))
+  }
+  return agentStore.agentList.slice(0, 6)
+})
+
+const showToolkitList = computed(() => {
+  if (searchValue.value) {
+    return linksStore.links.filter(item => item.name.includes(searchValue.value))
+  }
+  return linksStore.links.slice(0, 6)
+})
 
 const handleHotSearch = (keyword: string) => {
   searchValue.value = keyword
@@ -57,9 +134,13 @@ const handleHotSearch = (keyword: string) => {
 }
 
 const handleSearch = () => {
-  agentRef.value?.search(searchValue.value)
-  toolboxRef.value?.search(searchValue.value)
+  promptRef.value?.search(searchValue.value)
 }
+
+onMounted(() => {
+  linksStore.loadLinks()
+  agentStore.loadAgentList()
+})
 
 </script>
 

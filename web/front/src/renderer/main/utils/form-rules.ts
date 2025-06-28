@@ -32,7 +32,7 @@ export const getEmailRules = () => {
   return {
     validator: (rule: any, value: string) => {
       if (!value) {
-        return Promise.resolve()
+        return Promise.reject(window.$t('form.email_format'))
       }
       // 邮箱正则
       const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
@@ -40,6 +40,26 @@ export const getEmailRules = () => {
         return Promise.reject(window.$t('form.email_format'))
       }
       return Promise.resolve()
+    },
+    trigger: 'blur'
+  }
+}
+
+export const getAccountOrEmailRules = () => {
+  return {
+    validator: (rule: any, value: string) => {
+      if (!value) {
+        return Promise.reject(window.$t('form.account_format'))
+      }
+      const emailRegex = /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/
+      if (emailRegex.test(value)) {
+        return Promise.resolve()
+      }
+      const mobileRegex = /^1[3-9]\d{9}$/
+      if (mobileRegex.test(value)) {
+        return Promise.resolve()
+      }
+      return Promise.reject(window.$t('form.account_format'))
     },
     trigger: 'blur'
   }
@@ -57,6 +77,19 @@ export const getAccountRules = () => {
         return Promise.reject(window.$t('form.account_format'))
       }
       return Promise.resolve()
+    },
+    trigger: 'blur'
+  }
+}
+
+export const getConfirmPasswordRules = (form: any, passwordField: string) => {
+  return {
+    validator: (rule: any, value: string) => {
+      if (value !== form[passwordField]) {
+        return Promise.reject(window.$t('form.password_not_match'));
+      } else {
+        return Promise.resolve();
+      }
     },
     trigger: 'blur'
   }

@@ -1,11 +1,14 @@
+
+import { LIB_HOST } from '@/api/host'
+
 const libs = {
   'vditor': {
     id: 'vditor-lib',
-    src: window.$getPublicPath('/libs/vditor/dist/index.min.js'),
+    src: `${LIB_HOST}/js/vditor/dist/index.min.js`,
     callback() {
       const css = document.createElement('link')
       css.rel = 'stylesheet'
-      css.href = window.$getPublicPath('/libs/vditor/dist/index.css')
+      css.href = `${LIB_HOST}/js/vditor/dist/index.css`
       document.head.appendChild(css)
     },
   },

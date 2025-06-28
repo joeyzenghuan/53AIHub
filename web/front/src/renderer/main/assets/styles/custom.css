@@ -24,6 +24,10 @@
 .hover-text-theme:hover {
   color: var(--el-color-primary, #2563eb);
 }
+.text-theme-important,
+.hover-text-theme-important:hover {
+  color: var(--el-color-primary, #2563eb) !important;
+}
 .text-primary {
   color: var(--el-text-color-primary, #121519);
 }

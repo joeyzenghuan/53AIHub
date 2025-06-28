@@ -1,14 +1,19 @@
 import service from '../config'
 import { handleError } from '../errorHandler'
-import { useUserStore } from '@/stores/modules/user'
 
 
 export const agent = {
   async list() {
-    const userStore = useUserStore()
-    if (!userStore.info.user_id) await userStore.getUserInfo()
-    const is_internal = userStore.info.is_internal
-    return service.get(is_internal ? `/api/agents/internal_users` : `/api/agents/current`).catch(handleError)
+    return service.get(`/api/agents/current`).catch(handleError)
+  },
+  internalList() {
+    return service.get(`/api/agents/internal_users`).catch(handleError)
+  },
+  available(params: {
+    offset?: number
+    limit?: number
+  } = {}) {
+    return service.get(`/api/agents/available`, { params }).catch(handleError)
   }
 }
 export default agent

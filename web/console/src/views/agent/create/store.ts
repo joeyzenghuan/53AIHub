@@ -1,16 +1,15 @@
 import { defineStore } from 'pinia'
 import {
-  AGENT_APP_OPTIONS,
-  AGENT_TYPE_53AI_AGENT,
-  AGENT_TYPE_APP_BUILDER,
-  AGENT_TYPE_COZE_AGENT_CN,
-  AGENT_TYPE_DIFY_AGENT,
-  AGENT_TYPE_ICON_MAP,
-  AGENT_TYPE_PROMPT,
+  AGENT_TYPE,
   agentApi,
 } from '@/api/modules/agent'
-import { CHANNEL_TYPE_DEEP_SEEK, CHANNEL_TYPE_OPEN_AI, CHANNEL_TYPE_SILICON_FLOW, CHANNEL_TYPE_VALUE_MAP, channelApi } from '@/api/modules/channel'
-import { GROUP_TYPE_AGENT, GROUP_TYPE_USER, groupApi } from '@/api/modules/group'
+import { CHANNEL_TYPE_VALUE_MAP, channelApi } from '@/api/modules/channel'
+import { GROUP_TYPE_AGENT, groupApi } from '@/api/modules/group'
+import { useEnterpriseStore } from '@/stores'
+import { AGENT_TYPES, getAgentByAgentType } from '@/constants/platform/config'
+import type { AgentType } from '@/constants/platform/config'
+
+const enterprise_store = useEnterpriseStore()
 
 const DEFAULT_COMPLETION_PARAMS = {
   temperature: 0.2,
@@ -29,11 +28,11 @@ export const useAgentFormStore = defineStore('agent-form-store', {
     agent_data: Record<string, any>
     group_options: any[]
     channel_options: any[]
-    subscription_options: any[]
     model_options: any[]
     coze_workspace_options: any[]
     coze_bot_options: any[]
     app_builder_bot_options: any[]
+    chat53ai_agent_options: any[]
   } => ({
     saving: false,
     loading: false,
@@ -49,6 +48,7 @@ export const useAgentFormStore = defineStore('agent-form-store', {
       sort: 0,
       prompt: '',
       user_group_ids: [],
+      subscription_group_ids: [],
       tools: [],
       use_cases: [],
       configs: {},
@@ -57,6 +57,7 @@ export const useAgentFormStore = defineStore('agent-form-store', {
         coze_workspace_id: '',
         coze_bot_id: '',
         app_builder_bot_id: '',
+        chat53ai_agent_id: '',
         channel_config: {},
         file_parse: {
           enable: false,
@@ -65,31 +66,29 @@ export const useAgentFormStore = defineStore('agent-form-store', {
           enable: false,
         },
       },
+      settings: {
+        opening_statement: '',
+        suggested_questions: [],
+      },
     },
     agent_data: {},
     group_options: [],
     channel_options: [],
-    subscription_options: [],
     model_options: [],
     coze_workspace_options: [],
     coze_bot_options: [],
     app_builder_bot_options: [],
+    chat53ai_agent_options: [],
   }),
   getters: {
     agent_option_data: (state) => {
-      let result = {}
-      AGENT_APP_OPTIONS.forEach((item) => {
-        const data = item.children.find(row => row.value == state.agent_type)
-        if (data)
-          result = JSON.parse(JSON.stringify(data))
-      })
-      return result
+      return getAgentByAgentType(state.agent_type as AgentType)
     },
     support_file: (state) => {
-      return state.agent_type !== AGENT_TYPE_PROMPT
+      return state.agent_type !== AGENT_TYPE.PROMPT
     },
     support_image: (state) => {
-      if (state.agent_type !== AGENT_TYPE_PROMPT)
+      if (state.agent_type !== AGENT_TYPE.PROMPT)
         return true
 
       return state.model_options
@@ -98,7 +97,9 @@ export const useAgentFormStore = defineStore('agent-form-store', {
         ?.model_options.find((item: { value: string; vision?: boolean }) => item.value === state.form_data.model)
         ?.vision || false
     },
+    is_independent: () => enterprise_store.info.is_independent,
   },
+
   actions: {
     async loadDetailData() {
       if (!this.agent_id)
@@ -117,7 +118,6 @@ export const useAgentFormStore = defineStore('agent-form-store', {
 
     updateFormData() {
       this.agent_type = this.agent_data.agent_type || this.agent_type || ''
-
       Object.assign(this.form_data, {
         logo: this.agent_data.logo || this.agent_option_data?.icon || '',
         name: this.agent_data.name || '',
@@ -128,6 +128,7 @@ export const useAgentFormStore = defineStore('agent-form-store', {
         sort: +this.agent_data.sort || 0,
         prompt: this.agent_data.prompt || '',
         user_group_ids: this.agent_data.user_group_ids || [],
+        subscription_group_ids: this.agent_data.user_group_ids || [],
         tools: this.agent_data.tools || [],
         use_cases: this.agent_data.use_cases || [],
         configs: this.agent_data.configs && Object.keys(this.agent_data.configs).length > 0
@@ -136,9 +137,11 @@ export const useAgentFormStore = defineStore('agent-form-store', {
         enable: !!+this.agent_data.enable || false,
         custom_config: {
           agent_type: this.agent_type,
+          channel_id: 0,
           coze_workspace_id: '',
           coze_bot_id: '',
           app_builder_bot_id: '',
+          chat53ai_agent_id: '',
           channel_config: {},
           file_parse: {
             enable: false,
@@ -148,10 +151,16 @@ export const useAgentFormStore = defineStore('agent-form-store', {
           },
           ...(this.agent_data.custom_config || {}),
         },
+        settings: {
+          opening_statement: this.agent_data.settings?.opening_statement || '',
+          suggested_questions: this.agent_data.settings?.suggested_questions || [],
+        },
       })
 
-      if (this.agent_type === AGENT_TYPE_PROMPT)
-        this.form_data.model = `${this.agent_data.channel_type}_${this.agent_data.model}` || ''
+      if (this.agent_type === AGENT_TYPE.PROMPT) {
+        const custom_config = this.agent_data.custom_config || {}
+        this.form_data.model = `${custom_config.channel_id}_${this.agent_data.channel_type}_${this.agent_data.model}` || ''
+      }
     },
 
     async loadGroupOptions() {
@@ -171,10 +180,10 @@ export const useAgentFormStore = defineStore('agent-form-store', {
 
     async loadChannelOptions() {
       const list = await channelApi.list()
-      this.channel_options = (list || []).filter((item = {}) => [CHANNEL_TYPE_SILICON_FLOW, CHANNEL_TYPE_OPEN_AI, CHANNEL_TYPE_DEEP_SEEK].includes(item.type))
+      this.channel_options = (list || []).filter((item = {}) => [36, 3, 1, 44].includes(item.channel_type))
       const all_model_options = []
       this.model_options = this.channel_options.map((item = {}) => {
-        item.value = String(item.channel_type || item.channel_id || '')
+        item.value = `${item.channel_id}_${item.channel_type}`
         item.icon = window.$getRealPath({ url: `/images/platform/${item.icon}.png` })
         item.options = (item.model_options || []).map((row = {}) => {
           row.value = `${item.value}_${row.value}`
@@ -187,29 +196,22 @@ export const useAgentFormStore = defineStore('agent-form-store', {
       // if (all_model_options.length && !all_model_options.find(item => item.value === this.form_data.model)) this.form_data.model = all_model_options[0].value
       if (all_model_options.length && !this.form_data.model)
         this.form_data.model = all_model_options[0].value
-      if ([AGENT_TYPE_PROMPT].includes(this.agent_type) && !all_model_options.find(item => item.value === this.form_data.model))
+      if ([AGENT_TYPE.PROMPT].includes(this.agent_type) && !all_model_options.find(item => item.value === this.form_data.model))
         this.form_data.model = ''
-      const channel_data = this.channel_options.find(item => item.channel_type == CHANNEL_TYPE_VALUE_MAP.get(this.agent_type))
-      switch (this.agent_type) {
-        case AGENT_TYPE_DIFY_AGENT:
-        case AGENT_TYPE_53AI_AGENT:
-          if (channel_data && channel_data.models && channel_data.models[0])
-            this.form_data.model = channel_data.models[0]
-          break
-        default:
-          break
-      }
-    },
+      // const channel_data = this.channel_options.find(item => item.channel_type === AGENT_TO_PROVIDER_VALUE_MAP[this.agent_type])
 
-    async loadSubscriptionOptions() {
-      const list = await groupApi.list({ params: { group_type: GROUP_TYPE_USER } })
-      this.subscription_options = (list || []).map((item) => {
-        item.value = +item.group_id || 0
-        item.label = item.group_name || ''
-        return item
-      })
-      if (!this.agent_id && this.subscription_options.length && !this.form_data.user_group_ids.length)
-			  this.form_data.user_group_ids = this.subscription_options.map(item => item.value)
+      // switch (this.agent_type) {
+      //   case AGENT_TYPE.DIFY_AGENT:
+      //   case AGENT_TYPE['53AI_AGENT']:
+      //   case AGENT_TYPE.BAILIAN:
+      //   case AGENT_TYPE.VOLCENGINE:
+      //   case AGENT_TYPE.YUANQI:
+      //     if (channel_data && channel_data.models && channel_data.models[0])
+      //       this.form_data.model = channel_data.models[0]
+      //     break
+      //   default:
+      //     break
+      // }
     },
 
     async loadCozeWorkspaceOptions() {
@@ -220,8 +222,8 @@ export const useAgentFormStore = defineStore('agent-form-store', {
         item.icon = item.icon_url || ''
         return item
       })
-      if (this.coze_workspace_options.length && !this.form_data.custom_config.coze_workspace_id)
-        this.form_data.custom_config.coze_workspace_id = this.coze_workspace_options[0].value
+      if (this.coze_workspace_options.length && !this.form_data.custom_config.coze_workspace_id) {}
+      this.form_data.custom_config.coze_workspace_id = this.coze_workspace_options[0].value
       if (!this.coze_workspace_options.find(item => item.value === this.form_data.custom_config.coze_workspace_id))
         this.form_data.custom_config.coze_workspace_id = ''
     },
@@ -237,8 +239,15 @@ export const useAgentFormStore = defineStore('agent-form-store', {
         item.icon = item.icon_url || ''
         return item
       })
-      if (this.coze_bot_options.length && !this.form_data.custom_config.coze_bot_id)
-        this.form_data.custom_config.coze_bot_id = this.coze_bot_options[0].value
+      if (this.coze_bot_options.length && !this.form_data.custom_config.coze_bot_id) {
+        const bot = this.coze_bot_options[0]
+        if (!this.agent_id) {
+          this.form_data.logo = bot.icon
+          this.form_data.name = bot.label
+          this.form_data.description = bot.description || ''
+        }
+        this.form_data.custom_config.coze_bot_id = bot.value
+      }
       if (!this.coze_bot_options.find(item => item.value === this.form_data.custom_config.coze_bot_id))
         this.form_data.custom_config.coze_bot_id = ''
     },
@@ -250,13 +259,47 @@ export const useAgentFormStore = defineStore('agent-form-store', {
         if (item.value)
           item.value = `bot-${item.value}`
         item.label = item.name || ''
-        item.icon = item.icon || AGENT_TYPE_ICON_MAP.get(AGENT_TYPE_APP_BUILDER) || ''
+        item.icon = item.icon || getAgentByAgentType(AGENT_TYPES.APP_BUILDER).icon
         return item
       })
-      if (this.app_builder_bot_options.length && !this.form_data.custom_config.app_builder_bot_id)
-        this.form_data.custom_config.app_builder_bot_id = this.app_builder_bot_options[0].value
+      if (this.app_builder_bot_options.length && !this.form_data.custom_config.app_builder_bot_id) {
+        const bot = this.app_builder_bot_options[0]
+        if (!this.agent_id) {
+          this.form_data.name = bot.label
+          this.form_data.description = bot.description || ''
+        }
+        this.form_data.custom_config.app_builder_bot_id = bot.value
+      }
       if (!this.app_builder_bot_options.find(item => item.value === this.form_data.custom_config.app_builder_bot_id))
         this.form_data.custom_config.app_builder_bot_id = ''
+    },
+
+    async load53aiAgentOptions() {
+      const list = await channelApi.chat53aiAgentList()
+      this.chat53ai_agent_options = (list || []).map((item) => {
+        item.value = item.bot_id || 0
+        item.label = item.name || ''
+        item.icon = item.logo
+        return item
+      })
+      if (this.chat53ai_agent_options.length && !this.form_data.custom_config.chat53ai_agent_id) {
+        const agent = this.chat53ai_agent_options[0]
+        if (!this.agent_id) {
+          this.form_data.logo = agent.logo
+          this.form_data.name = agent.name
+          this.form_data.description = agent.description || ''
+        }
+        this.form_data.custom_config.chat53ai_agent_id = agent.value
+        this.form_data.settings.opening_statement = agent.opening_statement
+        this.form_data.settings.suggested_questions = agent.suggested_questions.map((item) => {
+          return {
+            id: Math.random().toString(36).substring(2, 15),
+            content: item,
+          }
+        })
+      }
+      if (!this.chat53ai_agent_options.find(item => item.value === this.form_data.custom_config.chat53ai_agent_id))
+        this.form_data.custom_config.chat53ai_agent_id = ''
     },
     resetState() {
       this.saving = false
@@ -273,11 +316,13 @@ export const useAgentFormStore = defineStore('agent-form-store', {
         sort: 0,
         prompt: '',
         user_group_ids: [],
+        subscription_group_ids: [],
         tools: [],
         use_cases: [],
         configs: { completion_params: DEFAULT_COMPLETION_PARAMS },
         custom_config: {
           agent_type: 'prompt',
+          channel_id: 0,
           coze_workspace_id: '',
           coze_bot_id: '',
           app_builder_bot_id: '',
@@ -289,11 +334,14 @@ export const useAgentFormStore = defineStore('agent-form-store', {
             enable: false,
           },
         },
+        settings: {
+          opening_statement: '',
+          suggested_questions: [],
+        },
       }
       this.agent_data = {}
       this.group_options = []
       this.channel_options = []
-      this.subscription_options = []
       this.model_options = []
       this.coze_workspace_options = []
       this.coze_bot_options = []
@@ -310,12 +358,14 @@ export const useAgentFormStore = defineStore('agent-form-store', {
         channel_type = 0,
         prompt = '',
         user_group_ids = [],
+        subscription_group_ids = [],
         use_cases = [],
         tools = [],
         sort = 0,
         configs = {},
         enable,
         custom_config = {},
+        settings = {},
       } = this.form_data
 
       const data = {
@@ -329,25 +379,31 @@ export const useAgentFormStore = defineStore('agent-form-store', {
         sort,
         prompt,
         user_group_ids,
+        subscription_group_ids,
         use_cases,
         tools,
         configs,
         enable,
         custom_config,
+        settings,
       }
       if (!channel_type)
-        data.channel_type = CHANNEL_TYPE_VALUE_MAP.get((this.agent_type)) || 0
+        data.channel_type = CHANNEL_TYPE_VALUE_MAP.get(this.agent_type) || 0
 
       switch (this.agent_type) {
-        case AGENT_TYPE_PROMPT:
-          data.channel_type = +model.split('_')[0] || 0
-          data.model = model.split('_')[1] || ''
+        case AGENT_TYPE.PROMPT:
+          data.custom_config.channel_id = +model.split('_')[0] || 0
+          data.channel_type = +model.split('_')[1] || 0
+          data.model = model.split('_')[2] || ''
           break
-        case AGENT_TYPE_COZE_AGENT_CN:
+        case AGENT_TYPE.COZE_AGENT_CN:
           data.model = custom_config.coze_bot_id || ''
           break
-        case AGENT_TYPE_APP_BUILDER:
+        case AGENT_TYPE.APP_BUILDER:
           data.model = custom_config.app_builder_bot_id || ''
+          break
+        case AGENT_TYPE['53AI_AGENT']:
+          data.model = custom_config.chat53ai_agent_id || ''
           break
       }
       this.saving = true

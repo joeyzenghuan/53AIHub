@@ -159,10 +159,6 @@ func CreateOrder(c *gin.Context) {
 	case model.PayTypeManual:
 		// For manual payment, save the order directly
 		order.Status = model.OrderStatusConfirming
-		if err := order.Update(); err != nil {
-			c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
-			return
-		}
 		paymentInfo = nil
 	case model.PayTypePaypal:
 		// TODO: Implement PayPal payment processing
@@ -681,7 +677,7 @@ func QueryOrderStatus(c *gin.Context) {
 		// Order not found in database, check cache
 		cachedOrder, found := getCachedOrder(orderId)
 		if !found {
-			c.JSON(http.StatusNotFound, model.NotFound.ToResponse("Order not found"))
+			c.JSON(http.StatusNotFound, model.NotFound.ToNewErrorResponse(model.OrderNotFound))
 			return
 		}
 

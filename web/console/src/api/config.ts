@@ -11,7 +11,7 @@ service.interceptors.request.use(
     config.params = config.params || {}
     const access_token = config.params.access_token || localStorage.getItem('access_token') || ''
     if (access_token)
-      config.headers.set('Authorization', access_token)
+      config.headers.set('Authorization', `Bearer ${access_token}`)
 
     if (config.ibos_sign) {
       const { token, platform, createtime } = generateIbosSignParams()

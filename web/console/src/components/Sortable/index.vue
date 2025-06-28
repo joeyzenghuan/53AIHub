@@ -13,6 +13,14 @@ const props = withDefaults(defineProps<{
   infiniteScrollImmediate?: boolean
   infiniteScrollDistance?: number
   disabled?: boolean
+  group?: string | {
+    name: string
+    pull?: boolean | string | ((to: any, from: any, dragEl: HTMLElement, evt: Event) => boolean)
+    put?: boolean | string[] | ((to: any, from: any, dragEl: HTMLElement, evt: Event) => boolean)
+    revertClone?: boolean
+  }
+  sort?: boolean
+  allowCrossInstanceDrag?: boolean
 }>(), {
   dragBg: '#ECF5FF',
   modelValue: () => [],
@@ -26,6 +34,9 @@ const props = withDefaults(defineProps<{
   infiniteScrollImmediate: false,
   infiniteScrollDistance: 20,
   disabled: false,
+  group: undefined,
+  sort: true,
+  allowCrossInstanceDrag: false,
 })
 
 const emits = defineEmits<{
@@ -54,8 +65,7 @@ const renderFlag = ref(false)
 const sortableId = computed(() => props.customSortableId || id)
 
 onMounted(() => {
-  if (!props.disabled)
-    initSortable()
+	initSortable()
 })
 onUnmounted(() => {
   destroySortable()
@@ -64,47 +74,58 @@ onUnmounted(() => {
 let _sortableInstance: any = null
 let _removing = false
 const initSortable = () => {
+	if (props.disabled) return
   const sortableEl = document.querySelector(`#${sortableId.value}`)
-  if (!sortableEl)
-    return
-  _sortableInstance = Sortable.create(sortableEl, {
+  if (!sortableEl) return
+
+  const sortableConfig: any = {
+    group: props.group || (props.allowCrossInstanceDrag ? 'shared' : undefined),
+    sort: props.sort,
     onStart: (event = {}) => {
       const { target, oldIndex } = event
       emits('start', event)
-      target.children[oldIndex].style.background = props.props.dragBg
+      if (target?.children?.[oldIndex]) {
+        target.children[oldIndex].style.background = props.dragBg
+      }
     },
     onEnd: (event = {}) => {
       const { from = {}, to = {}, target, newIndex: targetIndex, oldIndex: originIndex } = event
       emits('end', event)
-      if (target.children && target.children[targetIndex])
+      if (target?.children?.[targetIndex])
         target.children[targetIndex].style.background = 'transparent'
-      if (targetIndex === originIndex)
-        return
-      if (_removing)
-        return _removing = false
-      const value = list.value
-      const prevValue = JSON.parse(JSON.stringify(value))
-      const originData = value.splice(originIndex, 1)[0]
-      const targetData = value[targetIndex]
-      value.splice(targetIndex, 0, originData)
-      emits('update:modelValue', value)
-      emits('change', {
-        action: 'sort',
-        prevValue,
-        value,
-        originSortableId: from.id,
-        targetSortableId: to.id,
-        originData,
-        targetData,
-        originIndex,
-        targetIndex,
-      })
+
+      if (from === to && targetIndex !== originIndex) {
+        if (_removing) return _removing = false
+        const value = [...list.value]
+        const prevValue = JSON.parse(JSON.stringify(value))
+        const originData = value.splice(originIndex, 1)[0]
+        const targetData = value[targetIndex]
+        value.splice(targetIndex, 0, originData)
+        list.value = value
+        emits('update:modelValue', value)
+        emits('change', {
+          action: 'sort',
+          prevValue,
+          value,
+          originSortableId: from.id,
+          targetSortableId: to.id,
+          originData,
+          targetData,
+          originIndex,
+          targetIndex,
+        })
+      }
     },
     onAdd: (event = {}) => {
-      const { from = {}, to = {}, target, newIndex: targetIndex, oldIndex: originIndex } = event
-      if (target.children && target.children[targetIndex])
+      const { from = {}, to = {}, target, newIndex: targetIndex, oldIndex: originIndex, item } = event
+      if (target?.children?.[targetIndex])
         target.children[targetIndex].style.background = 'transparent'
-      const value = list.value
+
+      const value = [...list.value]
+      const newItem = JSON.parse(item.dataset.sortableData || '{}')
+      value.splice(targetIndex, 0, newItem)
+      list.value = value
+      emits('update:modelValue', value)
       emits('change', {
         action: 'add',
         value,
@@ -112,14 +133,19 @@ const initSortable = () => {
         targetSortableId: to.id,
         originIndex,
         targetIndex,
+        newItem,
       })
     },
     onRemove: (event = {}) => {
       const { from = {}, to = {}, target, newIndex: targetIndex, oldIndex: originIndex } = event
-      if (target.children && target.children[targetIndex])
+      if (target?.children?.[targetIndex])
         target.children[targetIndex].style.background = 'transparent'
-      const value = list.value
+
+      const value = [...list.value]
+      const removedItem = value.splice(originIndex, 1)[0]
+      list.value = value
       _removing = true
+      emits('update:modelValue', value)
       emits('change', {
         action: 'remove',
         value,
@@ -127,10 +153,13 @@ const initSortable = () => {
         targetSortableId: to.id,
         originIndex,
         targetIndex,
+        removedItem,
       })
     },
     ...props.props,
-  })
+  }
+
+  _sortableInstance = Sortable.create(sortableEl, sortableConfig)
 }
 const destroySortable = () => {
   if (_sortableInstance) {
@@ -146,19 +175,24 @@ const handleScroll = (event) => {
   emits('scroll', { scrollTop: _scrollTop })
 }
 
-watch(() => props.modelValue, async (val = []) => {
+const rerender = async () => {
+	destroySortable()
+	list.value = []
+	renderFlag.value = true
+	await nextTick()
+	renderFlag.value = false
+	await nextTick()
+  list.value = [...props.modelValue]
+	await nextTick()
+	initSortable()
+}
+watch(() => props.modelValue, async () => {
   const { forceRender = false } = props
   if (forceRender) {
     // 强制重新渲染，修复部分移动分组问题
-    destroySortable()
-    list.value = []
-    renderFlag.value = true
-    await nextTick()
-    renderFlag.value = false
-    await nextTick()
-    initSortable()
+		await rerender()
   }
-  list.value = val
+  list.value = [...props.modelValue]
   if (forceRender) {
     // 强制重新渲染后恢复滚动位置
     await nextTick()
@@ -167,6 +201,13 @@ watch(() => props.modelValue, async (val = []) => {
       sortableEl.scrollTop = _scrollTop
   }
 }, { immediate: true, deep: true })
+watch(() => props.disabled, async (val) => {
+	rerender()
+})
+
+defineExpose({
+	rerender
+})
 </script>
 
 <template>
@@ -179,7 +220,9 @@ watch(() => props.modelValue, async (val = []) => {
   >
     <slot name="header" />
     <template v-for="(item, index) in list" :key="item[identity] || index">
-      <slot name="item" :item="item" :index="index" />
+      <div :data-sortable-data="JSON.stringify(item)">
+        <slot name="item" :item="item" :index="index" />
+      </div>
     </template>
     <slot name="footer" />
   </div>

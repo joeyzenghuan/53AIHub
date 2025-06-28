@@ -1,21 +1,22 @@
 <template>
-  <div class="h-full flex bg-white relative overflow-hidden">
+  <div class="h-full flex gap-10 bg-white relative overflow-hidden">
     <div class="flex-1 flex flex-col">
-      <MainHeader>
+      <MainHeader v-if="!hideMenuHeader">
         <template #before_suffix>
           <div
-            class="text-base text-primary line-clamp-1"
+            class="text-base text-primary line-clamp-1 max-md:flex-1 max-md:text-center"
             :title="currentConv.title || currentAgent.name || ''"
           >
             {{ currentConv.title || currentAgent.name || '' }}
           </div>
         </template>
         <template #after_prefix>
-          <div class="flex items-center gap-1 text-sm text-secondary">
-            <svg-icon name="index"></svg-icon>
-            <router-link :to="{ name: 'Home' }">{{ $t('common.back_home') }}</router-link>
-          </div>
-          <div class="border-r w-px h-3 mx-2"></div>
+          <span
+            class="flex items-center gap-1 text-sm cursor-pointer md:hidden"
+            @click="$router.back()"
+          >
+            <svg-icon name="return" size="18" stroke></svg-icon>
+          </span>
         </template>
         <template #after_suffix>
           <div
@@ -31,17 +32,49 @@
       </MainHeader>
 
       <!-- 消息列表区域 -->
-      <chat-list
-        class="flex-1 mt-5"
+      <x-bubble-list
+        class="flex-1"
+        :autoScroll="true"
         :messages="state.messageList"
-        contentClass="w-4/5 max-w-[800px] mx-auto"
-        enableLoadMore
-        @load-more="handleLoadListMore"
+        :mainClass="[showRecommend ? 'w-[95%]' : 'w-11/12 md:w-4/5 max-w-[800px] mx-auto mt-5']"
+        enablePullUp
+        @pull-up="handleLoadListMore"
       >
+        <template #header v-if="currentAgent.settings_obj">
+          <div
+            class="w-full mt-2 flex items-center gap-3 box-border p-6 rounded-xl overflow-hidden"
+            :style="{
+              background: `linear-gradient(90deg, rgba(243, 249, 254, 1) 0%, rgba(247, 243, 255, 1) 100%)`
+            }"
+          >
+            <img class="flex-none size-10 rounded-full overflow-hidden" :src="currentAgent.logo" />
+            <div class="flex-1 flex flex-col gap-1">
+              <div class="text-xl font-semibold text-primary">{{ currentAgent.name }}</div>
+              <div class="text-sm text-regular break-words whitespace-pre-wrap">
+                {{ currentAgent.description }}
+              </div>
+            </div>
+          </div>
+          <div class="mt-2 mb-10">
+            <AuthTagGroup labelPosition="top" :modelValue="currentAgent.user_group_ids" />
+          </div>
+          <x-bubble-assistant
+            v-if="showWelcome"
+            type="welcome"
+            :content="currentAgent.settings_obj.opening_statement"
+            :suggestions="currentAgent.settings_obj.suggested_questions"
+            @suggestion="handleSuggestion"
+          >
+          </x-bubble-assistant>
+        </template>
         <template #item="{ message, index }">
           <!-- 用户消息气泡 -->
-          <chat-bubble-user :message="message.query">
-            <template #footer>
+          <x-bubble-user
+            :key="message.id + '_user'"
+            :content="message.query"
+            :files="message.user_files"
+          >
+            <template #menu>
               <div
                 class="h-6 px-1 rounded flex-center cursor-pointer hover:bg-[#E1E2E3]"
                 v-tooltip="{ content: $t('action.copy') }"
@@ -52,16 +85,18 @@
                 </el-icon>
               </div>
             </template>
-          </chat-bubble-user>
+          </x-bubble-user>
 
           <!-- AI助手消息气泡 -->
-          <chat-bubble-robot
-            :message="message.answer"
+          <x-bubble-assistant
+            :key="message.id + '_assistant'"
+            :content="message.answer"
             :reasoning="message.reasoning_content"
-            :loading="message.loading"
-            :alwaysShowFooter="index === state.messageList.length - 1"
+            :reasoning-expanded="message.reasoning_expanded"
+            :streaming="message.loading"
+            :alwaysShowMenu="index === state.messageList.length - 1"
           >
-            <template #footer v-if="!message.loading">
+            <template #menu v-if="!message.loading">
               <div
                 v-tooltip="{ content: $t('action.copy') }"
                 v-copy="message.answer"
@@ -95,12 +130,15 @@
                 <svg-icon size="18" name="dislike" color="#9B9B9B"></svg-icon>
               </div>
             </template>
-          </chat-bubble-robot>
+          </x-bubble-assistant>
         </template>
-      </chat-list>
+      </x-bubble-list>
 
       <!-- 底部输入区域 -->
-      <div class="w-4/5 max-w-[800px] mx-auto py-5">
+      <div
+        class="py-5"
+        :class="[showRecommend ? 'w-full box-border' : 'w-11/12 md:w-4/5 max-w-[800px] mx-auto']"
+      >
         <div class="flex gap-2 mb-2.5">
           <AgentTooltip @select="onSelectAgent">
             <div
@@ -127,8 +165,9 @@
           </div>
           <div class="flex-1"></div>
           <div
+            v-if="showHistory"
             class="h-8 px-2 rounded-full flex-center gap-1.5 bg-[#F1F2F3] text-sm text-primary cursor-pointer hover:bg-[#E1E2E3]"
-            @click="handleHistory"
+            @click="historyRef.open"
           >
             <div class="size-4">
               <svg-icon name="history"></svg-icon>
@@ -145,21 +184,43 @@
             {{ $t('chat.new_conversation') }}
           </div>
         </div>
-
-        <ChatSender
-          ref="chatSenderRef"
+        <x-sender
+          :http-request="httpRequest"
+          :enable-upload="enable_upload"
+          :accept-types="upload_accept"
           :loading="state.isStreaming"
-          @confirm="handleSend"
+          @send="handleSend"
           @stop="handleStop"
         >
-        </ChatSender>
+        </x-sender>
+        <div v-if="!hideFooter" class="flex justify-center items-center my-2">
+          <img src="/images/chat/footer.png" class="h-[12px]" />
+        </div>
       </div>
+    </div>
+    <div class="flex-none w-2/6 box-border relative" v-if="showRecommend">
+      <h2 class="text-xl font-semibold text-primary">{{ $t('common.related_agent') }}</h2>
+      <ListView
+        v-if="currentAgent.agent_id"
+        class="!w-full max-w-full !mt-4 !mb-0"
+        hideFilter
+        singleRow
+        hideHeader
+        hideFooter
+        :showLimit="6"
+        :excludeIds="[currentAgent.agent_id]"
+        :transition="false"
+      />
     </div>
 
     <!-- 右侧帮助面板 -->
     <Transition name="slide">
-      <div v-if="state.showHelper" class="w-2/5 border-l bg-white">
-        <div class="h-16 flex-center border-b relative">
+      <div
+        v-if="state.showHelper"
+        class="border-l bg-white left-0 right-0 top-0 bottom-0 z-[10]"
+        :class="[useCaseFixed && state.showHelper ? 'fixed' : 'absolute']"
+      >
+        <div class="h-[70px] flex-center border-b relative">
           <h4 class="text-lg text-primary">{{ $t('chat.usage_guide') }}</h4>
           <div
             class="flex-center size-6 absolute right-2 top-1/2 -translate-y-1/2 rounded cursor-pointer hover:bg-[#ECEDEE]"
@@ -173,27 +234,27 @@
         <Helper :agent="currentAgent"></Helper>
       </div>
     </Transition>
+
+    <HistoryDrawer ref="historyRef" @new="handleNewConversation" />
   </div>
-  <History ref="historyRef" @new="handleNewConversation"></History>
 </template>
 
 <script setup lang="ts">
-import { defineAsyncComponent, reactive, computed, onMounted, ref } from 'vue'
+import { defineAsyncComponent, reactive, computed, onMounted, ref, nextTick } from 'vue'
 import { Close, ArrowDown, CopyDocument, Refresh } from '@element-plus/icons-vue'
-
-import MainHeader from '@/layout/main-header.vue'
-import ChatList from '@/components/Chat/list.vue'
-import ChatBubbleRobot from '@/components/Chat/bubble-robot.vue'
-import ChatBubbleUser from '@/components/Chat/bubble-user.vue'
-import ChatSender from '@/components/Chat/sender.vue'
-
+import AuthTagGroup from '@/components/AuthTagGroup/index.vue'
+import MainHeader from '@/layout/header.vue'
 import AgentTooltip from './agent-tooltip.vue'
-import History from './history.vue'
+import ListView from '@/views/agent/index.vue'
+import HistoryDrawer from './history.vue'
 
 import { useConversationStore } from '@/stores/modules/conversation'
 
+import { API_HOST } from '@/api/host'
 import chatApi from '@/api/modules/chat'
+import uploadApi from '@/api/modules/upload'
 import conversationApi from '@/api/modules/conversation'
+import { checkPermission } from '@/directive/permission'
 
 const Helper = defineAsyncComponent(() => import('../helper.vue'))
 // 扩展消息类型，添加动效相关属性
@@ -203,12 +264,53 @@ interface ExtendedMessage extends Conversation.Message {
 
 const convStore = useConversationStore()
 
-const historyRef = ref<InstanceType<typeof History>>()
-const chatSenderRef = ref<InstanceType<typeof ChatSender>>()
+const props = withDefaults(
+  defineProps<{
+    hideMenuHeader?: boolean
+    hideFooter?: boolean
+    showRecommend?: boolean
+    useCaseFixed?: boolean
+    showHistory?: boolean
+  }>(),
+  {
+    hideMenuHeader: false,
+    hideFooter: false,
+    showRecommend: false,
+    useCaseFixed: false,
+    showHistory: false
+  }
+)
+
 const abortController = ref<AbortController | null>(null)
+const historyRef = ref<InstanceType<typeof HistoryDrawer> | null>(null)
 
 const currentAgent = computed(() => convStore.currentAgent)
 const currentConv = computed(() => convStore.currentConversation)
+const custom_config_obj = computed(() => convStore.currentAgent.custom_config_obj)
+const enable_upload = computed(() =>
+  Boolean(
+    custom_config_obj.value?.file_parse?.enable || custom_config_obj.value?.image_parse?.enable
+  )
+)
+const upload_accept = computed(() => {
+  let accept = ''
+  if (custom_config_obj.value?.file_parse?.enable)
+    accept += '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.html,.json,.xml,.md'
+  if (custom_config_obj.value?.image_parse?.enable) accept += ',image/*'
+  return accept
+})
+
+const showWelcome = computed(() => {
+  const settings = currentAgent.value.settings_obj
+  if (settings.opening_statement && settings.opening_statement.replace(/\s/g, '')) return true
+  if (
+    settings.suggested_questions &&
+    settings.suggested_questions.length &&
+    settings.suggested_questions.some((item) => item.content.replace(/\s/g, ''))
+  )
+    return true
+  return false
+})
 
 const state = reactive({
   offset: 0,
@@ -219,10 +321,6 @@ const state = reactive({
   isLoadingMore: false, // 添加加载更多状态标志
   hasMore: true // 是否还有更多消息
 })
-
-const handleHistory = () => {
-  historyRef.value?.open()
-}
 
 const handleToggleGuide = () => {
   state.showHelper = !state.showHelper
@@ -235,6 +333,21 @@ const onSelectAgent = (agent: Agent.State) => {
 
 const handleNewConversation = () => {
   convStore.setCurrentState(currentAgent.value.agent_id, 0)
+}
+
+const httpRequest = async (dataFile: File) => {
+  try {
+    const res = await uploadApi.upload(dataFile)
+    return {
+      id: res.data.id,
+      url: `${API_HOST}/api/preview/${res.data.preview_key || ''}`,
+      size: res.data.size,
+      name: res.data.file_name,
+      mime_type: res.data.mime_type
+    }
+  } catch (error) {
+    return {}
+  }
 }
 
 // 处理流式数据的函数
@@ -279,33 +392,138 @@ const processStreamData = (e: any, processedLength: number): number => {
   return newProcessedLength
 }
 
-const sendMessage = async (query: string) => {
-  if (state.isStreaming) return
+// 工具函数
+const messageUtils = {
+  // 格式化消息
+  formatMessage: (item: any): ExtendedMessage => {
+    const data = {
+      ...item,
+      query: ''
+    }
+    const content = JSON.parse(item.message)[0].content
+    try {
+      const arr = JSON.parse(content)
+      const query = arr.find((item) => item.type === 'text')?.content
+      data.query = query
+      data.user_files = arr.filter((item) => item.type === 'image')
+    } catch (error) {
+      data.query = content
+    }
+    return data
+  },
 
-  const agent_id = currentAgent.value.agent_id
-  const conversation_id = currentConv.value.conversation_id
-  // 将用户消息和空的助手回复添加到消息列表
-  const newMessage: ExtendedMessage = {
+  // 格式化文件
+  formatFiles: (user_files: any[]): Conversation.UserFile[] =>
+    user_files?.map((item) => ({
+      type: 'image',
+      content: `file_id:${item.id}`,
+      filename: item.name,
+      size: item.size,
+      mime_type: item.mime_type,
+      url: item.url
+    })) || [],
+
+  // 创建新消息
+  createNewMessage: (
+    query: string,
+    agent_id: number,
+    conversation_id: number,
+    user_files: Conversation.UserFile[]
+  ): ExtendedMessage => ({
+    id: Date.now(),
     query,
     answer: '',
     loading: true,
     agent_id,
     conversation_id,
-    reasoning_content: ''
+    reasoning_content: '',
+    reasoning_expanded: true,
+    user_files
+  })
+}
+
+// 加载消息列表
+const loadMessages = async (conversation_id: number, offset: number, limit: number) => {
+  try {
+    const res = await conversationApi.messasges(conversation_id, { offset, limit })
+    const list = res.data.messages.map(messageUtils.formatMessage)
+    return {
+      messages: list,
+      hasMore: list.length === limit
+    }
+  } catch (err) {
+    console.error('加载消息失败:', err)
+    return { messages: [], hasMore: false }
   }
+}
+
+const handleLoadListMore = async (done) => {
+  if (state.isLoadingMore || !state.hasMore) return done()
+
+  const conversation_id = currentConv.value.conversation_id
+  if (!conversation_id) return
+
+  state.isLoadingMore = true
+  state.offset += state.limit
+
+  try {
+    const { messages, hasMore } = await loadMessages(conversation_id, state.offset, state.limit)
+    state.hasMore = hasMore
+    state.messageList.unshift(...messages)
+  } catch (err) {
+    state.offset = Math.max(0, state.offset - state.limit)
+  } finally {
+    state.isLoadingMore = false
+    nextTick(() => {
+      done()
+    })
+  }
+}
+
+const loadList = async () => {
+  const conversation_id = currentConv.value.conversation_id
+  if (!conversation_id) return
+
+  state.isLoadingMore = true
+  state.offset = 0
+  state.hasMore = true
+
+  try {
+    const { messages, hasMore } = await loadMessages(conversation_id, state.offset, state.limit)
+    state.hasMore = hasMore
+    state.messageList = messages
+  } finally {
+    state.isLoadingMore = false
+  }
+}
+
+const sendMessage = async (query: string, user_files: any[]) => {
+  if (state.isStreaming) return
+
+  const agent_id = currentAgent.value.agent_id
+  const conversation_id = currentConv.value.conversation_id
+
+  // 创建新消息
+  const newMessage = messageUtils.createNewMessage(query, agent_id, conversation_id, user_files)
   state.messageList.push(newMessage)
+
   const configs = JSON.parse(currentAgent.value.configs || '{}')
   const completion_params = configs.completion_params || {}
   state.isStreaming = true
   abortController.value = new AbortController()
   let processedLength = 0
 
+  let content = query
+  if (user_files.length > 0) {
+    content = JSON.stringify([{ type: 'text', content: query }, ...user_files])
+  }
+
   try {
     await chatApi.completions(
       {
-        conversation_id: conversation_id,
+        conversation_id,
         model: 'agent-' + agent_id,
-        messages: [{ content: query, role: 'user' }],
+        messages: [{ content, role: 'user' }],
         frequency_penalty: 0,
         presence_penalty: 0,
         stream: true,
@@ -322,15 +540,14 @@ const sendMessage = async (query: string) => {
       }
     )
   } catch (err: any) {
-    // 错误已在processStreamData中处理
     if (err.message !== 'canceled') {
+      console.log(err)
       const lastMessage = state.messageList[state.messageList.length - 1]
       if (lastMessage && !lastMessage.answer) {
-        lastMessage.answer = window.$t('response_code.network_error')
+        lastMessage.answer = err.response.data || window.$t('response_code.network_error')
       }
     }
   } finally {
-    // 更新最后一条消息的loading状态
     const lastMessage = state.messageList[state.messageList.length - 1]
     if (lastMessage) {
       lastMessage.loading = false
@@ -341,21 +558,25 @@ const sendMessage = async (query: string) => {
   }
 }
 
-const handleSend = async (data: { question: string }) => {
-  const agent_id = currentAgent.value.agent_id
-  if (!agent_id) return ElMessage.warning(window.$t('chat.no_available_agent'))
-  if (!currentConv.value.conversation_id) {
-    try {
-      const conversation = await convStore.createConversation(agent_id, data.question)
-      convStore.addConversation({ ...conversation, virtual_id: currentConv.value.virtual_id })
-      convStore.setCurrentState(conversation.agent_id, conversation.conversation_id)
-    } catch (err) {
-      console.error('创建对话失败:', err)
-      return
+const handleSend = (question: string, user_files: any[]) => {
+  checkPermission({
+    group_ids: currentAgent.value.user_group_ids,
+    onclick: async () => {
+      const agent_id = currentAgent.value.agent_id
+      if (!agent_id) return ElMessage.warning(window.$t('chat.no_available_agent'))
+      if (!currentConv.value.conversation_id) {
+        try {
+          const conversation = await convStore.createConversation(agent_id, question)
+          convStore.addConversation({ ...conversation, virtual_id: currentConv.value.virtual_id })
+          convStore.setCurrentState(conversation.agent_id, conversation.conversation_id)
+        } catch (err) {
+          console.error('创建对话失败:', err)
+          return
+        }
+      }
+      await sendMessage(question, messageUtils.formatFiles(user_files))
     }
-  }
-  chatSenderRef.value?.clearState()
-  await sendMessage(data.question)
+  })
 }
 
 const handleStop = () => {
@@ -368,104 +589,25 @@ const handleStop = () => {
 }
 
 const handleRegenerate = async (message: Conversation.Message) => {
-  await sendMessage(message.query)
+  await sendMessage(message.query, message.user_files)
 }
 
-// 处理加载更多消息
-const handleLoadListMore = async (done) => {
-  if (state.isLoadingMore || !state.hasMore) return done()
-
-  const conversation_id = currentConv.value.conversation_id
-  if (!conversation_id) return
-
-  state.isLoadingMore = true
-  state.offset += state.limit
-
-  try {
-    const res = await conversationApi.messasges(conversation_id, {
-      offset: state.offset,
-      limit: state.limit
-    })
-
-    const list = res.data.messages.map((item) => {
-      return {
-        ...item,
-        query: JSON.parse(item.message)[0].content
-      } as ExtendedMessage
-    })
-
-    // 判断是否还有更多消息
-    if (list.length < state.limit) {
-      state.hasMore = false
-    }
-
-    // 将新加载的消息添加到列表前面
-    state.messageList.unshift(...list)
-  } catch (err) {
-    console.error('加载更多消息失败:', err)
-    // 加载失败时恢复offset
-    state.offset = Math.max(0, state.offset - state.limit)
-  } finally {
-    state.isLoadingMore = false
-    done()
-  }
-}
-
-const loadList = async () => {
-  const conversation_id = currentConv.value.conversation_id
-  if (!conversation_id) return
-
-  state.isLoadingMore = true
-  state.offset = 0
-  state.hasMore = true
-
-  try {
-    const res = await conversationApi.messasges(conversation_id, {
-      offset: state.offset,
-      limit: state.limit
-    })
-
-    state.messageList = []
-
-    const list = res.data.messages.map((item) => {
-      return {
-        ...item,
-        query: JSON.parse(item.message)[0].content
-      } as ExtendedMessage
-    })
-
-    // 判断是否还有更多消息
-    if (list.length < state.limit) {
-      state.hasMore = false
-    }
-
-    state.messageList.unshift(...list)
-  } catch (err) {
-    console.error('加载消息列表失败:', err)
-  } finally {
-    state.isLoadingMore = false
-  }
+const handleSuggestion = (suggestion: string) => {
+  handleSend(suggestion, [])
 }
 
 onMounted(() => {
   loadList()
 })
+
+defineExpose({
+  showUseCase: () => {
+    state.showHelper = true
+  },
+  hideUseCase: () => {
+    state.showHelper = false
+  }
+})
 </script>
 
-<style scoped>
-/* 动画效果 */
-.slide-enter-active,
-.slide-leave-active {
-  transition: transform 0.3s ease;
-}
-
-.slide-enter-from,
-.slide-leave-to {
-  transform: translateX(100%);
-}
-
-.slide-enter-to,
-.slide-leave-from {
-  transform: translateX(0);
-}
-</style>
+<style scoped></style>

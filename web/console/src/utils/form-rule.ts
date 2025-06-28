@@ -45,6 +45,12 @@ export const urlValidator = ({ rule, value, callback, message } = {}) => {
 	if (!/^(https?:\/\/)?([\w.-]+)(\.[\w.-]+)+([\/#\?].*)?$/.test(value)) return callback(new Error(window.$t('form_url_validator')))
 	callback()
 }
+export const pathValidator = ({ rule, value, callback, message } = {}) => {
+	value = (value || '').trim()
+	if (!value) return callback(new Error(window.$t(message)))
+	if (!/^(\/[\w-]+)+$/.test(value)) return callback(new Error(window.$t('form_path_validator')))
+	callback()
+}
 
 export const generateInputRules = ({ message = 'form_input_placeholder', trigger = 'blur', validator = ['text'] } = {}) => {
 	const rules = []
@@ -74,6 +80,10 @@ export const generateInputRules = ({ message = 'form_input_placeholder', trigger
 	})
 	if (validator.includes('url')) rules.push({
 		validator: (rule, value, callback) => urlValidator({ rule, value, callback, message }),
+		trigger
+	})
+	if (validator.includes('path')) rules.push({
+		validator: (rule, value, callback) => pathValidator({ rule, value, callback, message }),
 		trigger
 	})
 	return rules

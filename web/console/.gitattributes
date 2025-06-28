@@ -17,3 +17,6 @@
 "*.md"     eol=lf
 
 .env.production merge=ours
+.env merge=ours
+
+public\UEditor\third-party\webuploader\webuploader.min.js merge=ours

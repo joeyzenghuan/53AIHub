@@ -1,13 +1,19 @@
 <script setup lang="ts">
-import { getCurrentInstance, ref } from 'vue'
+import { ref } from 'vue'
 import AgentInfo from '../components/agent-info.vue'
+import BaseConfig from '../components/base-config.vue'
 import ExpandConfig from '../components/expand-config.vue'
-
+import UseScope from '../components/use-scope.vue'
 import { useAgentFormStore } from '../store'
 // import LimitConfig from '../components/limit-config.vue'
 import { generateInputRules } from '@/utils/form-rule'
 
-const { proxy: _this } = getCurrentInstance()
+const props = defineProps({
+  showChannelConfig: {
+    type: Boolean,
+    default: false,
+  },
+})
 
 const store = useAgentFormStore()
 
@@ -21,34 +27,32 @@ defineExpose({
 </script>
 
 <template>
-  <div class="py-7">
-    <div class="text-base text-[#1D1E1F] font-medium">
-      {{ $t('basic_info') }}
-    </div>
-    <ElForm ref="form_ref" :model="store.form_data" label-width="104px" label-position="top" class="mt-6">
-      <AgentInfo v-model="store.form_data" />
-      <div class="text-base text-[#1D1E1F] font-medium mt-10 mb-6">
-        {{ $t('select_agent') }}
-      </div>
-      <!-- :label="$t('agent')" -->
-      <ElFormItem prop="custom_config.app_builder_bot_id" :rules="generateInputRules({ message: 'form_select_placeholder' })">
-        <SelectPlus v-model="store.form_data.custom_config.app_builder_bot_id" size="large" :options="store.app_builder_bot_options" />
-      </ElFormItem>
-      <ExpandConfig />
-      <template v-if="store.subscription_options.length">
-        <div class="text-base text-[#1D1E1F] font-medium mt-10 mb-4">
-          {{ $t('permission_setting') }}
+  <div :class="[showChannelConfig ? '' : 'py-7']">
+    <ElForm ref="form_ref" :model="store.form_data" label-width="104px" label-position="top">
+      <template v-if="showChannelConfig">
+        <div class="text-base text-[#1D1E1F] font-medium mb-4">
+          {{ $t('app_builder') }}
         </div>
-        <ElFormItem label-width="0">
-          <ElCheckboxGroup v-model="store.form_data.user_group_ids">
-            <ElCheckbox v-for="item in store.subscription_options" :key="item.value" :label="item.value">
-              <span class="text-[#1D1E1F]">{{ item.label }}</span>
-            </ElCheckbox>
-          </ElCheckboxGroup>
+
+        <div class="text-base text-[#1D1E1F] font-medium mb-4">
+          {{ $t('select_agent') }}
+        </div>
+        <!-- :label="$t('agent')" -->
+        <ElFormItem prop="custom_config.app_builder_bot_id" :rules="generateInputRules({ message: 'form_select_placeholder' })">
+          <SelectPlus v-model="store.form_data.custom_config.app_builder_bot_id" :use-i18n="false" size="large" :options="store.app_builder_bot_options" />
         </ElFormItem>
+
+        <div class="text-base text-[#1D1E1F] font-medium mb-4">
+          {{ $t('basic_info') }}
+        </div>
+        <AgentInfo v-model="store.form_data" />
       </template>
-      <!-- <div class="border-t mb-4" />
-      <LimitConfig /> -->
+
+      <template v-else>
+        <BaseConfig />
+        <ExpandConfig />
+        <UseScope />
+      </template>
     </ElForm>
   </div>
 </template>

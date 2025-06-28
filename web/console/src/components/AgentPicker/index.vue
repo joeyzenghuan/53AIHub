@@ -215,9 +215,5 @@ defineExpose({
 ::v-deep(.el-tabs__header) {
 	margin-bottom: 0 !important;
 }
-
-::v-deep(.el-tabs--top>.el-tabs__header .el-tabs__item:last-child) {
-	padding-left: 0;
-}
 </style>
 

@@ -6,7 +6,7 @@ const store = useAgentFormStore()
 
 <template>
   <template v-if="store.support_file || store.support_image">
-    <div class="text-base text-[#1D1E1F] font-medium mt-10 mb-4">
+    <div class="text-base text-[#1D1E1F] font-medium mb-4">
       {{ $t('expand_setting') }}
     </div>
     <div v-if="store.support_file" class="flex items-center gap-2">

@@ -10,6 +10,7 @@ export default {
     find: 'Discover',
     library: 'Knowledge Base',
     crop_space: 'Enterprise Space',
+    prompt: 'Prompt',
   },
 
   // Browser Related
@@ -76,8 +77,14 @@ export default {
     confirm_delete: 'Are you sure you want to delete this item?',
     copied: 'Copied',
     image_cropper: 'Image Cropper',
-    back_home: 'Back to Home',
+    back: 'Back',
     go_admin: 'Go to Admin',
+    related_prompt: "Related Prompts",
+    related_agent: "Related Agents",
+    view_more: 'View More',
+    expand_more: 'Expand More',
+    collapse_more: 'Collapse More',
+    or: 'Or',
   },
 
   // Status Prompts
@@ -90,13 +97,23 @@ export default {
     sent: 'Sent',
     login_success: 'Logged In',
     logout_success: 'Logged Out',
-    not_found_account: 'Account not found, login directly after verification',
+    not_found_account: 'Account not found, please register first and then login',
+    existing_account: 'Account already exists',
+    approve_success: 'Liked',
+    approve_cancel: 'Unliked',
+    register_success: 'Registration successful',
+    update_success: 'Update successful',
   },
 
   // Action Buttons
   action: {
     login: 'Login',
+    login_directly: 'Login directly',
     logout: 'Logout',
+    register: 'Register',
+    user_register: 'User registration',
+    forget_password: 'Forgot password?',
+    update_password: 'Update password',
     search: 'Search',
     setting: 'Settings',
     confirm: 'Confirm',
@@ -164,26 +181,36 @@ export default {
     account_alias: 'Mobile',
     password: 'Password',
     email: 'Email',
+    new_email: 'New Email',
     mobile: 'Mobile',
+    new_mobile: 'New Mobile',
     verify_code: 'Verification Code',
     get_verify_code: 'Get Verification Code',
+    verify_old_mobile: 'Verify your old phone number',
+    reset_password: 'Reset Password',
+    reset_password_method: 'Select a password reset method',
     new_password: 'New Password',
     new_password_placeholder: 'Please enter new password',
     new_password_confirm: 'Confirm New Password',
     new_password_confirm_placeholder: 'Please re-enter new password',
     mobile_format: 'Please enter a valid mobile number',
     email_format: 'Please enter a valid email',
+    account_format: 'Please enter a valid mobile or email',
     verify_code_format: 'Please enter a valid verification code',
     password_length: 'Password must be between 8-20 characters',
     password_format: 'Password must contain uppercase, lowercase letters and numbers',
     password_not_match: 'The two passwords do not match',
     change: 'Change',
+    existing_mobile: 'This mobile number has been registered. Please log in with this account.',
+    existing_email: 'This email has been registered. Please log in with this account.'
   },
 
   // Home Related
   index: {
     agent_recommend: 'Featured Agents',
     agent_recommend_desc: 'Build your second productivity engine',
+    prompt_recommend: 'Featured Prompts',
+    prompt_recommend_desc: 'Use prompts well to always stay ahead',
     toolbox_recommend: 'Featured AI Tools',
     toolbox_recommend_desc: 'Select AI resources for your workflow, make AI your productivity tool',
     use_history: '{count} people have chatted',
@@ -199,9 +226,31 @@ export default {
     terms_of_service: 'Terms and Conditions',
     privacy_policy: 'Privacy Policy',
     password_login: 'Password Login',
-    unregistered_account_desc: 'Unregistered accounts will be automatically logged in after verification',
-
+    password_login_title: 'Password Login',
+    message_login: 'Message Login',
+    message_login_title: 'Message Login',
+    wechat_login: 'WeChat Login',
+    wechat_login_title: 'WeChat Login',
+    wecom_login: 'WeCom Login',
+    wecom_login_title: 'WeCom Login',
+    unregistered_account_desc: 'Unregistered accounts, please register first and then automatically login',
+    unregistered_account_confirm: 'Automatically log in after verifying the unregistered mobile phone number',
     quit: 'Quit',
+    login_by_wechat: 'Use WeChat Login',
+    login_by_password: 'Use Password Login',
+    login_by_mobile: 'Use Mobile Login',
+    bind_mobile: 'Bind Mobile Number',
+    other_login_way: 'Other Login Way',
+    unbind_wechat_confirm_desc: 'After unbinding, you will not be able to log in with WeChat. Continue?',
+    unbind_wechat_confirm_title: 'Unbind WeChat Account Binding',
+  },
+
+  // Registration related
+  register: {
+    agree: 'By registering, you agree to',
+    terms_of_service: 'Terms of Service',
+    privacy_policy: 'Privacy Policy',
+    unregister: 'Unregister'
   },
 
   // Chat Related
@@ -262,6 +311,18 @@ export default {
     docs_dingtalk_import: 'Import from Feishu Docs',
   },
 
+  agent: {
+    no_data: 'No data',
+  },
+
+  prompt: {
+    default_sort: 'Default Sort',
+    likes_sort: 'Likes Sort',
+    views_sort: 'Views Sort',
+    content: 'Prompt Content',
+    auth_tip: 'You do not have permission to access this prompt',
+  },
+
   toolbox: {
     // AI聚合问答
     name: 'AI Aggregation',
@@ -297,8 +358,8 @@ export default {
     info: 'Personal Information',
     profile: 'Profile',
     change_password: 'Change Password',
-    // Bound accounts
-    bind_accounts: 'Bound Accounts',
+    login_password: 'Login Password',
+    bind_accounts: 'Account Information',
     unbind_account: 'Not Bound',
     bind_mobile: 'Mobile Number',
     bind_email: 'Email',
@@ -306,9 +367,14 @@ export default {
     bind_wechat: 'WeChat',
     bind: 'Bind',
     unbind: 'Unbind',
+    change: 'Change',
     logined_devices: 'Logged-in Devices',
     used_devices: 'Previously Used Devices',
     current_device: 'Current Device',
+    unbind_wechat_confirm_desc: 'After unbinding, you will not be able to log in with WeChat. Continue?',
+    unbind_wechat_confirm_title: 'Unbind WeChat Account Binding',
+    unbind_wechat_confirm_cancel: 'Cancel',
+    unbind_wechat_confirm_ok: 'Confirm',
   },
   "response_status": {
     "400": 'Request parameter error',
@@ -340,7 +406,10 @@ export default {
     "user_not_found": "User does not exist",
     "username_or_password_is_incorrect": "Username or password is incorrect",
     "username_already_exists": "Username already exists",
-    "model_changed": "The administrator has changed the model, please create a new conversation"
+    "mobile_already_bind": "The phone number has already been bound to another user",
+    "email_already_bind": "The email address is already bound to another user",
+    "model_changed": "The administrator has changed the model, please create a new conversation",
+    "wechat_already_bind": "WeChat account has been bound to another user"
   },
   "subscription": {
     "free": "Free",
@@ -365,5 +434,15 @@ export default {
     "pay_by_wechat": "Use WeChat QR Code to Pay",
     "pay_policy": "Payment is deemed to agree to the relevant {policy}",
     "pay_success": "Payment Successful",
+    "pay_confirm": "Confirm payment completion, please click",
+    "payed": "Paid",
+    "manual_pay_success_title": "Order Generated",
+    "manual_pay_success_desc": "Please wait or contact the administrator to confirm the payment information",
+  },
+  "authority": {
+    "group_not_permission": "You do not have permission to access this group",
+    "payment_not_setting": "The site has not configured payment methods, please contact the administrator directly",
+    "agent_not_permission": "You do not have permission to use this agent, please contact the administrator directly",
+    "use_range": "Use Range"
   }
 }

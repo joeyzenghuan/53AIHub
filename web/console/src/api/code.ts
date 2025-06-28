@@ -57,6 +57,7 @@ export const ERROR_MESSAGES = new Map([
 export const RESPONSE_MESSAGE_MAP = new Map([
   ['unauthorized: user not found', 'response_message.user_not_found'],
   ['unauthorized: username or password is incorrect', 'response_message.username_or_password_is_incorrect'],
+  ['operate too fast', 'response_message.operate_too_fast'],
 ])
 
 export const RESPONSE_DATA_MESSAGE_MAP = new Map([

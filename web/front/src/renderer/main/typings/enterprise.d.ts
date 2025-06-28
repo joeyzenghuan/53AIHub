@@ -24,5 +24,9 @@ declare namespace Enterprise {
     created_time: number;
     updated_time: number;
     template_style_info: any;
+    is_independent: boolean
+    is_enterprise: boolean
+    is_industry: boolean
+    is_install_wecom: boolean;
   }
 }

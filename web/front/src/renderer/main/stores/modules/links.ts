@@ -1,48 +1,58 @@
 import { defineStore } from 'pinia'
 import groupApi from '@/api/modules/group'
 import linksApi from '@/api/modules/links'
+import { cacheManager } from '@/utils/cache'
 
 const all_Group = { group_name: window.$t('common.all'), group_id: 0 }
 
 const LINK_TYPE = 2
 
+const CACHE_KEYS = {
+  CATEGORY_LIST: 'links_category_list',
+  LINKS_LIST: 'links_list',
+}
+
 export const useLinksStore = defineStore('links', {
   state: (): {
-    categorys: Category.Info[]
-    appMap: Record<string, any[]>
+    categorys: Category.State[]
+    links: Link.State[]
   } => ({
-    categorys: [],
-    appMap: {},
+    categorys: [{ ...all_Group }],
+    links: [],
   }),
 
   getters: {
 
   },
   actions: {
-    loadCategorys() {
-      return groupApi.list(LINK_TYPE).then(res => {
-        this.categorys = res.data.map((item) => {
+    async loadCategorys() {
+      const fetchCategorys = async () => {
+        const res = await groupApi.list(LINK_TYPE)
+        const list = res.data.map((item) => {
           item.visible = true
           return item
         })
-        this.categorys.unshift(all_Group)
-      })
+        list.unshift(all_Group)
+        return list
+      }
+      this.categorys = await cacheManager.getOrFetch(
+        CACHE_KEYS.CATEGORY_LIST,
+        fetchCategorys
+      )
     },
 
-    loadLinks(): Promise<void> {
-      return linksApi.list().then((res) => {
-        const map = {
-          [all_Group.group_id]: []
-        }
-        res.data.forEach((item) => {
-          const group_id = item.group_id
-          if (!map[group_id]) map[group_id] = []
+    async loadLinks(): Promise<void> {
+      const fetchLinks = async () => {
+        const res = await linksApi.list()
+        return res.data.map(item => {
           item.visible = true
-          map[group_id].push(item)
-          map[all_Group.group_id].push(item)
+          return item
         })
-        this.appMap = map
-      })
+      }
+      this.links = await cacheManager.getOrFetch(
+        CACHE_KEYS.LINKS_LIST,
+        fetchLinks
+      )
     }
   }
 })

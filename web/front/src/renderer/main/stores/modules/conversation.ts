@@ -4,6 +4,7 @@ import { defineStore } from 'pinia'
 import conversationApi from '@/api/modules/conversation'
 import { setRouterQuery } from '@/utils/router'
 import { getSimpleDateFormatString } from '@/utils/moment'
+import { cacheManager } from '@/utils/cache'
 
 // 添加类型定义
 interface RouterOptions {
@@ -28,6 +29,10 @@ const getLocalStorage = <T>(key: string, defaultValue: T): T => {
   }
 }
 
+const CACHE_KEYS = {
+  CONVERSATION_LIST: 'conversation_list',
+}
+
 export const useConversationStore = defineStore('conversation-store', {
   state: (): {
     conversations: Conversation.Info[]
@@ -35,12 +40,14 @@ export const useConversationStore = defineStore('conversation-store', {
     usual_agents: UsualAgent[]
     current_agentid: number
     current_conversationid: number
+    base_path: string
   } => ({
     conversations: [],
     agents: [],
     usual_agents: getLocalStorage(USUAL_AGENTS_KEY, []),
     current_agentid: 0,
     current_conversationid: 0,
+    base_path: '/chat'
   }),
   getters: {
     currentAgent: state => {
@@ -59,19 +66,25 @@ export const useConversationStore = defineStore('conversation-store', {
     }
   },
   actions: {
+    setBasePath(path: string) {
+      this.base_path = path || '/chat'
+    },
+
     async loadConversations() {
-      try {
+      const fetchConversations = async () => {
         const res = await conversationApi.list()
-        this.conversations = res.data.conversations.map((item) => {
+        return res.data.conversations.map((item) => {
           item.created_at = getSimpleDateFormatString({ date: item.created_time, format: 'YYYY.MM.DD hh:mm' })
           item.updated_at = getSimpleDateFormatString({ date: item.updated_time, format: 'YYYY.MM.DD hh:mm' })
           return item
         })
-        return this.conversations
-      } catch (error) {
-        console.error('Failed to load conversations:', error)
-        throw error
       }
+
+      this.conversations = await cacheManager.getOrFetch(
+        CACHE_KEYS.CONVERSATION_LIST,
+        fetchConversations
+      )
+      return this.conversations
     },
 
     saveUsualAgents() {
@@ -177,7 +190,7 @@ export const useConversationStore = defineStore('conversation-store', {
 
     setCurrentState(agent_id: number, conversation_id: number) {
       if (agent_id) {
-        const agent = this.agents.find(item => item.agent_id === agent_id)
+        const agent = this.agents.find(item => item.agent_id == agent_id)
         if (!agent) {
           agent_id = this.agents[0]?.agent_id || 0
         }
@@ -199,7 +212,8 @@ export const useConversationStore = defineStore('conversation-store', {
     },
 
     setRouter(data: RouterOptions = {}) {
-      setRouterQuery(data, '/chat')
+      if (!data.agent_id) return
+      setRouterQuery(data, this.base_path)
     }
   },
 })

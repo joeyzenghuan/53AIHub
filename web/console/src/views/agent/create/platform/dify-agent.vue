@@ -1,6 +1,8 @@
 <script setup lang="ts">
 import { inject, reactive, ref, watch } from 'vue'
 import AgentInfo from '../components/agent-info.vue'
+import BaseConfig from '../components/base-config.vue'
+import UseScope from '../components/use-scope.vue'
 // import LimitConfig from '../components/limit-config.vue'
 
 import { useAgentFormStore } from '../store'
@@ -11,14 +13,13 @@ import md5 from '@/utils/md5'
 const props = defineProps({
   showChannelConfig: {
     type: Boolean,
-    default: true,
+    default: false,
   },
 })
 
 const agentFormStore = useAgentFormStore()
 
 const channelInfo = inject('channelConfig') || {}
-const channelTypeKey = inject('channelTypeKey') || {}
 const channelFormRef = ref()
 const channelEditable = ref(false)
 const channelForm = reactive({
@@ -29,21 +30,14 @@ const channelForm = reactive({
     agent_type: 'chat',
   },
 })
-const channelSubmitting = ref(false)
-
 const agentFormRef = ref()
 
 const onChannelSave = async () => {
   const valid = await channelFormRef.value.validate()
   if (!valid)
     return
-  channelSubmitting.value = true
-  // let models = channelForm.models || []
-  // if (!models.length) models = [channelTypeKey.value]
   const models = [md5(`${channelForm.key}_${channelForm.base_url}`)]
-  // let name = channelInfo.value.name || ''
-  // if (!name) name = channelTypeKey.value
-  const name = channelTypeKey.value
+  const name = 'dify'
   const saveData = {
     channel_id: channelInfo.value.channel_id,
     key: channelForm.key,
@@ -54,8 +48,6 @@ const onChannelSave = async () => {
   }
   const resultData = await channelApi.save({
     data: saveData,
-  }).finally(() => {
-    channelSubmitting.value = false
   })
   Object.assign(channelInfo.value, resultData)
   if (!saveData.channel_id)
@@ -66,7 +58,12 @@ const onChannelSave = async () => {
   channelEditable.value = true
 }
 
-const validateForm = async () => agentFormRef.value && agentFormRef.value.validate()
+const validateForm = async () => {
+  channelFormRef.value && channelFormRef.value.validate()
+  if (agentFormRef.value)
+    await agentFormRef.value.validate()
+  return true
+}
 
 watch(() => agentFormStore.agent_data, ({ channel_config = {} } = {}) => {
   channelEditable.value = !!+channel_config.channel_id
@@ -82,12 +79,13 @@ watch(() => agentFormStore.agent_data, ({ channel_config = {} } = {}) => {
 
 defineExpose({
   validateForm,
+  onChannelSave,
 })
 </script>
 
 <template>
-  <div class="pb-6">
-    <div v-show="showChannelConfig" class="border rounded p-5 mb-7">
+  <div :class="[showChannelConfig ? '' : 'py-7']">
+    <template v-if="showChannelConfig">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-1">
           <h3 class="text-base text-[#1D1E1F]">
@@ -106,10 +104,6 @@ defineExpose({
             />
           </ElPopover>
         </div>
-        <ElButton v-if="channelEditable" type="primary" link @click="channelEditable = false">
-          <svg-icon name="edit" width="16" class="mr-2" />
-          {{ $t('action_edit') }}
-        </ElButton>
       </div>
       <ElForm ref="channelFormRef" :model="channelForm" label-position="top" class="mt-3">
         <ElFormItem
@@ -118,7 +112,6 @@ defineExpose({
         >
           <ElInput
             v-model="channelForm.base_url" size="large" :placeholder="$t('form_input_placeholder')"
-            :disabled="channelEditable"
           />
         </ElFormItem>
         <ElFormItem
@@ -127,7 +120,6 @@ defineExpose({
         >
           <ElInput
             v-model="channelForm.key" size="large" :placeholder="$t('form_input_placeholder')"
-            :disabled="channelEditable"
           />
         </ElFormItem>
         <ElFormItem
@@ -144,109 +136,23 @@ defineExpose({
           </ElSelect>
         </ElFormItem>
       </ElForm>
-      <div v-if="!channelEditable">
-        <ElButton type="primary" class="px-9" size="large" :loading="channelSubmitting" @click.stop="onChannelSave">
-          {{ $t('action_save') }}
-        </ElButton>
-        <ElButton v-if="channelInfo.channel_id" class="px-9" size="large" @click.stop="channelEditable = true">
-          {{ $t('action_cancel') }}
-        </ElButton>
-      </div>
-    </div>
-    <div v-if="false" class="border rounded p-5 mb-7">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-1">
-          <h3 class="text-base text-[#1D1E1F]">
-            火山方舟
-          </h3>
-          <svg-icon name="help" width="14" />
-          <span class="text-sm text-[#9A9A9A]">{{ $t('how_get') }}</span>
-        </div>
-        <el-button type="primary" link>
-          <svg-icon name="edit" width="16" class="mr-2" />
-          {{ $t('action_edit') }}
-        </el-button>
-      </div>
-      <el-form label-position="top" class="mt-3">
-        <el-form-item :label="$t('api_key')">
-          <el-input size="large" :placeholder="$t('form_input_placeholder')" />
-        </el-form-item>
-        <el-form-item :label="$t('api_botid')">
-          <el-input size="large" :placeholder="$t('form_input_placeholder')" />
-        </el-form-item>
-        <el-form-item :label="$t('app_type')">
-          <el-select size="large" :placeholder="$t('form_select_placeholder')">
-            <el-option value="chat">
-              对话型应用
-            </el-option>
-            <el-option value="completion">
-              workflow型应用
-            </el-option>
-            <el-option value="completion">
-              工作流编排对话型应用
-            </el-option>
-          </el-select>
-        </el-form-item>
-      </el-form>
-
-      <el-button type="primary" class="px-9" size="large">
-        {{ $t('action_save') }}
-      </el-button>
-    </div>
-
-    <template v-if="(showChannelConfig && channelInfo.channel_id) || !showChannelConfig">
-      <div class="text-base text-[#1D1E1F] font-medium">
-        {{ $t('basic_info') }}
-      </div>
-      <ElForm
-        ref="agentFormRef" :model="agentFormStore.form_data" label-width="104px" label-position="top"
-        class="mt-6"
-      >
-        <AgentInfo v-model="agentFormStore.form_data" />
-        <template v-if="agentFormStore.subscription_options.length">
-          <div class="text-base text-[#1D1E1F] font-medium mt-10 mb-4">
-            {{ $t('permission_setting') }}
-          </div>
-          <ElFormItem label-width="0">
-            <ElCheckboxGroup v-model="agentFormStore.form_data.user_group_ids">
-              <ElCheckbox v-for="item in agentFormStore.subscription_options" :key="item.value" :label="item.value">
-                <span class="text-[#1D1E1F]">{{ item.label }}</span>
-              </ElCheckbox>
-            </ElCheckboxGroup>
-          </ElFormItem>
-        </template>
-
-        <!-- <div class="text-base text-[#1D1E1F] font-medium mt-10 mb-6">
-					{{ $t('select_agent') }}
-				</div>
-				<el-form-item :label="$t('workspace')">
-					<el-select size="large">
-						<el-option value="1">
-							市场
-						</el-option>
-					</el-select>
-				</el-form-item>
-				<el-form-item :label="$t('agent')">
-					<el-select size="large">
-						<el-option value="1">
-							市场
-						</el-option>
-					</el-select>
-				</el-form-item>
-				<div class="text-base text-[#1D1E1F] font-medium mt-10 mb-6">
-					{{ $t('permission_setting') }}
-				</div>
-				<el-form-item :label="$t('visible_range')">
-					<el-select size="large">
-						<el-option value="1">
-							市场
-						</el-option>
-					</el-select>
-				</el-form-item>
-				<div class="border-t mb-4" />
-				<LimitConfig /> -->
-      </ElForm>
     </template>
+
+    <ElForm
+      ref="agentFormRef" :model="agentFormStore.form_data" label-width="104px" label-position="top"
+    >
+      <template v-if="showChannelConfig">
+        <div class="text-base text-[#1D1E1F] font-medium mt-6 mb-4">
+          {{ $t('basic_info') }}
+        </div>
+        <AgentInfo v-model="agentFormStore.form_data" />
+      </template>
+      <template v-else>
+        <BaseConfig />
+        <ExpandConfig />
+        <UseScope />
+      </template>
+    </ElForm>
   </div>
 </template>
 

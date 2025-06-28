@@ -99,24 +99,18 @@ defineExpose({
 				trigger: 'blur'
 			}]">
 				<div class="flex items-center w-full">
-					<ElInput class="flex-1" :class="[form.resolve_type === INDEPENDENT_RESOLVE_TYPE_CUSTOM && form.use_subdir ? 'has-subdir' : '']" v-model="form.domain" size="large" :maxlength="20" show-word-limit :placeholder="$t('module.domain_independent')">
+					<ElInput class="flex-1"
+						:class="[form.resolve_type === INDEPENDENT_RESOLVE_TYPE_CUSTOM && form.use_subdir ? 'has-subdir' : '']"
+						v-model="form.domain" size="large" :maxlength="20" show-word-limit
+						:placeholder="$t('module.domain_independent')">
 						<template #prepend>
 							https://
 						</template>
 					</ElInput>
-					<ElFormItem
-						v-if="form.resolve_type === INDEPENDENT_RESOLVE_TYPE_CUSTOM && form.use_subdir"
-						prop="subdir"
-						:rules="generateInputRules({ message: 'form_input_placeholder' })"
-					>
-						<ElInput
-							class="flex-none w-[250px] h-[42px] subdir-input"
-							v-model="form.subdir"
-							size="large"
-							:maxlength="10"
-							show-word-limit
-							:placeholder="$t('form_input_placeholder')"
-						>
+					<ElFormItem v-if="form.resolve_type === INDEPENDENT_RESOLVE_TYPE_CUSTOM && form.use_subdir" prop="subdir"
+						:rules="generateInputRules({ message: 'form_input_placeholder' })">
+						<ElInput class="flex-none w-[250px] h-[42px] subdir-input" v-model="form.subdir" size="large"
+							:maxlength="10" show-word-limit :placeholder="$t('form_input_placeholder')">
 							<template #prepend>
 								/
 							</template>
@@ -161,7 +155,7 @@ defineExpose({
 						</template>
 					</div>
 				</ElFormItem>
-				<ElFormItem v-if="form.enable_https" :label="$t('module.domain_independent_ssl')">
+				<!--<ElFormItem v-if="form.enable_https" :label="$t('module.domain_independent_ssl')">
 					<ElRadioGroup v-model="form.ssl_cert_type">
 						<ElRadio :value="INDEPENDENT_SSL_CERT_TYPE_53AI">{{ $t('module.domain_independent_ssl_option_1') }}
 						</ElRadio>
@@ -184,7 +178,7 @@ defineExpose({
 							:placeholder="$t('module.domain_independent_ssl_private_key_placeholder')"
 							v-model="form.ssl_private_key" />
 					</ElFormItem>
-				</template>
+				</template>-->
 			</template>
 			<template v-else>
 				<ul class="w-full flex flex-col gap-3 bg-[#F6F9FC] p-5 mb-6 box-border text-sm text-[#4F5052]">

@@ -10,6 +10,7 @@ export default {
     find: '發現',
     library: '知識庫',
     crop_space: '企業空間',
+    prompt: '提示詞',
   },
 
   // 瀏覽器相關
@@ -76,8 +77,14 @@ export default {
     confirm_delete: '確定刪除該項？',
     copied: '已複製',
     image_cropper: '圖片裁剪',
-    back_home: '返回首頁',
+    back: '返回',
     go_admin: '去後台',
+    related_prompt: "相關提示詞",
+    related_agent: "相關智能體",
+    view_more: '查看更多',
+    expand_more: '展開更多',
+    collapse_more: '收起更多',
+    or: '或',
   },
 
   // 狀態提示
@@ -90,13 +97,23 @@ export default {
     sent: '已發送',
     login_success: '已登入',
     logout_success: '已退出登入',
-    not_found_account: '未找到賬號，驗證後直接登入',
+    not_found_account: '未找到賬號,請先註冊後再登入',
+    existing_account: '已有帳號',
+    approve_success: '已點讚',
+    approve_cancel: '已取消',
+    register_success: '註冊成功',
+    update_success: '更改成功',
   },
 
   // 操作按鈕
   action: {
     login: '登入',
+    login_directly: '直接登入',
     logout: '退出登入',
+    register: '註冊',
+    user_register: '用戶註冊',
+    forget_password: '忘記密碼？',
+    update_password: '更新密碼',
     search: '搜索',
     setting: '設置',
     confirm: '確認',
@@ -164,28 +181,38 @@ export default {
     account_alias: '手機',
     password: '密碼',
     email: '郵箱',
+    new_email: '新郵箱',
     mobile: '手機號',
+    new_mobile: '新手機號',
     verify_code: '驗證碼',
     get_verify_code: '獲取驗證碼',
+    verify_old_mobile: '驗證你的舊手機號碼',
+    reset_password: '重置密碼',
+    reset_password_method: '選擇重置密碼的方式',
     new_password: '新密碼',
     new_password_placeholder: '請輸入新密碼',
     new_password_confirm: '確認新密碼',
     new_password_confirm_placeholder: '請再次輸入新密碼',
     mobile_format: '請輸入正確手機號',
     email_format: '請輸入正確的郵箱',
+    account_format: '請輸入正確的手機或郵箱',
     verify_code_format: '請輸入正確的驗證碼',
     password_length: '密碼長度必須在 8-20 個字符之間',
     password_format: '密碼必須包含大小寫字母和數字',
     password_not_match: '兩次輸入的密碼不一致',
     change: '修改',
+    existing_mobile: '該手機號已註冊，請使用該帳號登入。',
+    existing_email: '該郵箱已註冊，請使用該帳號登入。'
   },
 
   // 首頁相關
   index: {
     agent_recommend: '精選智能體',
     agent_recommend_desc: '打造您的第二生產力引擎',
+    prompt_recommend: '精選提示詞',
+    prompt_recommend_desc: '用好提示詞才能始終領先一步',
     toolbox_recommend: '精選AI工具',
-    toolbox_recommend_desc: '精選工作場景 AI 資源，讓 AI 成為你的生產力助手',
+    toolbox_recommend_desc: '用好 AI 工具才能始終領先一步',
     use_history: '{count}人聊過',
     banner_title: "“{name} 專家”  效率倍增的秘密武器",
     banner_desc: "精選工作場景 AI 資源，讓 AI 成為你的生產力助手",
@@ -199,9 +226,29 @@ export default {
     terms_of_service: '條款和條件',
     privacy_policy: '隱私政策',
     password_login: '密碼登入',
-    unregistered_account_desc: '未註冊的賬號驗證後自動登入',
-
+    password_login_title: '密碼登入',
+    message_login: '簡訊登入',
+    message_login_title: '簡訊登入',
+    wechat_login: '微信登入',
+    wechat_login_title: '微信登入',
+    wecom_login: '企業微信',
+    wecom_login_title: '企業微信登入',
+    unregistered_account_desc: '未註冊的賬號，請先註冊後再自動登入',
+    unregistered_account_confirm: '未註冊手機號驗證後自動登錄',
     quit: '退出',
+    login_by_wechat: '使用微信登入',
+    login_by_password: '使用密碼登入',
+    login_by_mobile: '使用手機登入',
+    bind_mobile: '綁定手機號',
+    other_login_way: '其他登入方式',
+  },
+
+  //註冊相關
+  register: {
+    agree: '註冊即視您同意',
+    terms_of_service: '條款和條件',
+    privacy_policy: '隱私政策',
+    unregistered: '未註冊',
   },
 
   // 聊天相關
@@ -260,6 +307,18 @@ export default {
     docs_dingtalk_import: '從飛書文檔導入',
   },
 
+  agent: {
+    no_data: '管理員還未發布智能體',
+  },
+
+  prompt: {
+    default_sort: '默認排序',
+    likes_sort: '按最多點讚排序',
+    views_sort: '按最多瀏覽排序',
+    content: '提示詞內容',
+    auth_tip: '您所在的分组无权限',
+  },
+
   toolbox: {
     // AI聚合问答
     name: 'AI聚合问答',
@@ -296,8 +355,8 @@ export default {
     info: '個人信息',
     profile: '個人資料',
     change_password: '修改密碼',
-    // 已綁定的賬戶
-    bind_accounts: '已綁定的賬戶',
+    login_password: '登入密碼',
+    bind_accounts: '賬戶信息',
     unbind_account: '未綁定',
     bind_mobile: '手機號',
     bind_email: '電子郵箱',
@@ -305,9 +364,14 @@ export default {
     bind_wechat: '微信OpenId',
     bind: '綁定',
     unbind: '解綁',
+    change: '更換',
     logined_devices: '已登入的設備',
     used_devices: '曾用設備',
     current_device: '當前設備',
+    unbind_wechat_confirm_desc: '解綁後，將無法使用微信登入，是否繼續？',
+    unbind_wechat_confirm_title: '解綁微信賬號綁定',
+    unbind_wechat_confirm_cancel: '暫不解綁',
+    unbind_wechat_confirm_ok: '確認解綁',
   },
   "response_status": {
     "400": '請求參數錯誤',
@@ -339,7 +403,10 @@ export default {
     "user_not_found": "用戶不存在",
     "username_or_password_is_incorrect": "用戶名或密碼錯誤",
     "username_already_exists": '用戶名已存在',
-    "model_changed": "管理員已修改模型，請新建對話"
+    "mobile_already_bind": "手機號已被其他用戶綁定",
+    "email_already_bind": "郵箱已被其他用戶綁定",
+    "model_changed": "管理員已修改模型，請新建對話",
+    "wechat_already_bind": "微信號已被其他用戶綁定",
   },
   "subscription": {
     "free": "免費版",
@@ -363,6 +430,16 @@ export default {
     "pay_amount": "支付金額",
     "pay_by_wechat": "使用 微信掃碼 支付",
     "pay_policy": "支付即視為你同意相關 {policy}",
-    "pay_success": "支付成功"
+    "pay_success": "支付成功",
+    "pay_confirm": "確認支付完成，請點擊",
+    "payed": "已支付",
+    "manual_pay_success_title": "訂單已生成",
+    "manual_pay_success_desc": "請等待或聯繫管理員確認支付信息",
+  },
+  "authority": {
+    "group_not_permission": "您所在的分組無權限",
+    "payment_not_setting": "站點未配置收費方式，請直接聯繫管理員",
+    "agent_not_permission": "無權限使用此智能體，請聯繫管理員",
+    "use_range": "使用范围"
   }
 }

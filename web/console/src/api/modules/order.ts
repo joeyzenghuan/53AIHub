@@ -1,6 +1,7 @@
 import service from '../config'
 import { handleError } from '../errorHandler'
 import { getSimpleDateFormatString } from '@/utils/moment'
+import { PaymentType, PAYMENT_TYPE } from '@/constants/payment'
 
 export const ORDER_STATUS_ALL = -1
 export const ORDER_STATUS_NOT_CONFIRM = 1
@@ -41,6 +42,44 @@ export const orderApi = {
 			list
 		}
   },
+	async detail(params: {
+		id: number
+	}) {
+		const id = params.id || ''
+		delete params.id
+		return service.get(`/api/orders/${id}`).catch(handleError)
+	},
+	async confirm_order(data: {
+		id: number
+	}) {
+		const id = data.id || ''
+		delete data.id
+		return service.post(`/api/orders/${id}/confirm`).catch(handleError)
+	},
+	async delete_order(data: {
+		id: number
+	}) {
+		const id = data.id || ''
+		delete data.id
+		return service.delete(`/api/orders/${id}`).catch(handleError)
+	},
+	async save(data: {
+		id?: number
+		pay_type?: PaymentType
+		user_id: number
+		nickname: string
+		subscription_id: number
+		subscription_name: string
+		time_unit: string
+		duration: number
+		currency: string
+		amount: number
+	}) {
+		const id = data.id || ''
+		delete data.id
+		if (!data.pay_type) data.pay_type = PAYMENT_TYPE.MANUAL
+		return service[id ? 'put' : 'post'](`/api/orders${id ? `/${id}/manual` : ''}`, data).catch(handleError)
+	}
 }
 
 export default orderApi

@@ -20,10 +20,37 @@ declare namespace User {
     password: string
   }
 
+  interface SmsLoginForm {
+    mobile: string
+    verify_code: string
+  }
+
+  interface BindWechatForm {
+    mobile?: string
+    verify_code?: string
+    openid: string
+    unionid?: string
+    nickname?: string
+  }
+
   interface RegisterForm {
     username: string
     password: string
     nickname?: string
     verify_code?: string
+  }
+
+  interface ResetPasswordForm {
+    email?: string
+    mobile?: string
+    verify_code: string
+    confirm_password: string
+    new_password: string
+  }
+
+  interface ChangeMobileForm {
+    new_mobile: string
+    old_code?: string
+    new_code: string
   }
 }

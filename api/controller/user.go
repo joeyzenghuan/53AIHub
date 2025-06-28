@@ -116,22 +116,22 @@ func Login(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, model.SystemError.ToResponse(err))
 	}
 
-	log := model.SystemLog{
-		Eid:      eid,
-		UserID:   user.UserID,
-		Nickname: user.Nickname,
-		Module:   model.SystemLogModuleSystem,
-		Action:   model.SystemLogActionLoginOut,
-		Content:  "登录",
-		IP:       utils.GetClientIP(c),
-	}
-	model.CreateSystemLog(&log)
+	// log := model.SystemLog{
+	// 	Eid:      eid,
+	// 	UserID:   user.UserID,
+	// 	Nickname: user.Nickname,
+	// 	Module:   model.SystemLogModuleSystem,
+	// 	Action:   model.SystemLogActionLoginOut,
+	// 	Content:  "登录",
+	// 	IP:       utils.GetClientIP(c),
+	// }
+	// model.CreateSystemLog(&log)
 
-	LoginResponse := LoginResponse{
+	loginResponse := LoginResponse{
 		AccessToken: user.AccessToken,
 		UserID:      user.UserID,
 	}
-	c.JSON(http.StatusOK, model.Success.ToResponse(LoginResponse))
+	c.JSON(http.StatusOK, model.Success.ToResponse(loginResponse))
 }
 
 // SmsLoginRequest 手机号登录请求结构体

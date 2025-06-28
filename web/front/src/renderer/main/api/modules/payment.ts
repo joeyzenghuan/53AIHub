@@ -6,5 +6,9 @@ export const paymentApi = {
     const { data = {} } = await service.get(`/api/payment/available`).catch(handleError)
     return data
   },
+  async getPaymentConfig() {
+    const { data = {} } = await service.get(`/api/pay_settings`).catch(handleError)
+    return data
+  },
 }
 export default paymentApi

@@ -17,7 +17,7 @@ service.interceptors.request.use(
 
     const access_token = config.params.access_token || localStorage.getItem('access_token') || ''
     if (access_token)
-      config.headers.set('Authorization', access_token)
+      config.headers.set('Authorization', `Bearer ${access_token}`)
 
     if (config.url.includes(qyy_host)) {
       config.headers.set('token', token)

@@ -149,13 +149,17 @@
 			}
 		  location.search = joinSearchParam(search_params)
 		}
-		// 兼容本地开源版项目api环境
-		window.op_local_api_host = window.op_local_qyy_host = window.location.origin
-		window.op_local_img_host = window.location.origin + '/api/images'
-		// window.op_local_api_host = 'http://agenthubdev.53ai.com'
-		// window.op_local_qyy_host = 'http://testapi.qunyingyong.net'
 	</script>
 	<script type="module" src="/src/main.ts"></script>
+	<script>
+	var _hmt = _hmt || [];
+	(function() {
+		var hm = document.createElement("script");
+		hm.src = "https://hm.baidu.com/hm.js?c0e32ea294a4fc371fe6ec64187e36e1";
+		var s = document.getElementsByTagName("script")[0]; 
+		s.parentNode.insertBefore(hm, s);
+	})();
+	</script>
 </body>
 
 </html>
