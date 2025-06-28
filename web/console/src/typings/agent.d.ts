@@ -1,3 +1,5 @@
+import type { ChannelConfig } from './channel'
+
 declare namespace Agent {
 	interface UseCase {
 		type: 'case' | 'scene';
@@ -29,7 +31,7 @@ declare namespace Agent {
 		};
 	}
 
-	interface Info {
+	interface State {
 		agent_id: number;
 		eid: number;
 		name: string;
@@ -46,6 +48,7 @@ declare namespace Agent {
 		created_by: number;
 		custom_config: string;  // 或者可以使用 CustomConfig 类型
 		user_group_ids: number[];
+		user_group_names: string[];
 		enable: boolean;
 		created_time: number;
 		updated_time: number;
@@ -61,6 +64,7 @@ declare namespace Agent {
 		sort: number
 		prompt: string
 		user_group_ids: number[]
+		subscription_group_ids: number[]
 		tools: any[]
 		use_cases: any[]
 		configs: Record<string, any>
@@ -70,6 +74,17 @@ declare namespace Agent {
 			coze_workspace_id: string
 			coze_bot_id: string
 			app_builder_bot_id: string
+			chat53ai_agent_id: string
 		}
 	}
+}
+
+export interface AgentData {
+	channel_config?: ChannelConfig
+	custom_config?: {
+		channel_config?: ChannelConfig
+	}
+	model?: string
+	subscription_group_ids?: number[]
+	user_group_ids?: number[]
 }

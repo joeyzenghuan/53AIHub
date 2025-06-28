@@ -16,7 +16,8 @@
   },
   "response_message": {
     "user_not_found": "用戶不存在",
-    "username_or_password_is_incorrect": "用戶名或密碼錯誤"
+    "username_or_password_is_incorrect": "用戶名或密碼錯誤",
+    "operate_too_fast": "操作過快，請稍後再試"
   },
   "response_data": {
     "domain_already_bound": "該域名已被綁定",
@@ -32,12 +33,16 @@
     "agent_type_coze_workflow": "Coze工作流",
     "agent_type_dify_agent": "Dify智能體",
     "agent_type_dify_workflow": "Dify工作流",
+    "agent_type_yuanqi": "腾讯元器",
+    "agent_type_bailian": "阿里百炼",
+    "agent_type_volcengine": "火山引擎",
     "agent_sort_desc": "數字越大，排名越靠前",
     "dialogue": "工作對話",
     "draft": "智能方案",
     "writer": "內容創作",
     "aibox": "AI百寶箱",
     "bot": "智能體",
+    "prompt": "提示詞",
     "library": "私有數據",
     "builtapp": "應用智改",
     "chat_bi": "ChatBI",
@@ -54,8 +59,8 @@
     "app_management": "應用管理",
     "agent": "智能體",
     "agent_search_placeholder": "搜索智能體",
-    "ai_toolbox": "AI產品",
-    "ai_toolbox_search_placeholder": "搜索產品",
+    "ai_toolbox": "AI工具",
+    "ai_toolbox_search_placeholder": "搜索工具",
     "operation_management": "運營管理",
     "operation_user": "用戶數據",
     "operation_user_delete_confirm": "確定刪除該用戶嗎？",
@@ -92,7 +97,6 @@
     "website_info_template": "站點模板",
     "website_info_layout": "網站佈局",
     "platform": "平台接入",
-    "platform_header_title": "智能體平台",
     "platform_delete_confirm": "確定刪除該智能體平台嗎？",
     "platform_tools": "拓展工具",
     "platform_auth_client_id": "客戶端ID",
@@ -100,6 +104,8 @@
     "platform_auth_client_secret": "客戶端密鑰",
     "platform_auth_client_secret_placeholder": "請輸入客戶端密鑰",
     "platform_auth_coze_confirm": "確認你在扣子已經保存",
+    "platform_auth_url": "URL",
+    "platform_auth_secret": "Secret",
     "platform_search_online": "聯網搜索",
     "platform_search_online_desc": "通過博查搜索網絡內容，可總結摘要",
     "platform_search_online_delete_confirm": "確定刪除該拓展工具嗎？",
@@ -110,9 +116,11 @@
     "platform_model_organization_id": "組織 ID",
     "platform_model_organization_id_placeholder": "輸入您的組織 ID",
     "platform_model_base_url": "API Base",
-    "platform_model_base_url_placeholder": "輸入您的API Base，如：https://api.openai,com",
+    "platform_model_base_url_placeholder": "輸入您的API Base，如：https://api.openai.com",
     "platform_model_api_endpoint": "自定義 API endpoint 地址",
     "platform_model_api_endpoint_placeholder": "輸入您的自定義 API endpoint 地址，如：https://api.deepseek.com/v1 or https://api.deepseek.com",
+    "platform_model_models_azure": "基础模型",
+    "platform_model_models_azure_placeholder": "選擇您的基础模型",
     "platform_model_models": "啟用模型",
     "platform_model_models_empty": "暫無可用模型",
     "platform_model_models_total": "{total}個模型",
@@ -320,7 +328,8 @@
       "pending": "待支付",
       "paid": "已支付",
       "expired": "已超時"
-    }
+    },
+    "confirm_tip": "确定则订单会设置为已支付，且会增加用户对应权益。"
   },
   "payment": {
     "type": {
@@ -328,6 +337,12 @@
       "wechat": "微信支付",
       "manual": "手動轉賬",
       "paypal": "PayPal"
+    },
+    "manual": {
+      "qrcode": "收款碼",
+      "qrcode_placeholder": "請上傳收款碼",
+      "desc": "備註",
+      "desc_placeholder": "請輸入備註，如：請使用微信/支付寶 掃碼支付以上金額"
     }
   },
   "template_style": {
@@ -382,24 +397,47 @@
       "tip_1": "务必先在扣子端点击保存后再点确定"
     },
     "app_builder": {
-      "tip": "前往 百度智能云千帆（ {url} ）\n第一步：登录后，点击左侧导航栏的\"API Key\" \n第二步：点击创建API Key（\"服务\" 选择 \"千帆AppBuilder\"，按需配置应用资源）\n第三步：完成创建，复制API Key填入下列表单。"
+      "tip": "前往 百度智能云千帆（{url}）\n第一步：登录后，点击左侧导航栏的\"API Key\" \n第二步：点击创建API Key（\"服务\" 选择 \"千帆AppBuilder\"，按需配置应用资源）\n第三步：完成创建，复制API Key填入下列表单。"
+    },
+    "53ai": {
+      "tip": "前往 53AI（{url}） 第一步：登录后，点击左侧导航栏的 \"设置\"\n第二步：在\"企业信息\"下点击生成Secret Key\n第三步：生成后，复制Sercet Key填入下列表单。"
     }
   },
   "agent_app": {
     "prompt": "通過Prompt創建",
     "53ai_agent": "53AI智能體",
     "53ai_workflow": "53AI工作流",
-    "coze_cn_agent": "扣子智能體",
-    "coze_cn_workflow": "扣子工作流",
-    "coze_cn_reform": "扣子應用智改",
+    "coze_agent_cn": "扣子智能體",
+    "coze_workflow_cn": "扣子工作流",
     "coze_agent": "Coze智能體",
     "coze_workflow": "Coze工作流",
     "dify_agent": "Dify智能體",
     "dify_workflow": "Dify工作流",
     "app_builder": "千帆Appbuilder",
+    "yuanqi": "腾讯元器",
     "bailian": "阿里百煉",
     "volcengine": "火山方舟",
+    "fastgpt_agent": "FastGPT",
     "check_agent_config_tip": "請檢查智能體配置是否正確"
+  },
+  "provider_platform": {
+    "openai": "OpenAI",
+    "deepseek": "DeepSeek",
+    "coze": "Coze",
+    "siliconflow": "硅基流动",
+    "zhipu": "智谱AI",
+    "azure": "Azure OpenAI",
+    "azure_open_ai": "Azure OpenAI",
+    "dark_moon": "月之暗面",
+    "tongyi": "通义千问",
+    "coze_cn": "扣子",
+    "app_builder": "百度千帆AppBuilder",
+    "dify": "Dify",
+    "53ai": "53AI",
+    "bailian": "阿里百煉",
+    "volcengine": "火山方舟",
+    "yuanqi": "腾讯元器",
+    "fastgpt": "FastGPT"
   },
   "register_user": {
     "title": "註冊用戶"
@@ -430,16 +468,20 @@
     },
     "organization": {
       "title": "組織",
-      "search_placeholder": "成員/部門"
+      "all_search_placeholder": "成員/部門",
+      "user_search_placeholder": "成員",
+      "department_search_placeholder": "部門"
     },
     "group": {
       "title": "分組",
       "search_placeholder": "搜索分組",
+      "search_placeholder_v2": "搜索用戶組名稱",
       "create": "新建分組",
       "member": "成員",
       "usable": "可使用",
       "remove_user_confirm": "確定移除該成員嗎？",
-      "remove_agent_confirm": "確定移除該智能體嗎？"
+      "remove_agent_confirm": "確定移除該智能體嗎？",
+      "create_tip": "請先創建分組"
     },
     "status": {
       "all": "全部成員",
@@ -465,7 +507,7 @@
       "edit": "編輯部門",
       "name": "部門名稱",
       "name_placeholder": "請輸入部門名稱",
-      "member_total_count": "{name}（{total}人）"
+      "member_total_count": "（{total}人）"
     },
     "scope": {
       "title": "可見範圍",
@@ -483,6 +525,79 @@
     "admin": "管理員",
     "creator": "創建者"
   },
+  "prompt": {
+    "title": "提示詞",
+    "search_placeholder": "請輸入想搜索的提示詞",
+    "delete_confirm": "確定刪除該提示詞嗎？",
+    "config": "提示詞",
+    "guide": "使用指引",
+    "content": "提示詞內容"
+  },
+  "navigation": {
+    "title": "導航管理",
+    "search_placeholder": "請輸入想搜索的導航",
+    "delete_confirm": "確定刪除該導航嗎？",
+    "type": {
+      "system": "系統內置",
+      "external": "外部鏈接",
+      "custom": "自定義頁"
+    },
+    "target": {
+      "self": "當前窗口",
+      "blank": "新窗口"
+    },
+    "web_setting": "页面编辑"
+  },
+  "sso": {
+    "title": "單點登錄",
+    "sync_corp": "同步企業",
+    "wecom": {
+      "title": "企業微信",
+      "abbr_title": "企微",
+      "access_title": "接入企微",
+      "access_desc": "企業微信管理員掃碼安裝接入",
+      "sync_desc": "完成企業微信憑據授權的綁定後，可綁定企業微信賬號源，導入企業微信成員目錄",
+      "sync_tip": "已同步企業微信組織架構"
+    },
+    "dingtalk": {
+      "title": "釘釘",
+      "abbr_title": "釘釘",
+      "access_title": "接入釘釘",
+      "access_desc": "創建企業內部應用實現接入",
+      "sync_desc": "完成釘釘授權的綁定後，可綁定釘釘賬號源，導入釘釘成員目錄"
+    },
+    "ad_ldap": {
+      "title": "AD/LDAP",
+      "abbr_title": "AD/LDAP",
+      "access_title": "接入AD/LDAP",
+      "access_desc": "綁定 AD/LDAP 後，可導入 AD/LDAP 成員目錄，實現 AD/LDAP 帳號單點登錄 53Hub"
+    },
+    "feishu": {
+      "title": "飛書",
+      "abbr_title": "飛書",
+      "access_title": "接入飛書",
+      "access_desc": "企業管理員掃碼安裝接入",
+      "sync_desc": "完成飛書授權的綁定後，可綁定飛書賬號源，導入飛書成員目錄"
+    },
+    "auth_access": "授權接入",
+    "organization_sync": "組織同步",
+    "access_title": "接入{title}",
+    "access_desc": "需要{title}管理員掃碼安裝",
+    "access_desc_v2": "已有{title}可直接掃碼授權，尚未註冊{title}請先註冊",
+    "goto_access": "前往{title}授權",
+    "goto_register": "去註冊{title}",
+    "sync_confirm": "同步後{title}組織將會覆蓋當前組織，不可恢復",
+    "sync_cancel": "取消同步將會恢復到最初始組織狀態",
+    "sync_cancel_tip": "取消同步",
+    "authorized_enterprise": "授權企業",
+    "unauthorized": "解除授權",
+    "bind_member": "關聯成員",
+    "unbind_member": "取消關聯",
+    "bind_member_tip": "確定將該成員關聯到當前用戶嗎？",
+    "unbind_member_tip": "確定取消關聯該成員嗎？",
+    "auth_completed_tip": "確認您已完成應用綁定，確認後將刷新頁面"
+  },
+  "action_visit": "訪問",
   "action_add": "添加",
   "action_add_success": "已添加",
   "action_create": "創建",
@@ -496,6 +611,7 @@
   "action_remove": "移除",
   "action_remove_success": "已移除",
   "action_confirm": "確定",
+  "action_confirm_success": "已確認",
   "action_cancel": "取消",
   "action_select": "選擇",
   "action_sort": "排序",
@@ -516,6 +632,7 @@
   "action_copy": "複製",
   "action_copy_success": "已複製",
   "action_replace": "更換",
+  "action_clear": "清空",
   "action_search": "搜索",
   "action_close": "關閉",
   "action_view_more": "查看更多",
@@ -543,6 +660,12 @@
   "action_manage": "管理",
   "action_go": "前往",
   "action_rename": "重命名",
+  "action_bind": "關聯",
+  "action_unbind": "取消關聯",
+  "action_bind_success": "已關聯",
+  "action_unbind_success": "已取消關聯",
+  "completion_completed": "已完成深度思考",
+  "completion_thinking": "深度思考中...",
   "form_input_placeholder": "請輸入",
   "form_input_placeholder_max_length": "最大限制輸入{max}個字符",
   "form_select_placeholder": "請選擇",
@@ -553,6 +676,8 @@
   "form_mobile_or_email_validator": "請輸入正確的手機號碼或電子郵箱地址",
   "form_password_validator": "密碼不能包含中文或空格符號",
   "form_url_validator": "請輸入正確的URL地址",
+  "form_path_validator": "请输入正确格式的路径地址 (如:/index) ",
+  "form_path_same_tip": "已存在相同路径地址, 请重新输入",
   "image_cropper": "圖片裁剪",
   "reupload": "重新上傳",
   "wechat": "微信",
@@ -567,7 +692,9 @@
   "not_setting": "未設置",
   "updated_at": "更新於",
   "yearly": "年",
+  "year": "年",
   "monthly": "月",
+  "month": "月",
   "version": "版本",
   "expired_time": "到期時間",
   "basic_info": "基礎信息",
@@ -587,7 +714,7 @@
   "verification_code": "驗證碼",
   "verification_code_placeholder": "請輸入驗證碼",
   "get_verification_code": "獲取驗證碼",
-  "subscription": "訂閱",
+  "subscription": "訂閱设置",
   "subscription_end_at": "服務期至",
   "register_time": "註冊時間",
   "created_time": "創建時間",
@@ -599,6 +726,7 @@
   "agent": "智能體",
   "user_count": "用戶數",
   "create_time": "創建時間",
+  "update_time": "更新時間",
   "service_expired_time": "服務到期",
   "configuration_completion": "配置完成度",
   "description": "描述",
@@ -606,6 +734,7 @@
   "type": "類型",
   "usage_record": "使用記錄",
   "usage_guide": "使用指引",
+  "dialogue_record": "對話記錄",
   "user_info": "用戶信息",
   "avatar": "頭像",
   "login_password": "登錄密碼",
@@ -665,6 +794,8 @@
   "group_management": "分組管理",
   "display_order": "顯示順序",
   "permission_setting": "權限設置",
+  "expand_setting": "擴展設置",
+  "base_setting": "欢迎语",
   "visible_range": "可見範圍",
   "dialogue_frequency": "對話頻率",
   "dialogue_total": "對話總量",
@@ -689,7 +820,6 @@
   "output_variable": "輸出變量",
   "model_name": "模型名稱",
   "model_name_placeholder": "請輸入模型名稱",
-  "prompt": "提示詞",
   "prompt_placeholder": "請輸入提示詞",
   "copyright_desc": "版權所有 © 2014-{year} 廣州群應用網絡科技有限公司.Al Rights Reserve 版權所有 粵ICP備17114055號",
   "no_permission_tip": "尚未獲得使用該功能的權限，請聯繫管理員開啟",
@@ -712,9 +842,14 @@
   "chat_glm": "智譜AI",
   "tongyi": "通義千問",
   "coze_cn": "扣子",
+  "dify": "Dify",
+  "app_builder": "千帆AppBuilder",
   "coze": "Coze",
   "53ai": "53AI",
   "fast_gpt": "FastGPT",
+  "yuanqi": "腾讯元器",
+  "bailian": "阿里百炼",
+  "volcengine": "火山引擎",
   "sort": "排序",
   "official_website": "官網首頁",
   "apply_open": "申請開通",
@@ -728,13 +863,18 @@
   "permanent_effect": "永久生效",
   "empty_to_not_change": "留空為不變更",
   "api_host": "後端服務API",
+  "ap_host_fastgpt": "API 根地址",
   "api_screet": "API密鑰",
   "api_botid": "Bot ID",
+  "api_botid_en": "Bot ID",
+  "api_appid": "應用ID",
   "api_key": "API Key",
   "agent_type": "智能體類型",
   "agent_type_chat": "對話型應用",
   "agent_type_completion": "workflow型應用",
   "agent_type_workflow": "工作流編排對話型應用",
+  "agent_file_parse": "文檔解析",
+  "agent_image_parse": "圖片視覺",
   "app_type": "應用類型",
   "how_get": "如何獲取",
   "53ai_api_endpoint": "API Endpoint",
@@ -743,14 +883,56 @@
   "usage_range": "使用範圍",
   "dify_agent_get_tip": "前往Dify并登录（{url}） \n第一步：选择要接入的智能体，点\"访问API\" \n第二步：右上角复制\"API服务器\" 和 \"API密钥\"，填入下列表单。",
   "53ai_agent_get_tip": "前往53AI并登录（{url}） \n 第一步：选择要接入的智能体，点击\"接入使用\" \n第二步：在复制\"API Endpoint\" 、 \"Bot-Id\" 和 \"SECRET_KEY\"，填入下列表单。",
+  "bailian_agent_get_tip": "前往阿里百炼并登录（{ url }）\n第一步，登录阿里百炼，去到应用 - 应用管理页。\n第二步：选择一个应用，复制应用卡片中的“应用ID”粘贴到下面表单。\n第三步：点应用卡片下的发布，获取API-KEY，复制粘贴到下面表单。",
+  "volcengine_agent_get_tip": "前往火山引擎（{ url }） \n第一步：登录火山方舟，点击进入我的应用（{ my_url }）\n第二步：点击已有的应用（或创建应用），点复制左上角的bot-xxxxxx（后面有个复制按钮），粘贴到下面表单\n第三步：点击右上角“API调用指南”，点击选择API Key并复制，然后复制出一个key粘贴到下面表单",
+  "yuanqi_agent_get_tip": "前往腾讯元器（{ url }） \n第一步：登录腾讯元器，去到我的创建。\n第二步：选择一个智能体卡片的右下角更多按钮，点击调用API（新建智能体要等审核通过才有）。\n第三步，点击复制智能体ID，粘贴到下面表单。\n第四步：点击复制Token,粘贴到下面表单。",
+  "fastgpt_agent_get_tip": "前往 FastGPT（ {url} ） \n第一步：登录FastGPT，点击进入「工作台」,点击选择要接入的应用；\n第二步：进入应用，在「发布渠道」下选择\"API 访问\"；\n第三步：在API密钥管理下，点击新建，新建成功后复制\"API KEY\"填入表单；\n第四步：复制\"API 根地址\",填入表单；",
   "tip": "提示",
   "coze_cn_not_auth": "扣子未授權，請先前往扣子授權",
   "app_builder_not_auth": "千帆AppBuilder未授權，請先前往千帆AppBuilder授權",
   "intelligent_agent_platform": "智能體平台",
   "cloud_computing_platform": "雲計算平台",
+  "model_platform": "大模型平台",
   "local_config_limited_tip": "配置受限提示",
   "local_config_limited_desc": "由於當前系統訪問為內網地址({url})，無法添加/配置Coze 智能體和微信支付，需要部署到外網能訪問的地址訪問再配置。",
   "know_it": "知道了",
   "selected_tip": "已選擇 {total} 個",
-  "support_image": "支持圖片"
+  "support_image": "支持圖片",
+  "debugger_config_change_confirm": "修改設置將重置調試區域，需要保存並重新開始調試",
+  "save_and_restart": "保存並重新開始",
+  "title": "標題",
+  "commom": {
+    "add_manual": "手動添加",
+    "add_market": "從應用市場添加"
+  },
+  "jump_path": "跳轉地址",
+  "open_method": "打開方式",
+  "navigation_is_open": "是否導航顯示",
+  "page_edit": "頁面編輯",
+  "last_edit": "最近编辑",
+  "opening_statement": "開場白",
+  "suggested_questions": "提問引導",
+  "max_add_tip": "最多添加{max}個",
+  "join_group": "加入交流群",
+  "join_group_desc": "加入交流群，共同學習進步",
+  "start_time": "開始時間",
+  "end_time": "結束時間",
+  "filter": "篩選",
+  "user/mobile": "用戶/手機號",
+  "summary": "摘要",
+  "message_count": "消息數",
+  "detail": "詳情",
+  "dialogue_detail": "對話詳情",
+  "more": "更多",
+  "keyword": "關鍵詞",
+  "software_style": "軟件風格",
+  "website_style": "網站風格",
+  "system_log": {
+    "log_label": "日誌",
+    "log_action": "動作",
+    "log_module": "模塊",
+    "log_operator": "操作人",
+    "log_time": "時間",
+    "log_ip": "IP"
+  }
 }

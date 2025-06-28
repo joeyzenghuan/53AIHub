@@ -37,7 +37,7 @@ export function handleError(error: ErrorResponse): Promise<never> {
   } else {
     // 优化消息获取逻辑
     message = (code !== undefined && RESPONSE_CODE_MESSAGE_MAP.get(code) ? window.$t(RESPONSE_CODE_MESSAGE_MAP.get(code)!) : '') ||
-      ERROR_MESSAGES.get[status] ||
+      ERROR_MESSAGES.get(status) ||
       error.message || window.$t('response_message.unknown_error')
 
   }

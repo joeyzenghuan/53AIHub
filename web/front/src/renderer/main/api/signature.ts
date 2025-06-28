@@ -3,7 +3,7 @@ import { serialize } from '@/utils'
 import md5 from '@/utils/md5'
 
 export function generateSignParams(params = {}) {
-  const authkey = 'c3a39e4eeacf4542d6a488e19037fa45'
+  const authkey = process.env.VITE_GLOB_AUTH_KEY as string
   params = Object.assign({}, params, {
     timestamp: Math.floor(Date.now() / 1000),
     platform: 'web',
@@ -20,7 +20,7 @@ export function generateSignParams(params = {}) {
 }
 
 export function generateIbosSignParams() {
-  const authkey = 'c3a39e4eeacf4542d6a488e19037fa45'
+  const authkey = process.env.VITE_GLOB_AUTH_KEY as string
   const platform = 'web'
   const createtime = Math.floor(Date.now() / 1000)
   const token = md5(authkey + createtime)

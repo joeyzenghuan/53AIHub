@@ -10,32 +10,12 @@ const routes: RouteRecordRaw[] = [
     path: '/',
     name: 'Home',
     redirect: () => {
-      return window.electron ? '/toolbox' : '/index'
+      //  在桌面端或移动端时，重定向到工具箱页面
+      return (window.electron || window.innerWidth < 768) ? '/agent' : '/index-redirect?from_home=1'
+      // return window.electron ? '/desktop' : '/index'
     },
     component: () => import('@/layout/index.vue'),
     children: [
-      {
-        path: '/index',
-        name: 'Index',
-        component: () => import('@/views/index/layout.vue'),
-        children: [
-          {
-            path: '/index',
-            name: 'HomeIndex',
-            component: () => import('@/views/index/index.vue'),
-          },
-          {
-            path: '/index/agent',
-            name: 'HomeAgent',
-            component: () => import('@/views/index/agent.vue'),
-          },
-          {
-            path: '/index/toolbox',
-            name: 'HomeToolbox',
-            component: () => import('@/views/index/toolbox.vue'),
-          },
-        ]
-      },
       {
         path: '/chat',
         name: 'Chat',
@@ -53,12 +33,14 @@ const routes: RouteRecordRaw[] = [
       //   }
       // },
       {
-        path: '/discover',
-        name: 'Discover',
-        component: () => import('@/views/discover/index.vue'),
-        meta: {
-          auth: true
-        }
+        path: '/agent',
+        name: 'Agent',
+        component: () => import('@/views/agent/index.vue'),
+      },
+      {
+        path: '/toolkit',
+        name: 'Toolkit',
+        component: () => import('@/views/toolkit/index.vue'),
       },
       {
         path: '/profile',
@@ -73,7 +55,64 @@ const routes: RouteRecordRaw[] = [
         name: 'Toolbox',
         component: () => import('@/views/desktop/tools/index.vue'),
       },
+      {
+        path: '/prompt',
+        name: 'Prompt',
+        component: () => import('@/views/prompt/index.vue'),
+      },
+      {
+        path: '/prompt/:prompt_id',
+        name: 'PromptDetail',
+        component: () => import('@/views/prompt/detail/index.vue'),
+      },
     ]
+  },
+  {
+    path: '/index',
+    name: 'Index',
+    component: () => import('@/views/index/layout.vue'),
+    children: [
+      {
+        path: '/index-redirect',
+        name: 'HomeRedirect',
+        component: () => import('@/views/index/redirect.vue'),
+      },
+      {
+        path: '/index',
+        name: 'HomeIndex',
+        component: () => import('@/views/index/index.vue'),
+      },
+      {
+        path: '/index/agent',
+        name: 'HomeAgent',
+        component: () => import('@/views/index/agent/index.vue'),
+      },
+      {
+        path: '/index/chat',
+        name: 'HomeChat',
+        component: () => import('@/views/index/agent/chat.vue'),
+      },
+      {
+        path: '/index/prompt',
+        name: 'HomePrompt',
+        component: () => import('@/views/index/prompt/index.vue'),
+      },
+      {
+        path: '/index/prompt/:prompt_id',
+        name: 'HomePromptDetail',
+        component: () => import('@/views/index/prompt/detail.vue'),
+      },
+      {
+        path: '/index/toolkit',
+        name: 'HomeToolkit',
+        component: () => import('@/views/index/toolkit.vue'),
+      },
+    ]
+  },
+  {
+    path: '/desktop',
+    name: 'Desktop',
+    component: () => import('@/views/desktop/index.vue'),
   },
   {
     path: '/svglist',
@@ -85,6 +124,14 @@ const routes: RouteRecordRaw[] = [
     name: 'NotFound',
     redirect: '/404',
   },
+  {
+    path: '/index/:pathMatch(.*)*',
+    name: 'IndexNotFound',
+    redirect: () => {
+      const redirect = location.hash.replace('#', '')
+      return `/index-redirect?redirect=${redirect}`
+    },
+  }
 ]
 
 export const router = createRouter({
@@ -94,12 +141,22 @@ export const router = createRouter({
 })
 
 // 添加路由守卫
-router.beforeEach((to, _from, next) => {
+router.beforeEach(async (to, _from, next) => {
   const userStore = useUserStore()
   const isLoggedIn = localStorage.getItem('access_token') // 或其他判断用户是否登录的方法
   if (isLoggedIn) {
     userStore.getUserInfo()
   }
+
+  const { useEnterpriseStore } = await import('@/stores/modules/enterprise')
+  const enterpriseStore = useEnterpriseStore()
+  if (!enterpriseStore.display_name) await enterpriseStore.loadInfo()
+  const { style_type } = enterpriseStore.template_style_info
+  const isWebsite = style_type === 'website'
+  const isIndex = to.path.startsWith('/index')
+  const isProfile = to.path.startsWith('/profile')
+  if (isIndex && !isWebsite) router.replace('/agent')
+  else if (!isIndex && !isProfile && isWebsite) router.replace('/')
 
   if (to.meta.auth) {
     // 这里需要根据你的实际登录状态判断逻辑来替换

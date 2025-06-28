@@ -66,5 +66,8 @@ export const RESPONSE_MESSAGE_MAP = new Map([
   ['param error: username already exists', 'response_message.username_already_exists'],
   ['Invalid or expired verification code', 'response_message.username_or_password_is_incorrect'],
   ['unauthorized: username or password is incorrect', 'response_message.username_or_password_is_incorrect'],
+  ['auth failed: This email has been bound by another user', 'response_message.email_already_bind'],
+  ['auth failed: This mobile has been bound by another user', 'response_message.mobile_already_bind'],
+  ['param error: This WeChat account is already bound to another user', 'response_message.wechat_already_bind']
 ])
 

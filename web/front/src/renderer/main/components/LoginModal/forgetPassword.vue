@@ -1,0 +1,349 @@
+<script setup lang="ts">
+import { ref, reactive, computed, nextTick } from 'vue'
+import { ElMessage } from 'element-plus'
+import type { FormInstance } from 'element-plus'
+import commonApi from '@/api/modules/common'
+import userApi from '@/api/modules/user'
+
+import { useUserStore } from '@/stores/modules/user'
+import useEmail from '@/hooks/useEmail'
+import useMobile from '@/hooks/useMobile'
+import {
+  getMobileRules,
+  getEmailRules,
+  getPasswordRules,
+  getConfirmPasswordRules
+} from '@/utils/form-rules'
+
+const emits = defineEmits(['success', 'close'])
+
+const userStore = useUserStore()
+const { emailCodeRule, sendEmailCode, emailCodeCount } = useEmail()
+const { sendcode, codeRule, codeCount } = useMobile()
+
+const formRef = ref<FormInstance>()
+
+const form = reactive({
+  username: '',
+  verify_code: '',
+  new_password: '',
+  confirm_password: ''
+})
+
+const verify_way = ref('email_verify')
+
+// 添加清除表单验证的方法
+const clearFormValidation = () => {
+  if (formRef.value) {
+    formRef.value.clearValidate()
+  }
+}
+
+// 添加重置函数
+const resetForm = () => {
+  form.username = ''
+  form.verify_code = ''
+  form.new_password = ''
+  form.confirm_password = ''
+  existing_mobile.value = true
+  existing_email.value = true
+  isRegister.value = true
+  nextTick(() => {
+    clearFormValidation()
+  })
+}
+
+const handleVerifyWayChange = () => {
+  resetForm()
+}
+
+const isFormatCorrect = computed(() => {
+  if (verify_way.value === 'mobile_verify') {
+    return /^1[3-9]\d{9}$/.test(form.username)
+  } else {
+    return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(form.username)
+  }
+})
+
+const existing_mobile = ref(true)
+const existing_email = ref(true)
+// const rules = computed(() => {
+//   return {
+//     username: [
+//       verify_way.value === 'email_verify' ? getEmailRules() : getMobileRules(),
+//       {
+//         validator: async (rule, value, callback) => {
+//           try {
+//             // 跳过空值触发和格式不符合触发
+//             if (form.username.trim() === '' || !isFormatCorrect.value) {
+//               return callback()
+//             }
+//             // 等待验证完成
+//             await onUsernameBlur()
+
+//             // 检查完成后，根据isRegister的值进行验证
+//             if (verify_way.value === 'mobile_verify' && isRegister.value) {
+//               existing_mobile.value = false
+//               callback(new Error(window.$t('form.mobile') + window.$t('register.unregistered')))
+//             } else if (verify_way.value === 'email_verify' && isRegister.value) {
+//               existing_email.value = false
+//               callback(new Error(window.$t('form.email') + window.$t('register.unregistered')))
+//             }
+//           } catch (error) {}
+//         },
+//         trigger: 'blur'
+//       }
+//     ],
+//     new_password: [getPasswordRules()],
+//     confirm_password: [getPasswordRules(), getConfirmPasswordRules(form, 'new_password')],
+//     verify_code: [verify_way.value === 'email_verify' ? emailCodeRule : codeRule]
+//   }
+// })
+
+const handleGetCode = () => {
+  if (verify_way.value === 'email_verify') {
+    sendEmailCode(form.username)
+  } else {
+    sendcode(form.username)
+  }
+}
+
+// 添加用户名验证缓存
+const usernameCache = reactive(new Map())
+const isRegister = ref(true)
+
+const onUsernameBlur = async () => {
+  if (!isFormatCorrect.value) return Promise.resolve()
+
+  if (usernameCache.has(form.username)) {
+    const cachedResult = usernameCache.get(form.username)
+    if (Date.now() - cachedResult.timestamp < 2 * 60 * 1000) {
+      isRegister.value = !cachedResult.exists
+      return Promise.resolve()
+    }
+  }
+
+  // 返回Promise确保外部可以await
+  return userApi.checkUsername(form.username).then((res) => {
+    isRegister.value = !res.data.exists
+    usernameCache.set(form.username, {
+      exists: res.data.exists,
+      timestamp: Date.now()
+    })
+  })
+}
+
+const handleClose = () => {
+  // 重置表单
+  resetForm()
+  emits('close')
+}
+
+const handleSubmit = () => {
+  return formRef.value?.validate().then(async (valid) => {
+    if (!valid) return
+    console.log('valid')
+    try {
+      if (verify_way.value === 'email_verify') {
+        await userStore.reset_password({
+          email: form.username,
+          verify_code: form.verify_code,
+          new_password: form.new_password,
+          confirm_password: form.confirm_password
+        })
+      } else {
+        await commonApi.verifycode({
+          mobile: form.username,
+          verifycode: form.verify_code,
+          type: '1'
+        })
+        await userStore.reset_password({
+          mobile: form.username,
+          verify_code: form.verify_code,
+          new_password: form.new_password,
+          confirm_password: form.confirm_password
+        })
+      }
+      ElMessage.success(window.$t('status.update_success'))
+      emits('success')
+      // 重置表单内容
+      resetForm()
+    } catch (error) {
+      ElMessage.error()
+    }
+  })
+}
+</script>
+
+<template>
+  <div class="mb-2">
+    <h3>{{ $t('form.reset_password_method') }}</h3>
+    <el-radio-group v-model="verify_way" @change="handleVerifyWayChange">
+      <el-radio value="email_verify" size="large">{{ $t('form.email_verify') }}</el-radio>
+      <el-radio value="mobile_verify" size="large">{{ $t('form.mobile_verify') }}</el-radio>
+    </el-radio-group>
+  </div>
+
+  <el-form ref="formRef" label-position="top" :model="form" :rules="[]" @keyup.enter="handleSubmit">
+    <el-form-item
+      :label="verify_way === 'email_verify' ? $t('form.email') : $t('form.mobile')"
+      prop="username"
+      :rules="[
+        verify_way === 'email_verify' ? getEmailRules() : getMobileRules(),
+        {
+          validator: async (rule, value, callback) => {
+            try {
+              // 跳过空值触发和格式不符合触发
+              if (form.username.trim() === '' || !isFormatCorrect) {
+                return callback()
+              }
+              // 等待验证完成
+              await onUsernameBlur()
+
+              // 检查完成后，根据isRegister的值进行验证
+              if (verify_way === 'mobile_verify' && isRegister) {
+                existing_mobile = false
+                callback(new Error($t('form.mobile') + $t('register.unregistered')))
+              } else if (verify_way === 'email_verify' && isRegister) {
+                existing_email = false
+                callback(new Error($t('form.email') + $t('register.unregistered')))
+              }
+            } catch (error) {}
+          },
+          trigger: 'blur'
+        }
+      ]"
+    >
+      <el-input
+        v-if="verify_way === 'email_verify'"
+        v-model="form.username"
+        v-trim
+        size="large"
+        class="input_style"
+        :placeholder="$t('form.input_placeholder') + $t('form.email')"
+        clearable
+        onblur="onUsernameBlur"
+      />
+      <el-input
+        v-else
+        v-model="form.username"
+        v-trim
+        size="large"
+        class="input_style"
+        :placeholder="$t('form.input_placeholder') + $t('form.mobile')"
+        clearable
+        onblur="onUsernameBlur"
+      />
+      <template #error>
+        <div
+          v-if="!existing_mobile || !existing_email"
+          class="text-xs text-[#f56c6c] absolute"
+          style="top: 100%; left: 0"
+        >
+          {{ $t('status.not_found_account') }}
+          <button type="button" class="text-xs text-[#2563EB] underline" @click="handleClose">
+            {{ $t('action.register') }}
+          </button>
+        </div>
+      </template>
+    </el-form-item>
+
+    <el-form-item
+      :label="$t('form.verify_code')"
+      prop="verify_code"
+      :rules="[verify_way === 'email_verify' ? emailCodeRule : codeRule]"
+    >
+      <el-input
+        v-model="form.verify_code"
+        v-trim
+        size="large"
+        class="input_style"
+        :placeholder="$t('form.input_placeholder') + $t('form.verify_code')"
+      >
+        <template #suffix>
+          <el-button
+            v-if="verify_way === 'mobile_verify'"
+            v-debounce
+            @click.stop="handleGetCode"
+            :disabled="isRegister"
+            class="!bg-[#f5f5f5] border-0 pr-0"
+          >
+            <div class="text-base pl-3 border-ltext-[#9A9A9A] cursor-not-allowed" v-if="codeCount">
+              {{ codeCount }}s
+            </div>
+            <div
+              class="text-base pl-3 border-l"
+              v-else
+              :class="[
+                isRegister ? 'text-[#9A9A9A] cursor-not-allowed' : 'text-[#2563EB] cursor-pointer'
+              ]"
+            >
+              {{ $t('form.get_verify_code') }}
+            </div>
+          </el-button>
+          <el-button
+            v-else
+            v-debounce
+            @click.stop="handleGetCode"
+            :disabled="isRegister"
+            class="!bg-[#f5f5f5] border-0 pr-0"
+          >
+            <div
+              class="text-base pl-3 border-ltext-[#9A9A9A] cursor-not-allowed"
+              v-if="emailCodeCount"
+            >
+              {{ emailCodeCount }}s
+            </div>
+            <div
+              class="text-base pl-3 border-l"
+              v-else
+              :class="[
+                isRegister ? 'text-[#9A9A9A] cursor-not-allowed' : 'text-[#2563EB] cursor-pointer'
+              ]"
+            >
+              {{ $t('form.get_verify_code') }}
+            </div>
+          </el-button>
+        </template>
+      </el-input>
+    </el-form-item>
+    <el-form-item
+      :label="$t('form.new_password')"
+      prop="new_password"
+      :rules="[getPasswordRules()]"
+    >
+      <el-input
+        v-model="form.new_password"
+        v-trim
+        show-password
+        size="large"
+        class="input_style"
+        :placeholder="$t('form.new_password_placeholder')"
+      >
+      </el-input>
+    </el-form-item>
+
+    <el-form-item
+      :label="$t('form.new_password_confirm')"
+      prop="confirm_password"
+      :rules="[getPasswordRules(), getConfirmPasswordRules(form, 'new_password')]"
+    >
+      <el-input
+        v-model="form.confirm_password"
+        v-trim
+        show-password
+        size="large"
+        class="input_style"
+        :placeholder="$t('form.new_password_confirm_placeholder')"
+      >
+      </el-input>
+    </el-form-item>
+
+    <!-- 修改按钮 -->
+    <el-button type="primary" @click="handleSubmit" round v-debounce class="w-full mt-3 !h-10">
+      {{ $t('action.update_password') }}
+    </el-button>
+  </el-form>
+</template>
+
+<style scoped></style>

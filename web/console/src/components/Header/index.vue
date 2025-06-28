@@ -30,9 +30,11 @@ const handleBack = () => {
           <ArrowLeft />
         </el-icon>
       </div>
+      <slot name="title_prefix" />
       <h2 class="text-[26px] text-[#1D1E1F] font-semibold">
         {{ title }}
       </h2>
+      <slot name="title_suffix" />
     </div>
     <slot name="right" />
   </div>

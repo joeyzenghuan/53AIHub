@@ -27,7 +27,7 @@ watchEffect(() => {
       <h4 class="text-base text-primary">
         {{ $t('chat.usage_case') }}
       </h4>
-      <div class="columns-2 gap-5 space-y-5 mt-5">
+      <div class="columns-2 gap-5 space-y-5 mt-5 max-md:columns-1">
         <template v-for="(item, index) in state.cases" :key="index">
           <div class="p-5 bg-[#F7F9FC] rounded relative group cursor-pointer break-inside-avoid">
             <div class="bg-white rounded p-5 relative">
@@ -60,10 +60,10 @@ watchEffect(() => {
       <h4 class="text-base text-primary">
         {{ $t('chat.usage_scene') }}
       </h4>
-      <div class="flex gap-6 py-5">
+      <div class="flex gap-6 py-5 max-md:flex-col max-md:gap-2">
         <template v-for="(item, index) in state.scenes" :key="index">
           <div class="flex-1 px-4 text-center pt-3 pb-10 relative cursor-pointer group">
-            <img class=" mx-auto" :src="item.image"></img>
+            <img class=" max-w-[200px] mx-auto" :src="item.image"></img>
             <h6 class="text-base text-primary mt-5 break-words">
               {{ item.scene }}
             </h6>
@@ -72,9 +72,9 @@ watchEffect(() => {
             </p>
           </div>
         </template>
-        <el-empty v-if="state.scenes.length === 0" :image-size="92" :description="$t('common.no_data')"
-          :image="$getPublicPath('/images/chat/completion_empty.png')" />
       </div>
+      <el-empty v-if="state.scenes.length === 0" :image-size="92" :description="$t('common.no_data')"
+        :image="$getPublicPath('/images/chat/completion_empty.png')" />
     </div>
   </div>
 </template>

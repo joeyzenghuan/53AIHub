@@ -77,6 +77,24 @@ func GetUserGroupID(c *gin.Context) int64 {
 	return 0
 }
 
+// GetProtocol returns the request protocol from session
+func GetProtocol(c *gin.Context) string {
+	protocol, success := c.Get(session.SESSION_REQUEST_PROTOCOL)
+	if success && protocol != nil {
+		return protocol.(string)
+	}
+	return "http"
+}
+
+// GetDomain returns the request domain from session
+func GetDomain(c *gin.Context) string {
+	domain, success := c.Get(session.SESSION_REQUEST_DOMAIN)
+	if success && domain != nil {
+		return domain.(string)
+	}
+	return ""
+}
+
 func GetServer(c *gin.Context) string {
 	return Server
 }

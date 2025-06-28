@@ -30,6 +30,8 @@ type User struct {
 	RelatedId      int64           `json:"related_id" gorm:"type:int;default:0;not null" example:"0"`
 	Type           int             `json:"type" gorm:"type:int;default:1;not null;comment:'User type: 1-Registered user, 2-Internal user'" example:"1"`
 	AddAdminTime   int64           `json:"add_admin_time" gorm:"type:bigint;default:0;not null;comment:'Time when user was added as admin'" example:"1672502400"`
+	OpenID         string          `json:"openid" gorm:"type:varchar(512);column:openid"`
+	UnionID        string          `json:"unionid" gorm:"type:varchar(512);column:unionid"`
 	Departments    []Department    `json:"departments" gorm:"-"`
 	MemberBindings []MemberBinding `json:"memberbindings" gorm:"-"`
 	GroupIds       []int64         `json:"group_ids" gorm:"-"`
@@ -116,6 +118,8 @@ func (user *User) Update(updatePassword bool) error {
 		"expired_time": user.ExpiredTime,
 		"status":       user.Status,
 		"role":         user.Role,
+		"openid":       user.OpenID,
+		"unionid":      user.UnionID,
 	}
 
 	if updatePassword && user.Password != "" {
@@ -459,4 +463,22 @@ func GetLoginUser(c *gin.Context) (*User, error) {
 		}
 	}
 	return nil, errors.New("user not found")
+}
+
+// GetUserByOpenId 根据OpenID获取用户
+func GetUserByOpenId(openId string, eid int64) (*User, error) {
+	var user User
+	if err := DB.Where("openid = ? and eid = ?", openId, eid).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
+// IsOpenIdExists 检查OpenID是否已存在
+func IsOpenIdExists(openId string) (bool, error) {
+	var count int64
+	if err := DB.Model(&User{}).Where("openid = ?", openId).Count(&count).Error; err != nil {
+		return false, err
+	}
+	return count > 0, nil
 }

@@ -1,6 +1,9 @@
 import { createApp } from "vue"
 import { ElTooltip } from 'element-plus'
+import { useBasicLayout } from "@/hooks/useBasicLayout"
 import type { DirectiveBinding } from "vue"
+
+const { isMdScreen } = useBasicLayout()
 
 
 const destroyTooltip = (el: any) => {
@@ -126,12 +129,21 @@ const autoShowToolTip = (el: any, binding: DirectiveBinding) => {
  */
 export default {
   mounted(el: HTMLElement, binding: DirectiveBinding) {
+    if (isMdScreen.value) {
+      return
+    }
     createTooltip(el, binding);
   },
   updated(el: HTMLElement, binding: DirectiveBinding) {
+    if (isMdScreen.value) {
+      return
+    }
     createTooltip(el, binding);
   },
   unmounted(el: HTMLElement) {
+    if (isMdScreen.value) {
+      return
+    }
     destroyTooltip(el);
   }
 };

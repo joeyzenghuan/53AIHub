@@ -31,7 +31,7 @@ function http<T = any>(
   { url, data, method, pathname, api_host, headers, extra_headers, onDownloadProgress, signal, hideError, beforeRequest, afterRequest, responseType, isStream, ...config }: HttpOption,
 ) {
   hideError = !!+hideError
-	const successHandler = (res: AxiosResponse<Response<T>>) => {
+  const successHandler = (res: AxiosResponse<Response<T>>) => {
     if (responseType === 'blob')
       return res
     if (url.includes('console/api')) {
@@ -46,11 +46,12 @@ function http<T = any>(
     }
   }
 
-	const failHandler = (error: Response<Error>) => {
+  const failHandler = (error: Response<Error>) => {
     afterRequest?.()
     const response = error.response || {}
-		let response_data = response.data || {}
-		if (response_data.error) response_data = response_data.error
+    let response_data = response.data || {}
+    if (response_data.error)
+      response_data = response_data.error
     let message = RESPONSE_MESSAGE_MAP.get(response_data.message) || RESPONSE_CODE_MESSAGE_MAP.get(+response_data.code) || response_data.message || error.message || RESPONSE_CODE_MESSAGE_MAP.get(RESPONSE_CODE_NETWORK_ERROR)
     const error_config = {
       code: response_data.code,

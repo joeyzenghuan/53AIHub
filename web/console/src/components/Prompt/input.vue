@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { Codemirror } from 'vue-codemirror'
+import { get_encoding } from 'tiktoken'
 import type { DecorationSet, Tooltip } from '@codemirror/view'
 import { Decoration, EditorView, MatchDecorator, ViewPlugin, WidgetType, keymap, showTooltip } from '@codemirror/view'
 import { StateEffect, StateField } from '@codemirror/state'
@@ -125,12 +126,28 @@ const variablePlugin = ViewPlugin.fromClass(class {
   }),
 })
 
+let _tokenTimer: any
+const calcToken = () => {
+	if (!props.showToken)
+		return
+
+	clearTimeout(_tokenTimer)
+	_tokenTimer = setTimeout(() => {
+		const content_html = prompt.value
+		const encoding = get_encoding('cl100k_base')
+		const tokens = encoding.encode(content_html)
+		encoding.free()
+		token.value = content_html.trim() ? tokens.length : 0
+	}, 200)
+}
+
 const onChange = () => {
   nextTick(() => {
     emits('update:modelValue', prompt.value)
     emits('change', prompt.value)
     emits('input', prompt.value)
-  })
+	})
+	calcToken()
 }
 
 const insertContent = (from: number, to: number, content: string) => {
@@ -285,6 +302,7 @@ const scrollToBottom = () => {
 
 watch(() => props.modelValue, () => {
   prompt.value = props.modelValue
+	calcToken()
 }, { immediate: true })
 
 watch(() => props.variables, () => {

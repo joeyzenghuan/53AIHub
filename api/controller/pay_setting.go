@@ -96,13 +96,19 @@ func CreatePaySetting(c *gin.Context) {
 		return
 	}
 
+	payText, err := model.GetPayTypeText(paySetting.PayType)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
 	log := model.SystemLog{
 		Eid:      eid,
 		UserID:   config.GetUserId(c),
 		Nickname: config.GetUserNickname(c),
 		Module:   model.SystemLogModulePayment,
 		Action:   model.SystemLogActionCreate,
-		Content:  "设置微信支付",
+		Content:  fmt.Sprintf("设置%s", payText),
 		IP:       utils.GetClientIP(c),
 	}
 	model.CreateSystemLog(&log)
@@ -341,13 +347,19 @@ func UpdatePayConfig(c *gin.Context) {
 		return
 	}
 
+	payText, err := model.GetPayTypeText(paySetting.PayType)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
 	log := model.SystemLog{
 		Eid:      config.GetEID(c),
 		UserID:   config.GetUserId(c),
 		Nickname: config.GetUserNickname(c),
 		Module:   model.SystemLogModulePayment,
 		Action:   model.SystemLogActionUpdate,
-		Content:  "设置微信支付",
+		Content:  fmt.Sprintf("设置%s", payText),
 		IP:       utils.GetClientIP(c),
 	}
 	model.CreateSystemLog(&log)
@@ -392,13 +404,24 @@ func UpdatePayStatus(c *gin.Context) {
 		return
 	}
 
+	statusText := "启用"
+	if !paySetting.PayStatus {
+		statusText = "禁用"
+	}
+
+	payText, err := model.GetPayTypeText(paySetting.PayType)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
 	log := model.SystemLog{
 		Eid:      paySetting.Eid,
 		UserID:   config.GetUserId(c),
 		Nickname: config.GetUserNickname(c),
 		Module:   model.SystemLogModuleAdmin,
 		Action:   model.SystemLogActionToggle,
-		Content:  "禁用微信支付",
+		Content:  fmt.Sprintf("%s%s", statusText, payText),
 		IP:       utils.GetClientIP(c),
 	}
 	model.CreateSystemLog(&log)

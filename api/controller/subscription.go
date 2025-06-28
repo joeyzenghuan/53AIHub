@@ -3,6 +3,7 @@ package controller
 import (
 	"fmt"
 	"net/http"
+	"strings"
 
 	"github.com/53AI/53AIHub/common/utils"
 	"github.com/53AI/53AIHub/config"
@@ -280,10 +281,29 @@ func GetSubscriptionList(c *gin.Context) {
 		limit = 10
 	}
 	eid := config.GetEID(c)
+	user, err := model.GetLoginUser(c)
+	if err == nil {
+		eid = user.Eid
+	}
 	settings, count, err := model.GetSubscriptionSettingsWithAgents(eid, offset, limit)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
 		return
+	}
+
+	for _, setting := range settings {
+		if !strings.Contains(setting.Setting.LogoUrl, "//img.ibos.cn") {
+			var logoUrl string
+			if strings.Contains(setting.Setting.LogoUrl, "://") {
+				logoUrl = strings.TrimPrefix(setting.Setting.LogoUrl, "http://")
+				logoUrl = strings.TrimPrefix(logoUrl, "https://")
+				logoUrl = strings.SplitN(logoUrl, "/", 2)[1]
+			}
+			if !strings.HasPrefix(logoUrl, "/") {
+				logoUrl = "/" + logoUrl
+			}
+			setting.Setting.LogoUrl = config.GetProtocol(c) + "://" + config.GetDomain(c) + logoUrl
+		}
 	}
 
 	response := SubscriptionSettingsResponse{

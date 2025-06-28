@@ -16,7 +16,7 @@ const form = ref([
   {
     id: 2,
     type: 'textarea',
-    label: window.$t('prompt'),
+    label: window.$t('prompt.title'),
     placeholder: window.$t('prompt_placeholder'),
     maxlength: 200,
     showWordLimit: true,

@@ -46,6 +46,7 @@ const fetchTemplateStyleData = async () => {
 		loading.value = false
 	})
 	form.style_type = data.style_type || TEMPLATE_STYLE_TYPE_WEBSITE
+	if (![TEMPLATE_STYLE_TYPE_WEBSITE, TEMPLATE_STYLE_TYPE_SOFTWARE].includes(form.style_type)) form.style_type = TEMPLATE_STYLE_TYPE_WEBSITE
 	form.theme_color = data.theme_color || '#3664EF'
 	form.text_color = data.text_color || '#333333'
 	form.nav_bg_color = data.nav_bg_color || '#ffffff'
@@ -98,7 +99,7 @@ onMounted(() => {
 					<ul class="flex flex-wrap gap-4">
 						<li v-for="value in [TEMPLATE_STYLE_TYPE_WEBSITE, TEMPLATE_STYLE_TYPE_SOFTWARE]" :key="value"
 							class="w-[172px] p-1.5 bg-[#F5F5F5] flex flex-col cursor-pointer items-center gap-2 border rounded box-border overflow-hidden text-sm hover:border-[#3664EF] hover:text-[#3664EF]"
-							:class="[form.style_type === value ? 'border-[#3664EF] text-[#3664EF]' : 'text-[#4F5052] opacity-60 pointer-events-none']"
+							:class="[form.style_type === value ? 'border-[#3664EF] text-[#3664EF]' : 'text-[#4F5052]']"
 							@click.stop="form.style_type = value">
 							<div class="text-sm p-1.5">{{ $t(TEMPLATE_STYLE_TYPE_LABEL_MAP.get(value)) }}</div>
 							<ElImage class="w-full" :src="$getRealPath({ url: TEMPLATE_STYLE_TYPE_DEMO_MAP.get(value) })"

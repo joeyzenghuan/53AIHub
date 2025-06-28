@@ -1,4 +1,5 @@
 import path from 'path'
+import fs from 'fs'
 import type { PluginOption } from 'vite'
 import { defineConfig, loadEnv } from 'vite'
 import vue from '@vitejs/plugin-vue'
@@ -15,9 +16,34 @@ import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
 
 // import { visualizer } from 'rollup-plugin-visualizer'
 
+// 读取 package.json 获取版本号
+const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf-8'))
+const version = packageJson.version
+
+// 创建生成 version.txt 的插件
+const versionPlugin = () => {
+  return {
+    name: 'version-txt',
+    writeBundle: {
+      sequential: true,
+      order: 'post',
+      handler: async (options: any) => {
+        const outDir = options.dir || 'dist'
+        fs.writeFileSync(path.join(outDir, 'version.txt'), version)
+      },
+    },
+  }
+}
+
 function setupPlugins(env: ImportMetaEnv): PluginOption[] {
   return [
-    vue({}),
+    vue({
+      template: {
+        compilerOptions: {
+          isCustomElement: tag => tag.startsWith('ww-open-data') || tag.startsWith('dt-open-data'),
+        },
+      },
+    }),
     env.VITE_GLOB_APP_PWA === 'true' && VitePWA({
       injectRegister: 'auto',
       manifest: {
@@ -45,6 +71,7 @@ function setupPlugins(env: ImportMetaEnv): PluginOption[] {
     }),
     wasm(),
     topLevelAwait(),
+    versionPlugin(),
   ]
 }
 
@@ -62,7 +89,7 @@ export default defineConfig((env) => {
     plugins: setupPlugins(viteEnv),
     server: {
       host: '0.0.0.0',
-      port: 81,
+      port: 80,
       open: false,
       proxy: {
         '/api': {
@@ -71,9 +98,10 @@ export default defineConfig((env) => {
           rewrite: path => path.replace('/api/', '/'),
         },
       },
+      allowedHosts: ['hubtest.53ai.com'],
     },
     build: {
-      outDir: vitePlatform === 'web' ? 'dist' : `${vitePlatform}-dist`,
+      outDir: vitePlatform === 'web' ? 'dist' : `../../api/static/dist`,
       reportCompressedSize: false,
       sourcemap: false,
       commonjsOptions: {

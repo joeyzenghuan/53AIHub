@@ -3,12 +3,23 @@
 import { defineStore } from 'pinia'
 import enterpriseApi from '@/api/modules/enterprise'
 
-const DEFAULT_LOGO = window.$getPublicPath('/images/default_logo.png')
+const getDefaultLogo = () => window.$getPublicPath('/images/default_logo.png')
 
 export const useEnterpriseStore = defineStore('enterprise-store', {
   state: (): Enterprise.State => ({
-    logo: DEFAULT_LOGO,
-    ico: DEFAULT_LOGO,
+    id: 0,
+    type: '',
+    banner: '',
+    timezone: '',
+    domain: '',
+    slogan: '',
+    status: 0,
+    template_type: '',
+    layout_type: '',
+    created_time: 0,
+    updated_time: 0,
+    logo: getDefaultLogo(),
+    ico: getDefaultLogo(),
     display_name: '',
     language: 'zh-cn',
     copyright: '',
@@ -19,6 +30,10 @@ export const useEnterpriseStore = defineStore('enterprise-store', {
       interval: ''
     },
     template_style_info: {},
+    is_independent: false,
+    is_enterprise: false,
+    is_industry: false,
+    is_install_wecom: false,
   }),
   actions: {
     initTemplateStyle() {
@@ -75,7 +90,7 @@ export const useEnterpriseStore = defineStore('enterprise-store', {
       document.title = title
       const link = document.querySelector('link[rel="icon"]') || document.createElement('link')
       link.rel = 'icon'
-      link.href = iconUrl || DEFAULT_LOGO
+      link.href = iconUrl || getDefaultLogo()
       if (!document.querySelector('link[rel="icon"]')) {
         document.head.appendChild(link)
       }
@@ -96,7 +111,7 @@ export const useEnterpriseStore = defineStore('enterprise-store', {
       if (storedEnterprise) {
         try {
           const parsedEnterprise = JSON.parse(storedEnterprise)
-          this.logo = parsedEnterprise.logo || DEFAULT_LOGO
+          this.logo = parsedEnterprise.logo || getDefaultLogo()
           this.display_name = parsedEnterprise.display_name
           this.language = parsedEnterprise.language
 
@@ -111,13 +126,20 @@ export const useEnterpriseStore = defineStore('enterprise-store', {
     async loadInfo(): Promise<Enterprise.State> {
       try {
         const res = await enterpriseApi.current()
-        const { display_name, logo, language, copyright, ico, keywords, description, banner, template_type } = res.data.enterprise
+        const { display_name, logo, language, copyright, ico, keywords, description, banner, template_type, type, wecom_install_info } = res.data.enterprise
 
-        this.logo = logo || DEFAULT_LOGO
-        this.ico = ico || this.logo || DEFAULT_LOGO
+        this.logo = logo || getDefaultLogo()
+        this.ico = ico || this.logo || getDefaultLogo()
         this.display_name = display_name
         this.copyright = copyright
         this.description = description || ''
+        this.is_independent = type === 'independent'
+        this.is_enterprise = type === 'enterprise'
+        this.is_industry = type === 'industry'
+        this.is_install_wecom = wecom_install_info?.install_wecom_app || false
+        // 兼容都为false的情况
+        if (!this.is_independent && !this.is_enterprise && !this.is_industry) this.is_independent = true
+
         try {
           this.keywords = JSON.parse(keywords || '[]')
         } catch (error) {
@@ -139,6 +161,10 @@ export const useEnterpriseStore = defineStore('enterprise-store', {
           // console.error(error)
           this.template_style_info = {}
         }
+        if (!['website', 'software'].includes(this.template_style_info.style_type)) this.template_style_info.style_type = 'website'
+        const isMobile = window.innerWidth < 768
+        // 移动端默认软件风格
+        if (isMobile) this.template_style_info.style_type = 'software'
 
         this.setAppLanguage(language)
         this.setDocumentTitleAndIcon(display_name, this.ico)

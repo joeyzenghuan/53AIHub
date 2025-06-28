@@ -1,5 +1,7 @@
 package model
 
+import "errors"
+
 // Payment type constants
 const (
 	PayTypeWechat = 1 // WeChat Pay
@@ -88,4 +90,17 @@ func GetPaySettingByType(eid int64, payType int) (*PaySetting, error) {
 		return nil, err
 	}
 	return &paySetting, nil
+}
+
+func GetPayTypeText(payType int) (string, error) {
+	switch payType {
+	case PayTypeWechat:
+		return "微信支付", nil
+	case PayTypeManual:
+		return "手动转账", nil
+	case PayTypePaypal:
+		return "PayPal", nil
+	default:
+		return "", errors.New("unsupported payment type")
+	}
 }

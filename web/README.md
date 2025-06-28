@@ -15,3 +15,44 @@
 ├── front     # 站点前台源代码目录
 └── console   # 管理后台源代码目录
 ```
+
+## 运行项目
+
+### 本地版
+先构建前端项目的前台和管理后台，再构建后端接口打包出可执行程序
+
+进入目录
+```bash
+cd web/front
+```
+安装依赖
+```bash
+npm install
+```
+
+构建前台
+```bash
+npm run build
+```
+退出目录进入console目录
+```bash
+cd ../console
+```
+安装依赖
+```bash
+npm install
+```
+构建管理后台
+```bash
+npm run build
+```
+这样前端就构建完了，可以去看api目录的后端构建了（以下以打包windows为例）
+```bash
+cd ../../api
+```
+构建打包
+```bash
+make build-windows-cgo
+```
+在`api/bin`目录下已经生成了可执行exe，双击运行即可
+

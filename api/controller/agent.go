@@ -279,20 +279,81 @@ func UpdateAgent(c *gin.Context) {
 	}
 
 	// Delete existing permissions
-	if err := tx.Where("resource_id = ? AND resource_type = ?", agent_id, model.ResourceTypeAgent).Delete(&model.ResourcePermission{}).Error; err != nil {
+	if err = tx.Where("resource_id = ? AND resource_type = ?", agent_id, model.ResourceTypeAgent).Delete(&model.ResourcePermission{}).Error; err != nil {
 		tx.Rollback()
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(nil))
 		return
 	}
 
-	allGroupIds := make([]int64, 0)
-
-	if len(agentReq.SubscriptionGroupIds) > 0 {
-		allGroupIds = append(allGroupIds, agentReq.SubscriptionGroupIds...)
+	// Get enterprise information
+	enterprise, err := model.GetEnterpriseByID(eid)
+	if err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
 	}
 
-	if len(agentReq.UserGroupIds) > 0 {
-		allGroupIds = append(allGroupIds, agentReq.UserGroupIds...)
+	// Determine group IDs based on enterprise type
+	var allGroupIds []int64
+	groupIDSet := make(map[int64]bool)
+
+	switch enterprise.Type {
+	case model.EnterpriseTypeIndustry:
+		// Take all group IDs
+		if len(agentReq.SubscriptionGroupIds) > 0 {
+			for _, id := range agentReq.SubscriptionGroupIds {
+				groupIDSet[id] = true
+			}
+		}
+		if len(agentReq.UserGroupIds) > 0 {
+			for _, id := range agentReq.UserGroupIds {
+				groupIDSet[id] = true
+			}
+		}
+	case model.EnterpriseTypeIndependent:
+		// Take only SubscriptionGroupIds
+		if len(agentReq.SubscriptionGroupIds) > 0 {
+			for _, id := range agentReq.SubscriptionGroupIds {
+				groupIDSet[id] = true
+			}
+		}
+	case model.EnterpriseTypeEnterprise:
+		// Take only UserGroupIds
+		if len(agentReq.UserGroupIds) > 0 {
+			for _, id := range agentReq.UserGroupIds {
+				groupIDSet[id] = true
+			}
+		}
+	}
+
+	// Convert to slice
+	allGroupIds = make([]int64, 0, len(groupIDSet))
+	for id := range groupIDSet {
+		allGroupIds = append(allGroupIds, id)
+	}
+
+	// Filter groups if not industry type
+	if enterprise.Type != model.EnterpriseTypeIndustry && len(allGroupIds) > 0 {
+		// Get all groups
+		var groups []model.Group
+		if err := tx.Where("group_id IN (?)", allGroupIds).Find(&groups).Error; err != nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+			return
+		}
+
+		// Filter groups
+		filteredGroupIds := make([]int64, 0, len(groups))
+		for _, group := range groups {
+			// Filter logic based on enterprise type
+			if (enterprise.Type == model.EnterpriseTypeIndependent && group.GroupType != model.USER_GROUP_TYPE) ||
+				(enterprise.Type == model.EnterpriseTypeEnterprise && group.GroupType != model.INTERNAL_USER_GROUP_TYPE) {
+				continue
+			}
+			filteredGroupIds = append(filteredGroupIds, group.GroupId)
+		}
+
+		allGroupIds = filteredGroupIds
 	}
 
 	// Add new permissions

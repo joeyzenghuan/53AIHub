@@ -14,13 +14,13 @@ const { locale } = useI18n()
 // const router = useRouter()
 const enterprise_store = useEnterpriseStore()
 const user_store = useUserStore()
-enterprise_store.loadSelfInfo()
-user_store.loadSelfInfo()
 
 eventBus.on('user-login-expired', async () => {
   await user_store.logoff()
-	gotoLogin()
+  gotoLogin()
 })
+enterprise_store.loadSelfInfo()
+user_store.loadSelfInfo()
 </script>
 
 <template>
@@ -31,5 +31,8 @@ eventBus.on('user-login-expired', async () => {
 </template>
 
 <style>
-
+/* 临时添加，后续hub-ui-x 要支持 */
+.markdown-body img {
+	display: inline;
+}
 </style>

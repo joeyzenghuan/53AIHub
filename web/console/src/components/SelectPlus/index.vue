@@ -1,40 +1,56 @@
 <script lang="ts" setup>
-import { computed, getCurrentInstance, nextTick, onMounted } from 'vue'
+import { computed, getCurrentInstance, nextTick } from 'vue'
+import type { ComponentInternalInstance } from 'vue'
 import { ElIcon } from 'element-plus'
+
+interface OptionItem {
+  value: string
+  label: string
+  icon?: string
+}
+
+interface GroupOptionItem extends OptionItem {
+  options?: OptionItem[]
+}
 
 const props = withDefaults(defineProps<{
   iconType?: 'image' | 'svg' | 'icon'
-  options?: {
-    value: string
-    label: string
-    icon?: string
-    options?: {
-      value: string
-      label: string
-      icon?: string
-    }[]
-  }[]
+  options?: GroupOptionItem[]
   filterable?: boolean
   size?: 'large' | 'default' | 'small'
+  useI18n?: boolean
 }>(), {
   iconType: 'image',
   options: () => [],
   filterable: true,
   size: 'large',
+  useI18n: true,
 })
 
 const emits = defineEmits<{
-  (e: 'change', result: { value: string; option: any }): void
+  (e: 'change', result: { value: string; option: GroupOptionItem | OptionItem }): void
 }>()
 
-const { proxy: _this } = getCurrentInstance()
+const instance = getCurrentInstance()
+if (!instance)
+  throw new Error('SelectPlus must be used within setup')
 
-const selected_option = computed(() => {
-  const value = _this.$attrs.modelValue
-  let option = {}
-  props.options.forEach((item = {}) => {
+const { proxy } = instance as ComponentInternalInstance & { proxy: { $attrs: any; $t: (key: string) => string } }
+
+// 处理标签文本
+const getLabel = (label: string) => {
+  if (!props.useI18n)
+    return label
+  return proxy.$t(label)
+}
+
+const selected_option = computed<GroupOptionItem | OptionItem>(() => {
+  const value = proxy.$attrs.modelValue
+  let option: GroupOptionItem | OptionItem = { value: '', label: '' }
+
+  props.options.forEach((item) => {
     if (item.options) {
-      item.options.forEach((row = {}) => {
+      item.options.forEach((row) => {
         if (row.value === value)
           option = row
       })
@@ -47,12 +63,11 @@ const selected_option = computed(() => {
   return option
 })
 
-const onChange = (value) => {
+const onChange = (value: string) => {
   nextTick(() => {
     emits('change', { value, option: selected_option.value })
   })
 }
-
 </script>
 
 <template>
@@ -73,11 +88,11 @@ const onChange = (value) => {
 
     <slot>
       <template v-for="item in options" :key="item.value">
-        <ElOptionGroup v-if="item.options" :label="$t(item.label)">
+        <ElOptionGroup v-if="item.options" :label="getLabel(item.label)">
           <ElOption
             v-for="row in item.options"
             :key="row.value"
-            :label="$t(row.label)"
+            :label="getLabel(row.label)"
             :value="row.value"
           >
             <div class="flex items-center gap-2">
@@ -87,19 +102,19 @@ const onChange = (value) => {
                   <component :is="row.icon" />
                 </ElIcon>
               </div>
-              <span class="flex-1 truncate">{{ $t(row.label) }}</span>
+              <span class="flex-1 truncate">{{ getLabel(row.label) }}</span>
               <slot name="item_after" :data="row" />
             </div>
           </ElOption>
         </ElOptionGroup>
-        <ElOption v-else :label="$t(item.label)" :value="item.value">
+        <ElOption v-else :label="getLabel(item.label)" :value="item.value">
           <div class="size-6 inline-block mr-2">
             <img v-if="iconType === 'image'" :src="item.icon" class="h-full inline-block object-cover">
             <ElIcon v-else-if="iconType === 'icon'" class="size-6 text-lg">
               <component :is="item.icon" />
             </ElIcon>
           </div>
-          <span>{{ $t(item.label) }}</span>
+          <span>{{ getLabel(item.label) }}</span>
         </ElOption>
       </template>
     </slot>
@@ -122,5 +137,10 @@ const onChange = (value) => {
 /* 清除按钮调整 */
 :deep(.el-icon-circle-close) {
   right: 25px;  /* 避免与原生清除按钮重叠 */
+}
+
+.el-select :deep(.el-input__prefix) {
+  display: flex;
+  align-items: center;
 }
 </style>

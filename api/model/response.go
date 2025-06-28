@@ -87,6 +87,7 @@ const (
 	InvalidMobileOrEmail    = "invalid mobile number or email format"
 	InvalidMobileFormat = "invalid mobile number format"
 	PasswordNotMatch = "password not match"
+	OrderNotFound = "order not found"
 )
 
 func (c ResponseCode) Message() string {

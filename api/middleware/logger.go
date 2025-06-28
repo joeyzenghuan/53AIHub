@@ -4,11 +4,20 @@ import (
 	"fmt"
 	"time"
 
+	"github.com/53AI/53AIHub/common/session"
 	"github.com/gin-gonic/gin"
 )
 
 func Logger() gin.HandlerFunc {
 	return func(c *gin.Context) {
+		// 保存请求协议和域名
+		if c.Request.URL.Scheme != "" {
+			c.Set(session.SESSION_REQUEST_PROTOCOL, c.Request.URL.Scheme)
+		} else {
+			c.Set(session.SESSION_REQUEST_PROTOCOL, "http")
+		}
+		c.Set(session.SESSION_REQUEST_DOMAIN, c.Request.Host)
+
 		// 记录请求开始时间
 		start := time.Now()
 

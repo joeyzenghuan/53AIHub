@@ -59,7 +59,7 @@ defineExpose({
 
 <template>
   <el-drawer v-model="visible" :title="$t('chat.history')" size="300px">
-    <el-button class="w-full border-none -mt-8" type="primary" size="large" plain @click="handleCreate">
+    <el-button class="w-full border-none -mt-4" type="primary" size="large" plain @click="handleCreate">
       + {{ $t('chat.new_conversation') }}
     </el-button>
     <div class="flex flex-col gap-2 mt-4">

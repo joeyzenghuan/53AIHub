@@ -10,6 +10,7 @@ export default {
     find: '发现',
     library: '知识库',
     crop_space: '企业空间',
+    prompt: '提示词',
   },
 
   // 浏览器相关
@@ -76,8 +77,16 @@ export default {
     confirm_delete: '确定删除该项？',
     copied: '已复制',
     image_cropper: '图片裁剪',
-    back_home: '返回首页',
+    back: '返回',
     go_admin: '去后台',
+    related_prompt: "相关提示词",
+    related_agent: "相关智能体",
+
+    view_more: '查看更多',
+
+    expand_more: '展开更多',
+    collapse_more: '收起更多',
+    or: '或',
   },
 
   // 状态提示
@@ -90,13 +99,23 @@ export default {
     sent: '已发送',
     login_success: '已登录',
     logout_success: '已退出登录',
-    not_found_account: '未找到账号，验证后直接登录',
+    not_found_account: '未找到账号,请先注册后再登录',
+    existing_account: '已有帐号',
+    approve_success: '已点赞',
+    approve_cancel: '已取消',
+    register_success: '注册成功',
+    update_success: '更改成功',
   },
 
   // 操作按钮
   action: {
     login: '登录',
+    login_directly: '直接登录',
     logout: '退出登录',
+    register: '注册',
+    user_register: '用户注册',
+    forget_password: '忘记密码？',
+    update_password: '更新密码',
     search: '搜索',
     setting: '设置',
     confirm: '确认',
@@ -164,27 +183,37 @@ export default {
     account_alias: '手机',
     password: '密码',
     email: '邮箱',
+    new_email: '新邮箱',
     mobile: '手机号',
+    new_mobile: '新手机号',
     verify_code: '验证码',
     get_verify_code: '获取验证码',
+    verify_old_mobile: '验证你的旧手机号码',
+    reset_password: '重置密码',
+    reset_password_method: '选择重置密码的方式',
     new_password: '新密码',
     new_password_placeholder: '请输入新密码',
-    new_password_confirm: '确认新密码',
+    new_password_confirm: '重复新密码',
     new_password_confirm_placeholder: '请再次输入新密码',
     email_format: '请输入正确的邮箱',
     mobile_format: '请输入正确手机号',
+    account_format: '请输入正确的手机或邮箱',
     verify_code_format: '请输入正确的验证码',
     username_length: '账号长度必须在 5-20 个字符之间',
     password_length: '密码长度必须在 8-20 个字符之间',
     password_format: '密码必须包含大小写字母和数字',
     password_not_match: '两次输入的密码不一致',
     change: '修改',
+    existing_mobile: '该手机号已注册，请使用该账号登录。',
+    existing_email: '该邮箱已注册，请使用该账号登录。'
   },
 
   // 首页相关
   index: {
     agent_recommend: '精选智能体',
     agent_recommend_desc: '打造您的第二生产力引擎',
+    prompt_recommend: '精选提示词',
+    prompt_recommend_desc: '掌握用大模型解决问题的方法',
     toolbox_recommend: '精选AI工具',
     toolbox_recommend_desc: '用好 AI 工具才能始终领先一步',
     use_history: '{count}人聊过',
@@ -199,10 +228,30 @@ export default {
     agree: '登录即视您同意',
     terms_of_service: '条款和条件',
     privacy_policy: '隐私政策',
-    password_login: '密码登录',
-    unregistered_account_desc: '未注册的账号验证后自动登录',
-
+    password_login: '账号密码',
+    password_login_title: '密码登录',
+    message_login: '短信登录',
+    message_login_title: '短信登录',
+    wechat_login: '微信登录',
+    wechat_login_title: '微信登录',
+    wecom_login: '企业微信',
+    wecom_login_title: '企业微信登录',
+    unregistered_account_desc: '未注册的账号，请先注册后再登录',
+    unregistered_account_confirm: '未注册手机号验证后自动登录，',
     quit: '退出',
+    login_by_wechat: '使用微信登录',
+    login_by_password: '使用密码登录',
+    login_by_mobile: '使用手机登录',
+    bind_mobile: '绑定手机号',
+    other_login_way: '其他登录方式',
+  },
+
+  //注册相关
+  register: {
+    agree: '注册即视您同意',
+    unregistered: '未注册',
+    terms_of_service: '条款和条件',
+    privacy_policy: '隐私政策',
   },
 
   // 聊天相关
@@ -210,7 +259,7 @@ export default {
     search_placholder: '搜索智能体',
     collapse_side_bar: '收起侧边栏',
     expand_side_bar: '展开侧边栏',
-    history: '历史对话',
+    history: '历史会话',
     new_conversation: '新对话',
     edit_conversation: '编辑对话名称',
 
@@ -261,6 +310,19 @@ export default {
     docs_dingtalk_import: '从飞书文档导入',
   },
 
+  agent: {
+    no_data: '管理员还未发布智能体',
+  },
+
+  prompt: {
+    default_sort: '默认排序',
+    likes_sort: '按最多点赞排序',
+    views_sort: '按最多浏览排序',
+    content: '提示词内容',
+
+    auth_tip: '你所在的分组无权限'
+  },
+
   toolbox: {
     name: 'AI聚合问答',
     title: '准备好了吗？开始体验AI聚合问答啦！',
@@ -296,18 +358,28 @@ export default {
     info: '个人信息',
     profile: '个人资料',
     change_password: '修改密码',
+    login_password: '登录密码',
     // 已绑定的账户
-    bind_accounts: '已绑定的账户',
+    bind_accounts: '账户信息',
     unbind_account: '未绑定',
     bind_mobile: '手机号',
     bind_email: '电子邮箱',
     bind_google: '谷歌账号',
     bind_wechat: '微信OpenId',
     bind: '绑定',
+    bind_success: '已绑定',
     unbind: '解绑',
+    unbind_success: '已解绑',
+    change: '更换',
+    change_success: '已更换',
     logined_devices: '已登录的设备',
     used_devices: '曾用设备',
     current_device: '当前设备',
+    unbind_wechat_confirm_desc: '解绑后将无法使用该微信账号登录此账号，请谨慎操作！',
+    unbind_wechat_confirm_title: '解绑微信账号绑定',
+    unbind_wechat_confirm_cancel: '暂不解绑',
+    unbind_wechat_confirm_ok: '确认解绑',
+    bind_wechat_title: '微信扫码完成绑定',
   },
   "response_status": {
     "400": '请求参数错误',
@@ -339,7 +411,10 @@ export default {
     "user_not_found": "用户不存在",
     "username_or_password_is_incorrect": "用户名或密码错误",
     "username_already_exists": "用户名已存在",
+    "mobile_already_bind": "手机号已被其他用户绑定",
+    "email_already_bind": "邮箱已被其他用户绑定",
     "model_changed": "管理员已修改模型，请新建对话",
+    "wechat_already_bind": "微信号已被其他用户绑定",
   },
   "subscription": {
     "free": "免费版",
@@ -363,6 +438,16 @@ export default {
     "pay_amount": "支付金额",
     "pay_by_wechat": "使用 微信扫码 支付",
     "pay_policy": "支付即视为你同意相关 {policy}",
-    "pay_success": "支付成功"
+    "pay_success": "支付成功",
+    "pay_confirm": "确认支付完成，请点击",
+    "payed": "已支付",
+    "manual_pay_success_title": "订单已生成",
+    "manual_pay_success_desc": "请等待或联系管理员确认支付信息",
+  },
+  "authority": {
+    "group_not_permission": "您所在的分组无权限",
+    "payment_not_setting": "站点未配置收费方式，请直接联系管理员",
+    "agent_not_permission": "无权限使用此智能体，请联系管理员",
+    "use_range": "使用范围"
   }
 }

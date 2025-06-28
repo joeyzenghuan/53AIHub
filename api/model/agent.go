@@ -104,7 +104,8 @@ func GetAvailableAgentList(eid int64, offset int, limit int) (count int64, agent
 
 func (a *Agent) GetUserGroupIds() ([]int64, error) {
 	var permissions []ResourcePermission
-	var groupIds []int64
+	groupIds := make([]int64, 0)
+	seen := make(map[int64]bool)
 
 	err := DB.Where("resource_id = ? AND resource_type = ?", a.AgentID, ResourceTypeAgent).Find(&permissions).Error
 	if err != nil {
@@ -112,7 +113,10 @@ func (a *Agent) GetUserGroupIds() ([]int64, error) {
 	}
 
 	for _, p := range permissions {
-		groupIds = append(groupIds, p.GroupID)
+		if !seen[p.GroupID] {
+			seen[p.GroupID] = true
+			groupIds = append(groupIds, p.GroupID)
+		}
 	}
 
 	return groupIds, nil

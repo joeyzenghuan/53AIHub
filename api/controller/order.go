@@ -103,7 +103,7 @@ func GetOrder(c *gin.Context) {
 	// Get order
 	order, err := model.GetOrderByID(eid, id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, model.NotFound.ToResponse("Order not found"))
+		c.JSON(http.StatusNotFound, model.NotFound.ToNewErrorResponse(model.OrderNotFound))
 		return
 	}
 
@@ -161,13 +161,13 @@ func UpdateOrderStatus(c *gin.Context) {
 	// Get order
 	order, err := model.GetOrderByID(eid, id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, model.NotFound.ToResponse("Order not found"))
+		c.JSON(http.StatusNotFound, model.NotFound.ToNewErrorResponse(model.OrderNotFound))
 		return
 	}
 
 	// Check payment type, only manual payment orders can be updated through this interface
-	if order.PayType != model.PayTypeManual {
-		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Only manual payment orders can be updated through this interface"))
+	if order.PayType != 2 {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToNewErrorResponse("Only manual payment orders can be updated through this interface"))
 		return
 	}
 
@@ -178,7 +178,7 @@ func UpdateOrderStatus(c *gin.Context) {
 	}
 
 	if order.Status != model.OrderStatusConfirming {
-		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Only orders in confirming status can be updated"))
+		c.JSON(http.StatusBadRequest, model.ParamError.ToNewErrorResponse("Only orders in confirming status can be updated"))
 		return
 	}
 
@@ -226,13 +226,13 @@ func DeleteOrder(c *gin.Context) {
 	// Get order
 	order, err := model.GetOrderByID(eid, id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, model.NotFound.ToResponse("Order not found"))
+		c.JSON(http.StatusNotFound, model.NotFound.ToNewErrorResponse(model.OrderNotFound))
 		return
 	}
 
 	// Check payment type, only manual payment orders can be deleted through this interface
-	if order.PayType != model.PayTypeManual {
-		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Only manual payment orders can be deleted through this interface"))
+	if order.PayType != 2 {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToNewErrorResponse("Only manual payment orders can be deleted through this interface"))
 		return
 	}
 
@@ -267,19 +267,131 @@ func ConfirmManualPayment(c *gin.Context) {
 	// Get order
 	order, err := model.GetOrderByID(eid, id)
 	if err != nil {
-		c.JSON(http.StatusNotFound, model.NotFound.ToResponse("Order not found"))
+		c.JSON(http.StatusNotFound, model.NotFound.ToNewErrorResponse(model.OrderNotFound))
 		return
 	}
 
 	// Check if order is manual payment and in confirming status
-	if order.PayType != model.PayTypeManual || order.Status != model.OrderStatusConfirming {
-		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Only manual payments in confirming status can be confirmed"))
+	if order.PayType != 2 || order.Status != model.OrderStatusConfirming {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToNewErrorResponse("Only manual payments in confirming status can be confirmed"))
 		return
 	}
 
-	// Update status
+	// Start database transaction
+	tx := model.DB.Begin()
+	if tx.Error != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(tx.Error))
+		return
+	}
+	defer func() {
+		if r := recover(); r != nil {
+			tx.Rollback()
+		}
+	}()
+
+	// Update order status within transaction
 	order.Status = model.OrderStatusPaid
 	order.PayTime = time.Now().UTC().UnixMilli()
+	if err = tx.Model(&order).Updates(order).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	// Get user and update subscription group
+	var user model.User
+	if err = tx.Where("user_id = ?", order.UserID).First(&user).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	// Calculate new expiration time
+	newExpiredTime, err := order.CalculateNewExpiredTime(&user)
+	if err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	// Update user group and expiration time
+	if err := tx.Model(&user).Updates(map[string]interface{}{
+		"group_id":     order.ServiceID,
+		"expired_time": newExpiredTime,
+	}).Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	// Commit transaction
+	if err := tx.Commit().Error; err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(order))
+}
+
+// UpdateManualTransferOrderRequest represents the request for updating manual transfer order
+type UpdateManualTransferOrderRequest struct {
+	Amount           int64  `json:"amount" binding:"required"`
+	Currency         string `json:"currency" binding:"required,oneof=CNY USD"`
+	Duration         int    `json:"duration" binding:"required,min=1"`
+	UserID           int64  `json:"user_id" binding:"required" example:"1"`
+	Nickname         string `json:"nickname" binding:"required"`
+	SubscriptionID   int64  `json:"subscription_id" binding:"required"`
+	SubscriptionName string `json:"subscription_name" binding:"required"`
+	TimeUnit         string `json:"time_unit" binding:"required,oneof=day week month quarter year"`
+}
+
+// UpdateManualTransferOrder updates a manual transfer order
+// @Summary Update manual transfer order
+// @Description Update details of a manual transfer order
+// @Tags Order
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "Order ID"
+// @Param data body UpdateManualTransferOrderRequest true "Order details"
+// @Success 200 {object} model.CommonResponse{data=model.Order}
+// @Router /api/orders/{id}/manual [put]
+func UpdateManualTransferOrder(c *gin.Context) {
+	id, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Invalid ID"))
+		return
+	}
+
+	eid := config.GetEID(c)
+
+	var req UpdateManualTransferOrderRequest
+	if err = c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	order, err := model.GetOrderByID(eid, id)
+	if err != nil {
+		c.JSON(http.StatusNotFound, model.NotFound.ToNewErrorResponse(model.OrderNotFound))
+		return
+	}
+
+	if order.PayType != 2 {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToNewErrorResponse("Only manual payment orders can be updated"))
+		return
+	}
+
+	// Update order fields
+	order.Amount = req.Amount
+	order.Currency = req.Currency
+	order.Duration = req.Duration
+	order.UserID = req.UserID
+	order.Nickname = req.Nickname
+	order.ServiceID = req.SubscriptionID
+	order.SubscriptionName = req.SubscriptionName
+	order.TimeUnit = req.TimeUnit
 
 	if err := order.Update(); err != nil {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))

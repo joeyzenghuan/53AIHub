@@ -12,6 +12,9 @@ module.exports = {
       ...colors,
     },
     extend: {
+      height: {
+        15: '60px',
+      },
       animation: {
         blink: 'blink 1.2s infinite steps(1, start)',
       },

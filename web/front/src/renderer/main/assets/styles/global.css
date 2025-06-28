@@ -24,23 +24,7 @@ body {
   background-color: rgba(0, 0, 0, 0.25);
 }
 
-.cursor-blink {
-  animation: cursor-blink 0.8s infinite;
-  border-right: 1px solid #333;
-  margin-left: 4px;
-}
-
-@keyframes cursor-blink {
-  0%,
-  100% {
-    border-color: transparent;
-  }
-
-  50% {
-    border-color: #333;
-  }
-}
-
+/* el-tabs 样式 */
 .index-tabs .el-tabs__header {
   margin-bottom: 0;
 }

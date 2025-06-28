@@ -5,8 +5,29 @@ const userApi = {
   login(data: { username: string, password: string }) {
     return service.post('/api/login', data).catch(handleError)
   },
+  sms_login(data: { mobile: string, verify_code: string }) {
+    return service.post('/api/sms_login', data).catch(handleError)
+  },
+  wechat_login(params: { openid: string }) {
+    // return service.get('/api/saas/wechat/user', { params }).catch(handleError)
+    return service.get('/api/saas/wechat/user', { params })
+  },
+  bind_wechat(data: { mobile?: string, verify_code?: string, openid: string, unionid?: string, nickname?: string }) {
+    let api_url = '/api/saas/wechat/bind'
+    if (data.mobile) api_url ='/api/saas/wechat/user'
+    return service.post(api_url, data).catch(handleError)
+  },
+  unbind_wechat() {
+    return service.post('/api/saas/wechat/unbind').catch(handleError)
+  },
   register(data: { username: string; password: string; nickname: string; verfiy_code?: string }) {
     return service.post('/api/register', data).catch(handleError)
+  },
+  reset_password(data: User.ResetPasswordForm) {
+    return service.post('/api/reset_password', data).catch(handleError)
+  },
+  change_mobile(data: User.ChangeMobileForm, id: string) {
+    return service.patch(`/api/users/${id}/mobile`, data).catch(handleError)
   },
   me() {
     return service.get('/api/users/me').catch(handleError)
@@ -21,7 +42,7 @@ const userApi = {
     return service.post(`/api/check_account`, {
       account,
     }).catch(handleError)
-  }
+  },
 }
 
 export default userApi

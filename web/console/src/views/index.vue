@@ -139,7 +139,17 @@ onMounted(async () => {
           </div>
           <el-progress :percentage="100" :show-text="false" />
         </div>
-        <img class="w-[312px] h-[220px] mt-[74px]" :src="$getRealPath({ url: '/images/intro.png' })" alt="">
+        <div class="w-[312px] h-[220px] mt-[74px] flex flex-col items-center justify-center bg-[#F5F7FA] group">
+          <img class="w-10 h-8 mb-8 transition-all duration-300 ease-in-out group-hover:hidden" :src="$getRealPath({ url: '/images/index/wechat.png' })" alt="">
+          <img class="w-[120px] h-[120px] mb-2 transition-all duration-300 ease-in-out group-hover:block hidden" :src="$getRealPath({ url: '/images/index/qrcode.png' })" alt="">
+          <h6 class="text-xl text-[#1D1E1F] font-medium mb-2">
+            {{ $t('join_group') }}
+          </h6>
+          <p class="text-sm text-[#1D1E1F]">
+            {{ $t('join_group_desc') }}
+          </p>
+        </div>
+        <!-- <img class="w-[312px] h-[220px] mt-[74px]" :src="$getRealPath({ url: '/images/intro.png' })" alt=""> -->
       </div>
     </div>
     <div class="text-sm text-[#9A9A9A] text-center py-11">

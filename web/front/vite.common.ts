@@ -1,4 +1,4 @@
-import { resolve } from 'path'
+import path, { resolve } from 'path'
 import vue from '@vitejs/plugin-vue'
 import tailwindcss from 'tailwindcss'
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
@@ -6,6 +6,29 @@ import Components from 'unplugin-vue-components/vite'
 import AutoImport from 'unplugin-auto-import/vite'
 import IconResolver from 'unplugin-icons/resolver'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
+import wasm from 'vite-plugin-wasm'
+import fs from 'fs'
+
+// 读取 package.json 获取版本号
+const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf-8'))
+const version = packageJson.version
+
+
+// 创建生成 version.txt 的插件
+const versionPlugin = () => {
+  return {
+    name: 'version-txt',
+    writeBundle: {
+      sequential: true,
+      order: 'post',
+      handler: async (options: any) => {
+        const outDir = options.dir || 'dist'
+        fs.writeFileSync(path.join(outDir, 'version.txt'), version)
+      },
+    },
+  }
+}
+
 
 // 公共插件配置
 export const commonPlugins = [
@@ -39,7 +62,9 @@ export const commonPlugins = [
         prefix: 'Icon'
       })
     ]
-  })
+  }),
+  wasm(),
+  versionPlugin()
 ]
 
 // 公共服务器配置
@@ -67,6 +92,6 @@ export const commonBuild = {
   rollupOptions: {
     input: {
       main: resolve(__dirname, 'src/renderer/index.html'),
-    },
+    }
   }
 }

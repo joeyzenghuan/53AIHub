@@ -21,6 +21,8 @@ declare namespace Agent {
     ]
     "custom_config": string
     "custom_config_obj": any
+    "settings": string
+    "settings_obj": any
     conversation_count: number
   }
 }
