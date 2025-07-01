@@ -50,7 +50,7 @@ docker-compose up -d
 ### 使用 Go 源码编译启动
 
 1. 确保你本地有 Go 语言环境和构建工具，以及node和npm环境
-2. 先进入web目录构建前端的网页前台与管理后台
+2. 先进入web目录构建前端的网页前台与管理后台(**非常重要**)
 3. 再进入本目录，执行构建
 ```bash
 make build-windows-cgo
