@@ -10,17 +10,8 @@
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "vue-tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
-    "start": "electron-vite dev",
-    "dev:op-local": "cross-env VITE_PLATFORM=op-local vite",
-    "dev": "vite",
-    "build": "vite build",
-    "postinstall": "electron-builder install-app-deps",
-    "build:unpack": "npm run build && electron-builder --dir",
-    "build:pure": "vite build",
-    "build:op-local": "cross-env VITE_PLATFORM=op-local vite build",
-    "build:win": "electron-vite build && electron-builder --win",
-    "build:mac": "npm run build && electron-builder --mac",
-    "build:linux": "npm run build && electron-builder --linux"
+    "dev": "cross-env VITE_PLATFORM=op-local vite",
+    "build": "cross-env VITE_PLATFORM=op-local vite build"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.0",

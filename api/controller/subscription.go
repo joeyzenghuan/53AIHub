@@ -293,7 +293,7 @@ func GetSubscriptionList(c *gin.Context) {
 
 	for _, setting := range settings {
 		if !strings.Contains(setting.Setting.LogoUrl, "//img.ibos.cn") {
-			var logoUrl string
+			logoUrl := setting.Setting.LogoUrl
 			if strings.Contains(setting.Setting.LogoUrl, "://") {
 				logoUrl = strings.TrimPrefix(setting.Setting.LogoUrl, "http://")
 				logoUrl = strings.TrimPrefix(logoUrl, "https://")
