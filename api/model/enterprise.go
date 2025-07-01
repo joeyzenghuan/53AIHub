@@ -199,7 +199,7 @@ func InitializeSystem() error {
 		Language:     "zh-cn",
 		Description:  "Default enterprise created during system initialization",
 		LayoutType:   "1",
-		TemplateType: "1",
+		TemplateType: "",
 		Status:       EnterpriseStatusNormal,
 	}
 

@@ -19,7 +19,7 @@ export default defineConfig(({ command, mode }) => {
     css: commonCss,
     build: {
       ...commonBuild,
-      outDir: resolve('../../api/static/renderer')
+      outDir: resolve('../../api/static/front')
     },
     plugins: commonPlugins,
     define: {

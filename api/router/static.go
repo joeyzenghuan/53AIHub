@@ -86,18 +86,18 @@ func tryServeFile(c *gin.Context, fsys fs.FS, filePath string, logMsg string) bo
 
 // SetStaticRouter configures static file routes
 func SetStaticRouter(router *gin.Engine, buildFS embed.FS) error {
-	rendererSubFS, err := fs.Sub(buildFS, "static/renderer")
+	rendererSubFS, err := fs.Sub(buildFS, "static/front")
 	if err != nil {
 		return err
 	}
 
-	distSubFS, err := fs.Sub(buildFS, "static/dist")
+	distSubFS, err := fs.Sub(buildFS, "static/console")
 	if err != nil {
 		return err
 	}
 
-	router.StaticFS("/static/renderer", http.FS(rendererSubFS))
-	router.StaticFS("/static/dist", http.FS(distSubFS))
+	router.StaticFS("/static/front", http.FS(rendererSubFS))
+	router.StaticFS("/static/console", http.FS(distSubFS))
 
 	// Handle assets path requests
 	router.GET("/assets/*filepath", func(c *gin.Context) {

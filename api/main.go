@@ -15,7 +15,7 @@ import (
 	"github.com/songquanpeng/one-api/relay/adaptor/openai"
 )
 
-//go:embed static/renderer static/dist static/images static/libs
+//go:embed static/front static/console static/images static/libs
 var buildFS embed.FS
 
 func main() {
@@ -47,7 +47,7 @@ func main() {
 	}
 	var port = os.Getenv("PORT")
 	if port == "" {
-		port = "3000"
+		port = "80"
 	}
 	logger.SysLogf("\033[94m"+`
                     @                

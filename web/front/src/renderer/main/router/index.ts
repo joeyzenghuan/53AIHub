@@ -51,11 +51,6 @@ const routes: RouteRecordRaw[] = [
         }
       },
       {
-        path: '/toolbox',
-        name: 'Toolbox',
-        component: () => import('@/views/desktop/tools/index.vue'),
-      },
-      {
         path: '/prompt',
         name: 'Prompt',
         component: () => import('@/views/prompt/index.vue'),
@@ -108,11 +103,6 @@ const routes: RouteRecordRaw[] = [
         component: () => import('@/views/index/toolkit.vue'),
       },
     ]
-  },
-  {
-    path: '/desktop',
-    name: 'Desktop',
-    component: () => import('@/views/desktop/index.vue'),
   },
   {
     path: '/svglist',
