@@ -120,15 +120,14 @@
 
 ### 快速安装
 
-安装 53AI Hub 社区版最简单方法是运行我们的 [docker-compose.yml](docker/docker-compose.yaml) 文件。在运行安装命令之前，请确保您的机器上安装了 [Docker](https://docs.docker.com/get-docker/) 和 [Docker Compose](https://docs.docker.com/compose/install/)：
+安装 53AI Hub 社区版最简单方法是运行我们的 [docker-compose.yml](api/docker/docker-compose.yaml) 文件。在运行安装命令之前，请确保您的机器上安装了 [Docker](https://docs.docker.com/get-docker/) 和 [Docker Compose](https://docs.docker.com/compose/install/),并且需要先构建前端，前端的构建方法请查看web目录下的readme文件：
 
 ```bash
-cd docker
-cp .env.example .env
+cd api/docker
 docker compose up -d
 ```
 
-运行后，可以在浏览器上访问 [`http://localhost`](http://localhost) 进入 53AI Hub 管理后台并开始初始化安装操作。
+运行后，可以在浏览器上访问 [`http://localhost:3000`](http://localhost:3000) 进入 53AI Hub 并开始初始化配置操作，默认账号通常是`admin@53ai.com` 密码`admin888`。
 
 ### 自定义配置
 
