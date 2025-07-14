@@ -177,7 +177,10 @@ const handleAdd = () => {
 }
 const handleEdit = (data) => {
   userEditRef.value.open({
-    data,
+    data: {
+      ...data,
+      status: data.user_status,
+    },
     success: () => {
       fetchUserList()
     },
@@ -186,6 +189,9 @@ const handleEdit = (data) => {
 const handleUserDelete = async (data) => {
   await ElMessageBox.confirm(window.$t('module.operation_user_delete_confirm'))
   data.deleting = true
+
+  if (isSsoSync.value)
+  	await departmentApi.unbind_member({ user_id: data.user_id, from: Number(props.syncFrom) })
   await userApi.delete_user({ user_id: data.user_id }).finally(() => {
     data.deleting = false
   })
@@ -369,7 +375,7 @@ defineExpose({
                     <ElDropdownItem command="dialogue_record" @click="handleUnbind(row)">
                       {{ $t('sso.unbind_member') }}
                     </ElDropdownItem>
-                    <ElDropdownItem :disabled="Number(row.user_id) === Number(userStore.info.user_id)" @click="handleUserDelete">
+                    <ElDropdownItem :disabled="Number(row.user_id) === Number(userStore.info.user_id) || isSsoSync" @click="handleUserDelete(row)">
                       {{ $t('action_delete') }}
                     </ElDropdownItem>
                   </ElDropdownMenu>

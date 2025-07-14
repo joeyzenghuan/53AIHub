@@ -1,6 +1,7 @@
 package middleware
 
 import (
+	"errors"
 	"net/http"
 	"strings"
 
@@ -19,43 +20,54 @@ func UserTokenAuth(role int64) func(c *gin.Context) {
 			c.Abort()
 			return
 		}
-		user_id, eid, err := jwt.UserParseJWT(token)
+		user, err := HandleTokenAuth(token, role)
 		if err != nil {
-			if strings.Contains(err.Error(), "token is expired") {
+			switch err.Error() {
+			case "token is expired":
 				c.JSON(http.StatusUnauthorized, model.TokenExpiredError.ToResponse(nil))
-			} else if strings.Contains(err.Error(), "token has invalid claims") {
+			case "token has invalid claims", "forbidden access":
 				c.JSON(http.StatusUnauthorized, model.ForbiddenError.ToResponse(nil))
-			} else {
+			default:
 				c.JSON(http.StatusUnauthorized, model.UnauthorizedError.ToResponse(nil))
 			}
+
 			c.Abort()
 			return
 		}
 
-		user := model.ValidateAccessToken(token)
-		if user == nil || user.UserID != user_id {
-			c.JSON(http.StatusUnauthorized, model.TokenExpiredError.ToResponse(nil))
-			c.Abort()
-			return
-		}
-
-		if user.Status == model.UserStatusDisabled {
-			c.JSON(http.StatusOK, model.ForbiddenError.ToResponse(nil))
-			c.Abort()
-			return
-		}
-
-		if role > 0 && user.Role < role {
-			c.JSON(http.StatusUnauthorized, model.AuthFailed.ToResponse(nil))
-			c.Abort()
-			return
-		}
-
-		c.Set(session.SESSION_USER_ID, user_id)
+		c.Set(session.SESSION_USER_ID, user.UserID)
 		c.Set(session.SESSION_USER_NICKNAME, user.Nickname)
 		c.Set(session.SESSION_USER_ROLE, user.Role)
 		c.Set(session.SESSION_USER_GROUP_ID, user.GroupId)
-		c.Set(session.ENV_EID, eid)
+		c.Set(session.ENV_EID, user.Eid)
 		c.Set(session.SESSION_SAAS_USER, false)
 	}
+}
+
+func HandleTokenAuth(token string, role int64) (user *model.User, err error) {
+	user_id, _, err := jwt.UserParseJWT(token)
+	if err != nil {
+		if strings.Contains(err.Error(), "token is expired") {
+			return nil, errors.New("token is expired")
+		} else if strings.Contains(err.Error(), "token has invalid claims") {
+			return nil, errors.New("token has invalid claims")
+		} else {
+			return nil, errors.New("unauthorized access")
+		}
+	}
+
+	user = model.ValidateAccessToken(token)
+	if user == nil || user.UserID != user_id {
+		return nil, errors.New("not found")
+	}
+
+	if user.Status == model.UserStatusDisabled {
+		return nil, errors.New("forbidden access")
+	}
+
+	if role > 0 && user.Role < role {
+		return nil, errors.New("forbidden access")
+	}
+
+	return user, nil
 }

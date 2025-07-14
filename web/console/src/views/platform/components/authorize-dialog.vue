@@ -1,3 +1,79 @@
+<template>
+  <ElDialog
+    v-model="visible"
+    :title="$t('action_authorize') + $t(origin_data.label || '')"
+    :close-on-click-modal="false"
+    width="720px"
+    destroy-on-close
+    append-to-body
+    @close="close"
+  >
+    <ElForm
+      ref="form_ref"
+      :model="form"
+      :rules="formRules"
+      label-position="top"
+    >
+      <!-- 提示信息 -->
+      <div class="w-full flex flex-col gap-3 bg-[#F6F9FC] p-5 mb-4 box-border text-sm text-[#4F5052]">
+        <div
+          class="whitespace-pre-wrap leading-7"
+          v-html="guideHtml"
+        />
+        <ElIcon
+          v-if="origin_data.value === PROVIDER_VALUE.COZE_CN"
+          ref="copy_ref"
+          class="cursor-pointer ml-1 mt-1 text-[#4F5052] hover:text-[#3664EF]"
+          :size="14"
+          @click="handleCopy(coze_auth_url)"
+        >
+          <CopyDocument />
+        </ElIcon>
+      </div>
+
+      <template v-for="option in schemaOptions" :key="option.prop">
+        <ElFormItem
+          :label="option.label"
+          :prop="option.prop"
+        >
+          <ElInput
+            v-model="form[option.prop]"
+            size="large"
+            :placeholder="option.placeholder"
+          />
+        </ElFormItem>
+      </template>
+    </ElForm>
+
+    <template #footer>
+      <div
+        v-if="origin_data.value === PROVIDER_VALUE.COZE_CN"
+        class="text-center text-sm text-[#9A9A9A]"
+      >
+        {{ $t('platform_auth.coze_cn.tip_1') }}
+      </div>
+      <div class="py-4 flex items-center justify-center">
+        <ElButton
+          class="w-[96px] h-[36px]"
+          type="primary"
+          :loading="saving"
+          @click="handleConfirm"
+        >
+          {{ $t('action_confirm') }}
+        </ElButton>
+        <ElButton
+          class="w-[96px] h-[36px] text-[#1D1E1F]"
+          type="info"
+          plain
+          @click.stop="close"
+        >
+          {{ $t('action_cancel') }}
+        </ElButton>
+      </div>
+    </template>
+  </ElDialog>
+</template>
+
 <script setup lang="ts">
 import { computed, nextTick, reactive, ref, shallowRef } from 'vue'
 import type { FormInstance, FormRules } from 'element-plus'
@@ -116,7 +192,7 @@ const PLATFORM_CONFIGS = {
     fields: [{
       label: 'module.platform_auth_url',
       prop: 'base_url',
-      placeholder: 'module.platform_tool_api_key_placeholder',
+      placeholder: 'module.platform_model_base_url_placeholder_53ai',
     }, {
       label: 'module.platform_auth_secret',
       prop: 'access_token',
@@ -134,7 +210,7 @@ const PLATFORM_CONFIGS = {
 }
 
 const guideHtml = computed(() => {
-  const value = origin_data.value.value
+  const {value} = origin_data.value
   if (typeof value !== 'number')
     return ''
 
@@ -156,7 +232,7 @@ const guideHtml = computed(() => {
 })
 
 const schemaOptions = computed(() => {
-  const value = origin_data.value.value
+  const {value} = origin_data.value
   if (typeof value !== 'number')
     return []
 
@@ -171,7 +247,7 @@ const schemaOptions = computed(() => {
 // 表单验证规则
 const formRules = computed(() => {
   const rules: FormRules = {}
-  const value = origin_data.value.value
+  const {value} = origin_data.value
   if (typeof value === 'number' && PLATFORM_CONFIGS[value]) {
     PLATFORM_CONFIGS[value].fields.forEach((field) => {
       rules[field.prop] = [{
@@ -213,7 +289,7 @@ const open = async ({ data = {} as ProviderData } = {}) => {
   visible.value = true
 
   await nextTick()
-  const value = data.value
+  const {value} = data
   if (typeof value === 'number' && value === PROVIDER_VALUE.COZE_CN && copy_ref.value?.$el) {
     const copy_hook_el = form_ref.value?.$el.querySelector('.copy-hook')
     copy_hook_el?.appendChild(copy_ref.value.$el)
@@ -300,82 +376,6 @@ defineExpose({
   reset,
 })
 </script>
-
-<template>
-  <ElDialog
-    v-model="visible"
-    :title="$t('action_authorize') + $t(origin_data.label || '')"
-    :close-on-click-modal="false"
-    width="720px"
-    destroy-on-close
-    append-to-body
-    @close="close"
-  >
-    <ElForm
-      ref="form_ref"
-      :model="form"
-      :rules="formRules"
-      label-position="top"
-    >
-      <!-- 提示信息 -->
-      <div class="w-full flex flex-col gap-3 bg-[#F6F9FC] p-5 mb-4 box-border text-sm text-[#4F5052]">
-        <div
-          class="whitespace-pre-wrap leading-7"
-          v-html="guideHtml"
-        />
-        <ElIcon
-          v-if="origin_data.value === PROVIDER_VALUE.COZE_CN"
-          ref="copy_ref"
-          class="cursor-pointer ml-1 mt-1 text-[#4F5052] hover:text-[#3664EF]"
-          :size="14"
-          @click="handleCopy(coze_auth_url)"
-        >
-          <CopyDocument />
-        </ElIcon>
-      </div>
-
-      <template v-for="option in schemaOptions" :key="option.prop">
-        <ElFormItem
-          :label="option.label"
-          :prop="option.prop"
-        >
-          <ElInput
-            v-model="form[option.prop]"
-            size="large"
-            :placeholder="option.placeholder"
-          />
-        </ElFormItem>
-      </template>
-    </ElForm>
-
-    <template #footer>
-      <div
-        v-if="origin_data.value === PROVIDER_VALUE.COZE_CN"
-        class="text-center text-sm text-[#9A9A9A]"
-      >
-        {{ $t('platform_auth.coze_cn.tip_1') }}
-      </div>
-      <div class="py-4 flex items-center justify-center">
-        <ElButton
-          class="w-[96px] h-[36px]"
-          type="primary"
-          :loading="saving"
-          @click="handleConfirm"
-        >
-          {{ $t('action_confirm') }}
-        </ElButton>
-        <ElButton
-          class="w-[96px] h-[36px] text-[#1D1E1F]"
-          type="info"
-          plain
-          @click.stop="close"
-        >
-          {{ $t('action_cancel') }}
-        </ElButton>
-      </div>
-    </template>
-  </ElDialog>
-</template>
 
 <style scoped>
 .el-dialog {

@@ -1,29 +1,26 @@
 package controller
 
 import (
-	"crypto/aes"
-	"crypto/cipher"
-	"crypto/rand"
-	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io"
 	"net/http"
 	"strconv"
-	"strings"
 
-	"github.com/53AI/53AIHub/common/storage"
 	"github.com/53AI/53AIHub/common/utils"
 	"github.com/53AI/53AIHub/config"
 	"github.com/53AI/53AIHub/model"
+	"github.com/53AI/53AIHub/service/payment"
 	"github.com/gin-gonic/gin"
 )
 
 // PaySettingRequest represents the request for creating or updating a payment setting
 type PaySettingRequest struct {
-	PayType     int    `json:"pay_type" binding:"required" example:"1" enums:"1,2,3" description:"Payment type: 1:WeChat Pay 2:Manual Transfer 3:PayPal"`
-	PayConfig   string `json:"pay_config" binding:"required" example:"{\"appId\":\"wx123456\",\"mchId\":\"1900000109\",\"serialNo\":\"1DDE55AD98ED71EB\",\"apiV3Key\":\"Aa111111\",\"notifyUrl\":\"https://example.com/notify\",\"privateKeyPath\":\"/path/to/apiclient_key.pem\",\"certPath\":\"\",\"platformCertPath\":\"/path/to/platform_cert.pem\"}" description:"Payment configuration. For WeChat Pay, certificate file paths are required"`
+	// Payment type: 1:WeChat Pay 2:Manual Transfer 3:PayPal 4:alipay
+	PayType int `json:"pay_type" binding:"required" example:"1" enums:"1,2,3,4"`
+	// PayConfig is the payment configuration in JSON format
+	// - For WeChat Pay: Required fields include appId, mchId, serialNo, apiV3Key, notifyUrl, privateKeyPath, platformCertPath
+	// - For Alipay: Required fields include appId, privateKey, alipayPublicKey
+	PayConfig   string `json:"pay_config" binding:"required" example:"{\"appId\":\"wx123456\",\"mchId\":\"1900000109\",\"serialNo\":\"1DDE55AD98ED71EB\",\"apiV3Key\":\"Aa111111\",\"notifyUrl\":\"https://example.com/notify\",\"privateKeyPath\":\"/path/to/apiclient_key.pem\",\"certPath\":\"\",\"platformCertPath\":\"/path/to/platform_cert.pem\"}"`
 	PayStatus   bool   `json:"pay_status" example:"true" description:"Payment status, true for enabled, false for disabled"`
 	ExtraConfig string `json:"extra_config" example:"{}" description:"Extra configuration"`
 }
@@ -79,7 +76,7 @@ func CreatePaySetting(c *gin.Context) {
 	}
 
 	// Set default status if not provided
-	if req.PayStatus == false {
+	if !req.PayStatus {
 		req.PayStatus = model.PayStatusEnabled
 	}
 
@@ -91,7 +88,7 @@ func CreatePaySetting(c *gin.Context) {
 		ExtraConfig: req.ExtraConfig,
 	}
 
-	if err := paySetting.Create(); err != nil {
+	if err = paySetting.Create(); err != nil {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
 		return
 	}
@@ -342,7 +339,7 @@ func UpdatePayConfig(c *gin.Context) {
 	}
 	paySetting.ExtraConfig = req.ExtraConfig
 
-	if err := paySetting.Update(); err != nil {
+	if err = paySetting.Update(); err != nil {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
 		return
 	}
@@ -392,14 +389,14 @@ func UpdatePayStatus(c *gin.Context) {
 	}
 
 	var req PayStatusRequest
-	if err := c.ShouldBindJSON(&req); err != nil {
+	if err = c.ShouldBindJSON(&req); err != nil {
 		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
 		return
 	}
 
 	paySetting.PayStatus = *req.PayStatus
 
-	if err := paySetting.Update(); err != nil {
+	if err = paySetting.Update(); err != nil {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
 		return
 	}
@@ -431,206 +428,20 @@ func UpdatePayStatus(c *gin.Context) {
 
 // isValidPayType checks if the payment type is valid
 func isValidPayType(payType int) bool {
-	return payType >= 1 && payType <= 3
+	return payType >= model.PayTypeWechat && payType <= model.PayTypeAlipay
 }
 
 // processWechatConfig processes and validates WeChat payment configuration
 func processWechatConfig(payConfig string) (string, error) {
-	wechatConfig, err := validateWechatConfig(payConfig)
+	wechatConfig, err := payment.ValidateWechatConfig(payConfig)
 	if err != nil {
 		return "", err
 	}
 
 	configBytes, err := json.Marshal(wechatConfig)
 	if err != nil {
-		return "", fmt.Errorf("Failed to marshal config: %v", err)
+		return "", fmt.Errorf("failed to marshal config: %v", err)
 	}
 
 	return string(configBytes), nil
-}
-
-// loadFileFromPathOrURL loads a file from a local path or URL
-func loadFileFromPathOrURL(path string) ([]byte, error) {
-	if strings.HasPrefix(path, "http://") || strings.HasPrefix(path, "https://") {
-		// Fetch from URL
-		resp, err := http.Get(path)
-		if err != nil {
-			return nil, fmt.Errorf("Failed to fetch from URL: %v", err)
-		}
-		defer resp.Body.Close()
-
-		if resp.StatusCode != http.StatusOK {
-			return nil, fmt.Errorf("Failed to fetch from URL, status code: %d", resp.StatusCode)
-		}
-
-		return io.ReadAll(resp.Body)
-	}
-
-	// Load from storage
-	return storage.StorageInstance.Load(path)
-}
-
-// prepareEncryptionKey prepares a 32-byte encryption key for AES-256
-func prepareEncryptionKey() ([]byte, error) {
-	// Get encryption key from config
-	originalKey := []byte(config.GetEncryptionKey())
-
-	// Ensure key is exactly 32 bytes (256 bits) for AES-256
-	key := make([]byte, 32)
-
-	// If key is shorter than 32 bytes, pad with zeros
-	// If key is longer than 32 bytes, truncate it
-	if len(originalKey) > 32 {
-		copy(key, originalKey[:32])
-	} else {
-		copy(key, originalKey)
-	}
-
-	return key, nil
-}
-
-// Helper function to validate WeChat payment configuration
-func validateWechatConfig(payConfig string) (model.WechatPayConfig, error) {
-	var wechatConfig model.WechatPayConfig
-	if err := json.Unmarshal([]byte(payConfig), &wechatConfig); err != nil {
-		return wechatConfig, err
-	}
-
-	// Validate required fields
-	if wechatConfig.AppID == "" || wechatConfig.MchID == "" || wechatConfig.APIv3Key == "" || wechatConfig.SerialNo == "" {
-		return wechatConfig, fmt.Errorf("Missing required WeChat payment configuration (AppID, MchID, APIv3Key, SerialNo)")
-	}
-
-	// Check if we need to process certificate and private key files
-	if wechatConfig.UseEncryptedConfig {
-		// Configuration already contains encrypted data
-		if wechatConfig.PrivateKey == "" {
-			return wechatConfig, fmt.Errorf("Encrypted private key is required when using encrypted configuration")
-		}
-	} else {
-		// Need to read and encrypt files
-		if wechatConfig.PrivateKeyPath == "" {
-			return wechatConfig, fmt.Errorf("Private key path is required")
-		}
-
-		// Load and encrypt private key
-		privateKeyBytes, err := loadFileFromPathOrURL(wechatConfig.PrivateKeyPath)
-		if err != nil {
-			return wechatConfig, fmt.Errorf("Failed to read private key file: %v", err)
-		}
-
-		// Encrypt private key content
-		encryptedPrivateKey, err := encryptSensitiveData(string(privateKeyBytes))
-		if err != nil {
-			return wechatConfig, fmt.Errorf("Failed to encrypt private key: %v", err)
-		}
-
-		// Save encrypted private key content and original file path
-		wechatConfig.PrivateKey = encryptedPrivateKey
-		// Keep original file path unchanged
-
-		// Read and encrypt platform certificate (if provided)
-		if wechatConfig.PlatformCertPath != "" {
-			platformCertBytes, err := loadFileFromPathOrURL(wechatConfig.PlatformCertPath)
-			if err != nil {
-				return wechatConfig, fmt.Errorf("Failed to read platform certificate file: %v", err)
-			}
-
-			encryptedPlatformCert, err := encryptSensitiveData(string(platformCertBytes))
-			if err != nil {
-				return wechatConfig, fmt.Errorf("Failed to encrypt platform certificate: %v", err)
-			}
-
-			// Save encrypted certificate content and original file path
-			wechatConfig.PlatformCert = encryptedPlatformCert
-			// Keep original file path unchanged
-		}
-
-		// Mark as using encrypted configuration for future use
-		wechatConfig.UseEncryptedConfig = true
-	}
-
-	// Validate notification URL
-	// if wechatConfig.NotifyURL == "" {
-	// 	return wechatConfig, fmt.Errorf("Notification URL is required")
-	// }
-
-	return wechatConfig, nil
-}
-
-// Function to encrypt sensitive data
-func encryptSensitiveData(data string) (string, error) {
-	// Prepare encryption key
-	key, err := prepareEncryptionKey()
-	if err != nil {
-		return "", err
-	}
-
-	// Create cipher
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return "", err
-	}
-
-	// Create GCM mode
-	gcm, err := cipher.NewGCM(block)
-	if err != nil {
-		return "", err
-	}
-
-	// Create nonce
-	nonce := make([]byte, gcm.NonceSize())
-	if _, err := io.ReadFull(rand.Reader, nonce); err != nil {
-		return "", err
-	}
-
-	// Encrypt data
-	ciphertext := gcm.Seal(nonce, nonce, []byte(data), nil)
-
-	// Return base64 encoded encrypted data
-	return base64.StdEncoding.EncodeToString(ciphertext), nil
-}
-
-// Function to decrypt sensitive data
-func decryptSensitiveData(encryptedData string) (string, error) {
-	// Decode base64
-	data, err := base64.StdEncoding.DecodeString(encryptedData)
-	if err != nil {
-		return "", err
-	}
-
-	// Prepare encryption key
-	key, err := prepareEncryptionKey()
-	if err != nil {
-		return "", err
-	}
-
-	// Create cipher
-	block, err := aes.NewCipher(key)
-	if err != nil {
-		return "", err
-	}
-
-	// Create GCM mode
-	gcm, err := cipher.NewGCM(block)
-	if err != nil {
-		return "", err
-	}
-
-	// Get nonce size
-	nonceSize := gcm.NonceSize()
-	if len(data) < nonceSize {
-		return "", errors.New("ciphertext too short")
-	}
-
-	// Extract nonce and ciphertext
-	nonce, ciphertext := data[:nonceSize], data[nonceSize:]
-
-	// Decrypt
-	plaintext, err := gcm.Open(nil, nonce, ciphertext, nil)
-	if err != nil {
-		return "", err
-	}
-
-	return string(plaintext), nil
 }

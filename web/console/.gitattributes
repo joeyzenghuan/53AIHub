@@ -16,7 +16,12 @@
 "*.styl"   eol=lf
 "*.md"     eol=lf
 
-.env.production merge=ours
-.env merge=ours
 
+.env.example merge=ours
+.env.pre-prod merge=ours
+.env.production merge=ours
+.github  merge=ours
+
+
+public\UEditor\ueditor.all.min.js merge=ours
 public\UEditor\third-party\webuploader\webuploader.min.js merge=ours

@@ -1,3 +1,7 @@
+node_modules
+dist
+out
+.gitignore
 docker-compose
 kubernetes
 

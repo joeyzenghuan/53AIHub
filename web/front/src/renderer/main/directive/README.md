@@ -8,6 +8,7 @@
 - [v-copy](#v-copy) - 点击复制内容
 - [v-tooltip](#v-tooltip) - 文本提示气泡
 - [v-debounce](#v-debounce) - 防抖点击处理
+- [v-auth](#v-auth) - 统一处理用户认证和权限检查
 
 ## 指令详情
 
@@ -118,6 +119,54 @@
 - 对于ElButton组件，会自动处理组件的loading属性
 - 对于普通元素，会添加disabled属性来防止重复点击
 
+### v-auth
+
+**功能说明**：统一处理用户认证和权限检查的 Vue 指令。
+
+**使用场景**：需要根据用户认证状态和权限来控制功能可用性。
+
+**使用方法**：
+
+```vue
+<template>
+  <div>
+    <!-- 只需要登录 -->
+    <button v-auth="{ checkLogin: true }" @click="normalFeature">
+      普通功能
+    </button>
+
+    <!-- 需要登录 + 特定版本权限 -->
+    <button v-auth="{ checkLogin: true, checkVersion: true, groupIds: [1, 2, 3] }" @click="premiumFeature">
+      高级功能
+    </button>
+
+    <!-- 只需要版本权限（已登录用户） -->
+    <button v-auth="{ checkVersion: true, groupIds: [4, 5] }" @click="specialFeature">
+      特殊功能
+    </button>
+  </div>
+</template>
+
+<script setup lang="ts">
+const normalFeature = () => {
+  console.log('执行普通功能')
+}
+
+const premiumFeature = () => {
+  console.log('执行高级功能')
+}
+
+const specialFeature = () => {
+  console.log('执行特殊功能')
+}
+</script>
+```
+
+**参数说明**：
+- `checkLogin` - 是否检查登录状态
+- `checkVersion` - 是否检查版本权限
+- `groupIds` - 需要的用户组ID列表
+
 ## 在项目中使用
 
 这些指令已在项目初始化时通过`setupDirective`函数注册，可以直接在模板中使用。
@@ -128,4 +177,42 @@ import { setupDirective } from '@/renderer/main/directive'
 
 // 在应用初始化时调用
 setupDirective(app)
+```
+
+## v-permission 指令（向后兼容）
+
+保持原有的 permission 指令用法，内部已重构为使用统一的认证系统。
+
+```vue
+<template>
+  <button v-permission="{ group_ids: [1, 2, 3] }">
+    受权限控制的按钮
+  </button>
+</template>
+```
+
+## 工具函数
+
+### checkPermission
+
+统一的认证检查函数，可在 JavaScript 代码中直接使用：
+
+```typescript
+import { checkPermission } from '@/utils/permission'
+
+// 基本用法
+const isAuthorized = await checkPermission({
+})
+
+if (isAuthorized) {
+  // 执行需要权限的操作
+}
+
+// 带回调的用法
+await checkPermission({
+  groupIds: [1, 2, 3],
+  onClick: () => {
+    console.log('认证通过，执行操作')
+  }
+})
 ```

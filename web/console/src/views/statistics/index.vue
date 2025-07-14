@@ -58,13 +58,13 @@ const handleSave = async () => {
         </div>
         <ElInput
           v-model="head.value"
-					v-loading="loading"
-					class="mt-3 !w-[600px]"
-					style="--el-input-bg-color: #F7F8FA"
-					type="textarea"
-					resize="none"
-					:placeholder="$t('module.statistics_textarea_label_1_example')"
-					:rows="8"
+          v-loading="loading"
+          class="mt-3 !w-[600px]"
+          style="--el-input-bg-color: #F7F8FA"
+          type="textarea"
+          resize="none"
+          :placeholder="$t('module.statistics_textarea_label_1_example')"
+          :rows="8"
         />
         <div class="text-[#9A9A9A] text-sm mt-6">
           {{ $t('module.statistics_textarea_label_2') }}
@@ -83,4 +83,5 @@ const handleSave = async () => {
   </Layout>
 </template>
 
-<style scoped lang="scss"></style>
+<style scoped>
+</style>

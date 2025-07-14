@@ -10,7 +10,7 @@ export default {
     find: 'Discover',
     library: 'Knowledge Base',
     crop_space: 'Enterprise Space',
-    prompt: 'Prompt',
+    prompt: 'Prompt'
   },
 
   // Browser Related
@@ -26,14 +26,14 @@ export default {
     leftWindow: 'Left Small Window',
     centerWindow: 'Center Large Window',
     rightWindow: 'Right Small Window',
-    alwaysOnTop: 'Always On Top',
+    alwaysOnTop: 'Always On Top'
   },
 
   // Cleaning Features
   clean: {
     content: 'Content Extraction',
     knowledge: 'Knowledge Organization',
-    summarize: 'Knowledge Extraction',
+    summarize: 'Knowledge Extraction'
   },
 
   // Update Related
@@ -45,7 +45,7 @@ export default {
     completedTitle: 'Update Notification',
     noUpdate: 'Current version is up to date',
     currentVersion: 'Current version v{version}',
-    checkUpdate: 'Check for Updates',
+    checkUpdate: 'Check for Updates'
   },
 
   // Common Text
@@ -56,6 +56,7 @@ export default {
     screenshot: 'Screenshot',
     title: 'Title',
     desc: 'Description',
+    tip: 'Tip',
     create_time: 'Creation Time',
     update_time: 'Update Time',
     recently_updated: 'Recently Updated',
@@ -65,7 +66,7 @@ export default {
     load_new: 'Load New Messages',
     no_data: 'No Data',
     unknown: 'Unknown',
-    usual: "Frequently Used",
+    usual: 'Frequently Used',
 
     render: 'Render',
     preview: 'Preview',
@@ -79,12 +80,13 @@ export default {
     image_cropper: 'Image Cropper',
     back: 'Back',
     go_admin: 'Go to Admin',
-    related_prompt: "Related Prompts",
-    related_agent: "Related Agents",
+    related_prompt: 'Related Prompts',
+    related_agent: 'Related Agents',
     view_more: 'View More',
     expand_more: 'Expand More',
     collapse_more: 'Collapse More',
     or: 'Or',
+    later: 'Later'
   },
 
   // Status Prompts
@@ -102,7 +104,7 @@ export default {
     approve_success: 'Liked',
     approve_cancel: 'Unliked',
     register_success: 'Registration successful',
-    update_success: 'Update successful',
+    update_success: 'Update successful'
   },
 
   // Action Buttons
@@ -152,7 +154,7 @@ export default {
     stop: 'Stop',
     pay: 'Pay',
     ok_v2: 'OK',
-    view_more: 'View More',
+    view_more: 'View More'
   },
 
   // Form Related
@@ -214,10 +216,10 @@ export default {
     toolbox_recommend: 'Featured AI Tools',
     toolbox_recommend_desc: 'Select AI resources for your workflow, make AI your productivity tool',
     use_history: '{count} people have chatted',
-    banner_title: "“{name} Expert” The secret weapon for efficiency",
-    banner_desc: "Select AI resources for your workflow, make AI your productivity tool",
+    banner_title: '“{name} Expert” The secret weapon for efficiency',
+    banner_desc: 'Select AI resources for your workflow, make AI your productivity tool',
     search_placeholder: 'Enter the AI resource you want to find',
-    hot_search: 'Hot Search',
+    hot_search: 'Hot Search'
   },
 
   // Login Related
@@ -233,16 +235,23 @@ export default {
     wechat_login_title: 'WeChat Login',
     wecom_login: 'WeCom Login',
     wecom_login_title: 'WeCom Login',
-    unregistered_account_desc: 'Unregistered accounts, please register first and then automatically login',
-    unregistered_account_confirm: 'Automatically log in after verifying the unregistered mobile phone number',
+    unregistered_account_desc:
+      'Unregistered accounts, please register first and then automatically login',
+    unregistered_account_confirm:
+      'Automatically log in after verifying the unregistered mobile phone number',
     quit: 'Quit',
     login_by_wechat: 'Use WeChat Login',
     login_by_password: 'Use Password Login',
     login_by_mobile: 'Use Mobile Login',
     bind_mobile: 'Bind Mobile Number',
     other_login_way: 'Other Login Way',
-    unbind_wechat_confirm_desc: 'After unbinding, you will not be able to log in with WeChat. Continue?',
+    login_by_wecom: 'Use WeCom Login',
+    unbind_wechat_confirm_desc:
+      'After unbinding, you will not be able to log in with WeChat. Continue?',
     unbind_wechat_confirm_title: 'Unbind WeChat Account Binding',
+    immediate_login: 'Immediate Login',
+    wecom_login_error:
+      'The enterprise wechat bound to the site is not the enterprise wechat currently logged in!\nPlease use the correct enterprise wechat to log in.'
   },
 
   // Registration related
@@ -271,7 +280,8 @@ export default {
     dislike: 'Unlike',
     input_placeholder: 'Send a message',
     usage_guide: 'Usage Guide',
-    completion_empty_desc: 'Using AI large model to intelligently generate content, just input your requirements for one-click content creation',
+    completion_empty_desc:
+      'Using AI large model to intelligently generate content, just input your requirements for one-click content creation',
     usage_case: 'Use Cases',
     usage_scene: 'Usage Scenarios',
     online_search: 'Online Search',
@@ -282,8 +292,7 @@ export default {
     no_available_agent: 'No available agents',
 
     completion_completed: 'Deep thinking completed',
-    completion_thinking: 'Deep thinking...',
-
+    completion_thinking: 'Deep thinking...'
   },
 
   // Knowledge Base Related
@@ -299,7 +308,8 @@ export default {
     manage: 'Manage Knowledge Base',
     search: 'Search Knowledge Base',
     all_libraries: 'All Knowledge Bases',
-    empty_desc: 'Create enterprise knowledge base, accumulate team knowledge, improve collaboration efficiency',
+    empty_desc:
+      'Create enterprise knowledge base, accumulate team knowledge, improve collaboration efficiency',
 
     create_md: 'New Knowledge',
     local_upload: 'Local Upload',
@@ -308,11 +318,11 @@ export default {
     github_import: 'Import from Github',
     docs_qq_import: 'Import from Tencent Docs',
     docs_feishu_import: 'Import from DingTalk Docs',
-    docs_dingtalk_import: 'Import from Feishu Docs',
+    docs_dingtalk_import: 'Import from Feishu Docs'
   },
 
   agent: {
-    no_data: 'No data',
+    no_data: 'No data'
   },
 
   prompt: {
@@ -320,16 +330,17 @@ export default {
     likes_sort: 'Likes Sort',
     views_sort: 'Views Sort',
     content: 'Prompt Content',
-    auth_tip: 'You do not have permission to access this prompt',
+    auth_tip: 'You do not have permission to access this prompt'
   },
 
   toolbox: {
     // AI聚合问答
     name: 'AI Aggregation',
-    title: 'Use AI large model to intelligently generate content, just input your requirements for one-click content creation',
+    title:
+      'Use AI large model to intelligently generate content, just input your requirements for one-click content creation',
     input_placeholder: 'Send a message',
     max_agent_count: 'You can only select {count} agents',
-    search_placeholder: 'Search website',
+    search_placeholder: 'Search website'
   },
   // Space Related
   space: {
@@ -339,7 +350,7 @@ export default {
     member: 'Member Management',
     settings: 'Space Settings',
     space_usage: 'Used {used} / {total}',
-    expand: 'Expand Capacity',
+    expand: 'Expand Capacity'
   },
 
   // Time Related
@@ -351,7 +362,7 @@ export default {
     yesterday: 'Yesterday',
     today: 'Today',
     week_last: 'Within a week',
-    week_ago: 'A week ago',
+    week_ago: 'A week ago'
   },
 
   profile: {
@@ -360,6 +371,8 @@ export default {
     change_password: 'Change Password',
     login_password: 'Login Password',
     bind_accounts: 'Account Information',
+    subscription_info: 'Subscription Information',
+    order_info: 'Order Information',
     unbind_account: 'Not Bound',
     bind_mobile: 'Mobile Number',
     bind_email: 'Email',
@@ -371,78 +384,138 @@ export default {
     logined_devices: 'Logged-in Devices',
     used_devices: 'Previously Used Devices',
     current_device: 'Current Device',
-    unbind_wechat_confirm_desc: 'After unbinding, you will not be able to log in with WeChat. Continue?',
+    unbind_wechat_confirm_desc:
+      'After unbinding, you will not be able to log in with WeChat. Continue?',
     unbind_wechat_confirm_title: 'Unbind WeChat Account Binding',
     unbind_wechat_confirm_cancel: 'Cancel',
     unbind_wechat_confirm_ok: 'Confirm',
+    renew: 'Renew',
+    expire_time_desc:
+      '{group_name} will expire in {day} days ({expire_time}), please renew to continue membership rights',
+    expired_time_desc:
+      '{group_name} has expired on {expire_time}, please renew to continue membership rights'
   },
-  "response_status": {
-    "400": 'Request parameter error',
-    "401": 'Unauthorized, please login',
-    "403": 'Access denied',
-    "404": 'Requested resource does not exist',
-    "500": 'Server error',
-    "502": 'Gateway error',
-    "504": 'Gateway timeout',
-    "503": 'Service unavailable',
+  response_status: {
+    '400': 'Request parameter error',
+    '401': 'Unauthorized, please login',
+    '403': 'Access denied',
+    '404': 'Requested resource does not exist',
+    '500': 'Server error',
+    '502': 'Gateway error',
+    '504': 'Gateway timeout',
+    '503': 'Service unavailable'
   },
-  "response_code": {
-    "success": "Success",
-    "param_error": "Parameter error",
-    "database_error": "Database error",
-    "network_error": "Network error, please try again",
-    "system_error": "System error",
-    "auth_error": "Authentication error",
-    "not_found_error": "Not found error",
-    "unauthorized_error": "Authentication error",
-    "file_error": "File error",
-    "forbidden_error": "User is disabled, please contact the administrator",
-    "agent_error": "Agent error",
-    "token_expired_error": "Token expired error",
-    "verification_code_error": "Verification code error"
+  response_code: {
+    success: 'Success',
+    param_error: 'Parameter error',
+    database_error: 'Database error',
+    network_error: 'Network error, please try again',
+    system_error: 'System error',
+    auth_error: 'Authentication error',
+    not_found_error: 'Not found error',
+    unauthorized_error: 'Authentication error',
+    file_error: 'File error',
+    forbidden_error: 'User is disabled, please contact the administrator',
+    agent_error: 'Agent error',
+    token_expired_error: 'Token expired error',
+    verification_code_error: 'Verification code error'
   },
-  "response_message": {
-    "unknown_error": "Unknown error",
-    "user_not_found": "User does not exist",
-    "username_or_password_is_incorrect": "Username or password is incorrect",
-    "username_already_exists": "Username already exists",
-    "mobile_already_bind": "The phone number has already been bound to another user",
-    "email_already_bind": "The email address is already bound to another user",
-    "model_changed": "The administrator has changed the model, please create a new conversation",
-    "wechat_already_bind": "WeChat account has been bound to another user"
+  response_message: {
+    unknown_error: 'Unknown error',
+    user_not_found: 'User does not exist',
+    username_or_password_is_incorrect: 'Username or password is incorrect',
+    username_already_exists: 'Username already exists',
+    mobile_already_bind: 'The phone number has already been bound to another user',
+    email_already_bind: 'The email address is already bound to another user',
+    model_changed: 'The administrator has changed the model, please create a new conversation',
+    wechat_already_bind: 'WeChat account has been bound to another user'
   },
-  "subscription": {
-    "free": "Free",
-    "upgrade": "Upgrade",
-    "version_title": "Select Version",
-    "time_title": "Select Purchase Duration",
-    "month": "Month",
-    "year": "Year",
-    "credit_month_amount": "Monthly {amount} credits",
-    "agent_bots_title": "Available Agents",
-    "ai_assistant_title": "Cross-platform AI Assistant",
-    "time_unit_month": "One Month",
-    "time_unit_year": "One Year",
-    "aside_title": "New Order Purchase Details",
-    "aside_desc": "Purchase for the following users",
-    "payment": "Payment Method",
-    "payment_wechat": "WeChat Payment",
-    "payment_manual": "Manual Transfer",
-    "total": 'Total',
-    "order_title": "Order Payment",
-    "pay_amount": "Payment Amount",
-    "pay_by_wechat": "Use WeChat QR Code to Pay",
-    "pay_policy": "Payment is deemed to agree to the relevant {policy}",
-    "pay_success": "Payment Successful",
-    "pay_confirm": "Confirm payment completion, please click",
-    "payed": "Paid",
-    "manual_pay_success_title": "Order Generated",
-    "manual_pay_success_desc": "Please wait or contact the administrator to confirm the payment information",
+  subscription: {
+    free: 'Free',
+    upgrade: 'Upgrade',
+    version_title: 'Select Version',
+    time_title: 'Select Purchase Duration',
+    month: 'Month',
+    year: 'Year',
+    credit_month_amount: 'Monthly {amount} credits',
+    agent_bots_title: 'Available Agents',
+    ai_assistant_title: 'Cross-platform AI Assistant',
+    time_unit_month: 'One Month',
+    time_unit_year: 'One Year',
+    aside_title: 'New Order Purchase Details',
+    aside_desc: 'Purchase for the following users',
+    payment: 'Payment Method',
+    wechat_pay: 'WeChat Payment',
+    alipay: 'Alipay',
+    manual_pay: 'Manual Transfer',
+    paypal: 'PayPal',
+    total: 'Total',
+    order_title: 'Order Payment',
+    pay_amount: 'Payment Amount',
+    pay_by_wechat: 'Use WeChat QR Code to Pay',
+    pay_policy: 'Payment is deemed to agree to the relevant {policy}',
+    pay_success: 'Payment Successful',
+    pay_confirm: 'Confirm payment completion, please click',
+    payed: 'Paid',
+    manual_pay_success_title: 'Order Generated',
+    manual_pay_success_desc:
+      'Please wait or contact the administrator to confirm the payment information',
+    expire_time: 'Expire Time'
   },
-  "authority": {
-    "group_not_permission": "You do not have permission to access this group",
-    "payment_not_setting": "The site has not configured payment methods, please contact the administrator directly",
-    "agent_not_permission": "You do not have permission to use this agent, please contact the administrator directly",
-    "use_range": "Use Range"
+  authority: {
+    group_not_permission: 'You do not have permission to access this group',
+    payment_not_setting:
+      'The site has not configured payment methods, please contact the administrator directly',
+    agent_not_permission:
+      'You do not have permission to use this agent, please contact the administrator directly',
+    login_not_permission: 'Please login first',
+    use_range: 'Use Range'
+  },
+  upgrade_dialog: {
+    title:
+      'The number of registered users of the site has reached the upper limit, please contact the administrator~~',
+    cancel: 'Close Registration'
+  },
+  order: {
+    id: 'Order ID',
+    subscription: 'Subscription Service',
+    amount: 'Order Amount',
+    pay_type: 'Payment Method',
+    create_time: 'Order Time',
+    status: 'Status',
+    action: 'Action',
+    search_placeholder: 'Please enter order ID',
+
+    payment: 'Payment',
+    cancel: 'Cancel',
+    cancel_confirm: 'Are you sure you want to cancel this order?',
+
+    status_list: {
+      all: 'All',
+      not_confirm: 'Not Confirm',
+      pending: 'Pending',
+      paid: 'Paid',
+      expired: 'Expired',
+      cancel: 'Canceled'
+    }
+  },
+  filter: {
+    start_time: 'Start Time',
+    end_time: 'End Time',
+
+    date_range: {
+      today: 'Today',
+      last_7_days: 'Last 7 Days',
+      last_4_weeks: 'Last 4 Weeks',
+      last_3_months: 'Last 3 Months',
+      last_12_months: 'Last 12 Months',
+      this_month: 'This Month',
+      this_quarter: 'This Quarter',
+      this_year: 'This Year',
+      all_time: 'All Time'
+    }
+  },
+  table: {
+    footer_text: 'Total {total} items'
   }
 }

@@ -118,6 +118,36 @@ func GetMemberBindingByMidAndFrom(mid int64, from int) (*MemberBinding, error) {
 	return &binding, nil
 }
 
+func GetMemberBindingByDepartmentFromBackend(mid int64, tx *gorm.DB) (*MemberBinding, error) {
+	user, err := GetUserByID(mid)
+	if err != nil {
+		return nil, err
+	}
+
+	bindValue, err := GetMemberBindingByMidAndFrom(mid, DepartmentFromBackend)
+	if err != nil {
+		return nil, err
+	}
+
+	if bindValue == nil {
+		// create
+		bindValue = &MemberBinding{
+			MID:       mid,
+			EID:       user.Eid,
+			Name:      user.Username,
+			BindValue: fmt.Sprintf("%d", user.UserID),
+			Status:    MemberBindingStatusActive,
+			From:      DepartmentFromBackend,
+		}
+		err := tx.Create(bindValue).Error
+		if err != nil {
+			return nil, err
+		}
+	}
+
+	return bindValue, nil
+}
+
 // GetMemberBindingByBindValue retrieves a member binding by bind value and source
 func GetMemberBindingByBindValue(eid int64, bindValue string, from int) (*MemberBinding, error) {
 	var binding MemberBinding

@@ -30,6 +30,9 @@ type SubscriptionSetting struct {
 	// @Description Whether AI features are enabled for this subscription
 	// @Example true
 	AiEnabled bool `json:"ai_enabled" gorm:"default:false;column:ai_enabled;comment:'Whether AI features are enabled'"`
+	// @Description Whether this subscription is the default subscription
+	// @Example true
+	IsDefault bool `json:"is_default" gorm:"default:false;column:is_default;comment:'Whether this is the default subscription'"`
 	// @Description List of subscription relations containing pricing and duration details
 	Relations []*SubscriptionRelation `json:"relations" gorm:"-"`
 	BaseModel
@@ -195,4 +198,24 @@ func GetSubscriptionSettingsWithAgents(eid int64, offset, limit int) ([]Subscrip
 	}
 
 	return result, count, nil
+}
+
+// get default subscription setting
+func GetDefaultSubscription(eid int64) (*SubscriptionSetting, error) {
+	var groupIds []int64
+	if err := DB.Model(&Group{}).Select("group_id").Where("eid = ? and group_type = ?", eid, USER_GROUP_TYPE).Pluck("group_id", &groupIds).Error; err != nil {
+		return nil, err
+	}
+
+	var defaultSubscription SubscriptionSetting
+
+	// Query the database for the default subscription setting
+	err := DB.Debug().Where("is_default = ? and group_id in ?",  true, groupIds).First(&defaultSubscription).Error
+	if err != nil {
+		// Return nil and the error if the query fails
+		return nil, err
+	}
+
+	// Return the default subscription setting
+	return &defaultSubscription, nil
 }

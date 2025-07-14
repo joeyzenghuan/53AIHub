@@ -860,7 +860,7 @@ func GetGroupUsers(c *gin.Context) {
 
 		// 构建用户ID到用户对象的映射
 		for _, user := range users {
-			user.LoadDepartments()
+			user.LoadDepartments(model.DepartmentFromBackend)
 			userMap[user.UserID] = user
 		}
 	}

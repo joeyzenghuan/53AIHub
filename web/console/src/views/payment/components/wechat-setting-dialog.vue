@@ -20,7 +20,7 @@ const form = reactive({
   privateKeyPath: '',
   privateKeyName: '',
   notifyUrl: '',
-  platformCertPath: '',
+  platformCertPath: ''
 })
 const origin_data = ref({})
 const submitting = ref(false)
@@ -59,25 +59,26 @@ const reset = () => {
 }
 const handleConfirm = async () => {
   const valid = await form_ref.value.validate()
-  if (!valid)
-    return
+  if (!valid) return
   submitting.value = true
   const pay_config = JSON.parse(JSON.stringify(form))
   const extra_config = {
     ...JSON.parse(JSON.stringify(origin_data.value.extra_config || {})),
     certName: form.certName,
-    privateKeyName: form.privateKeyName,
+    privateKeyName: form.privateKeyName
   }
   delete pay_config.certName
   delete pay_config.privateKeyName
-  await settingApi.savePaymentSetting({
-    pay_setting_id: origin_data.value.pay_setting_id,
-    pay_config,
-    extra_config,
-    pay_type: PAYMENT_TYPE.WECHAT,
-  }).finally(() => {
-    submitting.value = false
-  })
+  await settingApi
+    .savePaymentSetting({
+      pay_setting_id: origin_data.value.pay_setting_id,
+      pay_config,
+      extra_config,
+      pay_type: PAYMENT_TYPE.WECHAT
+    })
+    .finally(() => {
+      submitting.value = false
+    })
   emits('success')
   ElMessage.success(window.$t('action_save_success'))
   close()
@@ -91,66 +92,85 @@ const guideTitle = computed(() => {
     ['app', 'wechat_payment.app_guide.title'],
     ['api', 'wechat_payment.api_guide.title'],
     ['cert', 'wechat_payment.cert_guide.title'],
-    ['serial', 'wechat_payment.serial_guide.title'],
+    ['serial', 'wechat_payment.serial_guide.title']
   ])
   return guideTitleMap.get(guideMode.value)
 })
 const guideList = computed(() => {
   const guideListMap = new Map([
-    ['mch', [
-      {
-        title: window.$t('wechat_payment.mch_guide.step_1', { url: '<a style="color: #586D9A;" href="https://pay.weixin.qq.com/" target="_blank">https://pay.weixin.qq.com/</a>' }),
-        imageList: [],
-      },
-      {
-        title: window.$t('wechat_payment.mch_guide.step_2'),
-        imageList: ['/images/wechat-payment/mch-guide-1.png'],
-      },
-      {
-        title: window.$t('wechat_payment.mch_guide.step_3'),
-        imageList: ['/images/wechat-payment/mch-guide-2.png', '/images/wechat-payment/mch-guide-3.png'],
-      },
-    ]],
-    ['app', [
-      {
-        title: window.$t('wechat_payment.app_guide.step_1'),
-        imageList: ['/images/wechat-payment/app-guide-1.png'],
-      },
-      {
-        title: window.$t('wechat_payment.app_guide.step_2'),
-        imageList: ['/images/wechat-payment/app-guide-2.png'],
-      },
-      {
-        title: window.$t('wechat_payment.app_guide.step_3', { url: '<a style="color: #586D9A;" href="https://mp.weixin.qq.com" target="_blank">https://mp.weixin.qq.com</a>' }),
-        imageList: ['/images/wechat-payment/app-guide-3.png'],
-      },
-    ]],
-    ['api', [
-      {
-        title: window.$t('wechat_payment.api_guide.step_1'),
-        imageList: ['/images/wechat-payment/api-guide-1.png'],
-      },
-      {
-        title: window.$t('wechat_payment.api_guide.step_2'),
-        imageList: [],
-      },
-    ]],
-    ['cert', [
-      {
-        title: window.$t('wechat_payment.cert_guide.step_1'),
-        imageList: ['/images/wechat-payment/cert-guide-1.png', '/images/wechat-payment/cert-guide-2.png'],
-      },
-      {
-        title: window.$t('wechat_payment.cert_guide.step_2'),
-        imageList: [],
-      },
-    ]],
-    ['serial', [
-      {
-        title: window.$t('wechat_payment.serial_guide.step_1'),
-        imageList: ['/images/wechat-payment/serial-guide-1.png'],
-      },
-    ]],
+    [
+      'mch',
+      [
+        {
+          title: window.$t('wechat_payment.mch_guide.step_1', {
+            url: '<a style="color: #586D9A;" href="https://pay.weixin.qq.com/" target="_blank">https://pay.weixin.qq.com/</a>'
+          }),
+          imageList: []
+        },
+        {
+          title: window.$t('wechat_payment.mch_guide.step_2'),
+          imageList: ['/images/wechat-payment/mch-guide-1.png']
+        },
+        {
+          title: window.$t('wechat_payment.mch_guide.step_3'),
+          imageList: ['/images/wechat-payment/mch-guide-2.png', '/images/wechat-payment/mch-guide-3.png']
+        }
+      ]
+    ],
+    [
+      'app',
+      [
+        {
+          title: window.$t('wechat_payment.app_guide.step_1'),
+          imageList: ['/images/wechat-payment/app-guide-1.png']
+        },
+        {
+          title: window.$t('wechat_payment.app_guide.step_2'),
+          imageList: ['/images/wechat-payment/app-guide-2.png']
+        },
+        {
+          title: window.$t('wechat_payment.app_guide.step_3', {
+            url: '<a style="color: #586D9A;" href="https://mp.weixin.qq.com" target="_blank">https://mp.weixin.qq.com</a>'
+          }),
+          imageList: ['/images/wechat-payment/app-guide-3.png']
+        }
+      ]
+    ],
+    [
+      'api',
+      [
+        {
+          title: window.$t('wechat_payment.api_guide.step_1'),
+          imageList: ['/images/wechat-payment/api-guide-1.png']
+        },
+        {
+          title: window.$t('wechat_payment.api_guide.step_2'),
+          imageList: []
+        }
+      ]
+    ],
+    [
+      'cert',
+      [
+        {
+          title: window.$t('wechat_payment.cert_guide.step_1'),
+          imageList: ['/images/wechat-payment/cert-guide-1.png', '/images/wechat-payment/cert-guide-2.png']
+        },
+        {
+          title: window.$t('wechat_payment.cert_guide.step_2'),
+          imageList: []
+        }
+      ]
+    ],
+    [
+      'serial',
+      [
+        {
+          title: window.$t('wechat_payment.serial_guide.step_1'),
+          imageList: ['/images/wechat-payment/serial-guide-1.png']
+        }
+      ]
+    ]
   ])
   return guideListMap.get(guideMode.value)
 })
@@ -163,27 +183,25 @@ const onGuideOpen = ({ mode, title }: { mode: string }) => {
 defineExpose({
   open,
   close,
-  reset,
+  reset
 })
 </script>
 
 <template>
   <ElDialog
-    v-model="visible" :title="$t('wechat_pay')" :align-center="true" :close-on-click-modal="false" width="700px" destroy-on-close append-to-body
+    v-model="visible"
+    :title="$t('payment.type.wechat')"
+    :align-center="true"
+    :close-on-click-modal="false"
+    width="700px"
+    destroy-on-close
+    append-to-body
     @close="close"
   >
     <ElForm ref="form_ref" :model="form" label-position="top">
-      <!-- <ol class="w-full flex flex-col gap-1 bg-[#F6F9FC] p-5 mb-6 box-border text-sm text-[#4F5052]">
-				<li><span class="text-bold text-lg mr-2">·</span>{{ $t('module.payment_wechat_app_id_tip') }}</li>
-				<li><span class="text-bold text-lg mr-2">·</span>{{ $t('module.payment_wechat_mch_id_tip') }}</li>
-				<li><span class="text-bold text-lg mr-2">·</span>{{ $t('module.payment_wechat_api_secret_tip') }}</li>
-			</ol> -->
-      <ElFormItem
-        :label="$t('module.payment_wechat_mch_id')" prop="mchId"
-        :rules="generateInputRules({ message: 'module.payment_wechat_mch_id_placeholder' })"
-      >
+      <ElFormItem :label="$t('payment.wechat_mch_id')" prop="mchId" :rules="generateInputRules({ message: 'payment.wechat_mch_id_placeholder' })">
         <template #label>
-          <span>{{ $t('module.payment_wechat_mch_id') }}</span>
+          <span>{{ $t('payment.wechat_mch_id') }}</span>
           <span class="text-[#9A9A9A] gap-1 ml-2 text-sm hover:opacity-80 cursor-pointer" @click="onGuideOpen({ mode: 'mch' })">
             <svg-icon class="inline translate-y-0.5" name="help" width="14" color="#999" />
             {{ $t('how_get') }}
@@ -191,12 +209,9 @@ defineExpose({
         </template>
         <ElInput v-model="form.mchId" size="large" clearable :placeholder="$t('form_input_placeholder')" />
       </ElFormItem>
-      <ElFormItem
-        :label="$t('module.payment_wechat_app_id')" prop="appId"
-        :rules="generateInputRules({ message: 'module.payment_wechat_app_id_placeholder' })"
-      >
+      <ElFormItem :label="$t('payment.wechat_app_id')" prop="appId" :rules="generateInputRules({ message: 'payment.wechat_app_id_placeholder' })">
         <template #label>
-          <span>{{ $t('module.payment_wechat_app_id') }}</span>
+          <span>{{ $t('payment.wechat_app_id') }}</span>
           <span class="text-[#9A9A9A] gap-1 ml-2 text-sm hover:opacity-80 cursor-pointer" @click="onGuideOpen({ mode: 'app' })">
             <svg-icon class="inline translate-y-0.5" name="help" width="14" color="#999" />
             {{ $t('how_get') }}
@@ -205,11 +220,12 @@ defineExpose({
         <ElInput v-model="form.appId" size="large" clearable :placeholder="$t('form_input_placeholder')" />
       </ElFormItem>
       <ElFormItem
-        :label="$t('module.payment_wechat_api_secret')" prop="apiV3Key"
-        :rules="generateInputRules({ message: 'module.payment_wechat_api_secret_placeholder' })"
+        :label="$t('payment.wechat_api_secret')"
+        prop="apiV3Key"
+        :rules="generateInputRules({ message: 'payment.wechat_api_secret_placeholder' })"
       >
         <template #label>
-          <span>{{ $t('module.payment_wechat_api_secret') }}</span>
+          <span>{{ $t('payment.wechat_api_secret') }}</span>
           <span class="text-[#9A9A9A] gap-1 ml-2 text-sm hover:opacity-80 cursor-pointer" @click="onGuideOpen({ mode: 'api' })">
             <svg-icon class="inline translate-y-0.5" name="help" width="14" color="#999" />
             {{ $t('how_get') }}
@@ -217,12 +233,9 @@ defineExpose({
         </template>
         <ElInput v-model="form.apiV3Key" size="large" clearable :placeholder="$t('form_input_placeholder')" />
       </ElFormItem>
-      <ElFormItem
-        :label="$t('module.payment_wechat_cert')" prop="certPath"
-        :rules="generateInputRules({ message: 'module.payment_wechat_cert_placeholder' })"
-      >
+      <ElFormItem :label="$t('payment.wechat_cert')" prop="certPath" :rules="generateInputRules({ message: 'payment.wechat_cert_placeholder' })">
         <template #label>
-          <span>{{ $t('module.payment_wechat_cert') }}</span>
+          <span>{{ $t('payment.wechat_cert') }}</span>
           <span class="text-[#9A9A9A] gap-1 ml-2 text-sm hover:opacity-80 cursor-pointer" @click="onGuideOpen({ mode: 'cert' })">
             <svg-icon class="inline translate-y-0.5" name="help" width="14" color="#999" />
             {{ $t('how_get') }}
@@ -231,24 +244,30 @@ defineExpose({
         <UploadCertificate v-model="form.certPath" v-model:file-name="form.certName" @change="$refs.form_ref.validateField('certPath')" />
       </ElFormItem>
       <ElFormItem
-        :label="$t('module.payment_wechat_private_key')" prop="privateKeyPath"
-        :rules="generateInputRules({ message: 'module.payment_wechat_private_key_placeholder' })"
+        :label="$t('payment.wechat_private_key')"
+        prop="privateKeyPath"
+        :rules="generateInputRules({ message: 'payment.wechat_private_key_placeholder' })"
       >
         <template #label>
-          <span>{{ $t('module.payment_wechat_private_key') }}</span>
+          <span>{{ $t('payment.wechat_private_key') }}</span>
           <span class="text-[#9A9A9A] gap-1 ml-2 text-sm hover:opacity-80 cursor-pointer" @click="onGuideOpen({ mode: 'cert' })">
             <svg-icon class="inline translate-y-0.5" name="help" width="14" color="#999" />
             {{ $t('how_get') }}
           </span>
         </template>
-        <UploadCertificate v-model="form.privateKeyPath" v-model:file-name="form.privateKeyName" @change="$refs.form_ref.validateField('privateKeyPath')" />
+        <UploadCertificate
+          v-model="form.privateKeyPath"
+          v-model:file-name="form.privateKeyName"
+          @change="$refs.form_ref.validateField('privateKeyPath')"
+        />
       </ElFormItem>
       <ElFormItem
-        :label="$t('module.payment_wechat_serial_no')" prop="serialNo"
-        :rules="generateInputRules({ message: 'module.payment_wechat_serial_no_placeholder' })"
+        :label="$t('payment.wechat_serial_no')"
+        prop="serialNo"
+        :rules="generateInputRules({ message: 'payment.wechat_serial_no_placeholder' })"
       >
         <template #label>
-          <span>{{ $t('module.payment_wechat_serial_no') }}</span>
+          <span>{{ $t('payment.wechat_serial_no') }}</span>
           <span class="text-[#9A9A9A] gap-1 ml-2 text-sm hover:opacity-80 cursor-pointer" @click="onGuideOpen({ mode: 'serial' })">
             <svg-icon class="inline translate-y-0.5" name="help" width="14" color="#999" />
             {{ $t('how_get') }}
@@ -272,7 +291,13 @@ defineExpose({
         <li v-for="(item, index) in guideList" :key="index" class="flex flex-col gap-2 text-[#1D1E1F] text-sm">
           <div class="text-wrap break-words whitespace-pre-wrap" v-html="item.title" />
           <div v-for="(image, imageIndex) in item.imageList" :key="imageIndex" class="w-full">
-            <ElImage :src="$getRealPath({ url: image })" class="w-full" fit="contain" :preview-teleported="true" :preview-src-list="[$getRealPath({ url: image })]" />
+            <ElImage
+              :src="$getRealPath({ url: image })"
+              class="w-full"
+              fit="contain"
+              :preview-teleported="true"
+              :preview-src-list="[$getRealPath({ url: image })]"
+            />
           </div>
         </li>
       </ul>
@@ -280,4 +305,4 @@ defineExpose({
   </ElDialog>
 </template>
 
-<style scoped lang="scss"></style>
+<style scoped></style>

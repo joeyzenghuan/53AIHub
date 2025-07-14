@@ -12,24 +12,30 @@ import (
 )
 
 type Enterprise struct {
-	Eid          int64  `json:"id" gorm:"primaryKey;autoIncrement"`
-	DisplayName  string `json:"display_name" gorm:"not null" binding:"required" example:"Enterprise Name"`
-	Logo         string `json:"logo" gorm:"not null" binding:"required" example:"http://a.com/a.jpg"`
-	Ico          string `json:"ico" gorm:"type:varchar(100);default:'';not null" example:"http://a.com/favicon.ico"`
-	Keywords     string `json:"keywords" gorm:"type:text;not null" example:"AI,Hub,Agent"`
-	Copyright    string `json:"copyright" gorm:"type:varchar(255);default:'';not null" example:"© 2023 Company Name"`
-	Type         string `json:"type" gorm:"type:varchar(20);default:independent;not null;comment:'站点类型：independent、enterprise、industry'" example:"independent、enterprise、industry"`
-	Banner       string `json:"banner" gorm:"type:text;not null" example:"http://a.com/banner.jpg"`
-	Language     string `json:"language" gorm:"type:varchar(10);default:zh-cn;not null" binding:"required" example:"En"`
-	Timezone     string `json:"timezone" gorm:"type:varchar(20);default:UTC+8;not null" binding:"required" example:"UTC+8"`
-	Domain       string `json:"domain" gorm:"not null" binding:"required" example:"http://a.com"`
-	Slogan       string `json:"slogan" gorm:"not null" binding:"required" example:"Slogan Test"`
-	Status       int    `json:"status" gorm:"type:int;default:1;not null" example:"1"`
-	Description  string `json:"description" gorm:"not null" example:"Description Test"`
-	TemplateType string `json:"template_type" gorm:"type:text;not null" example:"default"`
-	LayoutType   string `json:"layout_type" gorm:"type:varchar(10);default:1;not null" example:"1"`
-	WecomCorpID  string `json:"wecom_corp_id" gorm:"type:varchar(100);default:'';not null" example:""`
+	Eid              int64             `json:"id" gorm:"primaryKey;autoIncrement"`
+	DisplayName      string            `json:"display_name" gorm:"not null" binding:"required" example:"Enterprise Name"`
+	Logo             string            `json:"logo" gorm:"not null" binding:"required" example:"http://a.com/a.jpg"`
+	Ico              string            `json:"ico" gorm:"type:varchar(100);default:'';not null" example:"http://a.com/favicon.ico"`
+	Keywords         string            `json:"keywords" gorm:"type:text;not null" example:"AI,Hub,Agent"`
+	Copyright        string            `json:"copyright" gorm:"type:varchar(255);default:'';not null" example:"© 2023 Company Name"`
+	Type             string            `json:"type" gorm:"type:varchar(20);default:independent;not null;comment:'站点类型：independent、enterprise、industry'" example:"independent、enterprise、industry"`
+	Banner           string            `json:"banner" gorm:"type:text;not null" example:"http://a.com/banner.jpg"`
+	Language         string            `json:"language" gorm:"type:varchar(10);default:zh-cn;not null" binding:"required" example:"En"`
+	Timezone         string            `json:"timezone" gorm:"type:varchar(20);default:UTC+8;not null" binding:"required" example:"UTC+8"`
+	Domain           string            `json:"domain" gorm:"not null" binding:"required" example:"http://a.com"`
+	Slogan           string            `json:"slogan" gorm:"not null" binding:"required" example:"Slogan Test"`
+	Status           int               `json:"status" gorm:"type:int;default:1;not null" example:"1"`
+	Description      string            `json:"description" gorm:"not null" example:"Description Test"`
+	TemplateType     string            `json:"template_type" gorm:"type:text;not null" example:"default"`
+	LayoutType       string            `json:"layout_type" gorm:"type:varchar(10);default:1;not null" example:"1"`
+	WecomCorpID      string            `json:"wecom_corp_id" gorm:"type:varchar(100);default:'';not null" example:""`
+	WecomInstallInfo *WecomInstallInfo `json:"wecom_install_info" gorm:"-"`
 	BaseModel
+}
+
+type WecomInstallInfo struct {
+	InstallWecomApp int           `json:"install_wecom_app" default:"0"`
+	AuthCorpInfo    *AuthCorpInfo `json:"auth_corp_info"`
 }
 
 const (
@@ -346,23 +352,23 @@ func InitializeSystem() error {
 
 	logger.SysLogf("System initialization completed successfully")
 	logger.SysLogf("\033[34m" + `
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢀⣤⣀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⢻⣿⡿⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⣀⣀⣀⣀⣠⣶⣾⣿⣷⣶⣄⣀⣀⣀⣀⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⣾⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣷⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⢀⡀⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⢀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⢰⣿⡇⣿⣿⣿⡏⠀⠀⢉⣿⣿⣿⠁⠀⠈⢹⣿⣿⣿⣿⣿⡆⠀⠀⠀
-⠀⠀⠀⠀⠸⣿⡇⣿⣿⣿⣿⣶⣶⣾⣿⣿⣿⣶⣶⣶⣿⣿⣿⣿⣿⣿⠇⠀⠀⠀
-⠀⠀⠀⠀⠀⠈⠁⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⠈⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⢿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⣿⡿⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠉⠉⠉⠉⠉⠨⣿⣿⣿⡿⠋⠉⠉⠉⠉⠀⠀⠀⠀⠀⠀⠀
-⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠻⠿⠋⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀⠀
+                    @                
+                   ###                
+           /###################\      
+          |#####################|     
+        ##|#####################|##  
+       ###|####    #####    ####|###  
+        ##|#####################|##  
+          |#####################|     
+           \###################/      
+                  ######              
+                  ###                 
+                  @
 	` + "\033[0m")
 	logger.SysLogf("\033[32m\n" +
 		"#################################\n" +
 		"#  Email: admin@53ai.com        #\n" +
 		"#  Password: admin888           #\n" +
-		"#  http://localhost:3000        #\n" +
 		"#################################\n" +
 		"\033[0m")
 	return nil
@@ -512,4 +518,25 @@ func GetEnterpriseByWecomCorpID(wecomCorpID string) (*Enterprise, error) {
 		return nil, err
 	}
 	return &enterprise, nil
+}
+
+func (e *Enterprise) LoadWecomCorpInfo(suiteID string, loadType int) error {
+	e.WecomInstallInfo = &WecomInstallInfo{
+		InstallWecomApp: 0,
+	}
+	if e.WecomCorpID == "" || suiteID == "" {
+		return nil
+	}
+
+	wc, err := GetWecomCorp(suiteID, e.WecomCorpID)
+	if wc == nil || err != nil {
+		return nil
+	}
+
+	e.WecomInstallInfo.InstallWecomApp = 1
+	if loadType == 1 {
+		e.WecomInstallInfo.AuthCorpInfo = wc.GetAuthCorpInfo()
+	}
+
+	return nil
 }

@@ -12,7 +12,6 @@ import (
 	"github.com/53AI/53AIHub/service/hub_adaptor/coze"
 	"github.com/53AI/53AIHub/service/hub_adaptor/custom"
 	"github.com/53AI/53AIHub/service/hub_adaptor/dify"
-	"github.com/53AI/53AIHub/service/hub_adaptor/fastgpt"
 	Hub_openai "github.com/53AI/53AIHub/service/hub_adaptor/openai"
 	"github.com/53AI/53AIHub/service/hub_adaptor/yuanqi"
 	"github.com/songquanpeng/one-api/relay/adaptor"
@@ -89,7 +88,7 @@ func GetAdaptor(apiType int) adaptor.Adaptor {
 	case model.ChannelApiYuanqi:
 		return &yuanqi.Adaptor{}
 	case model.ChannelApiTypeFastGpt:
-		return &fastgpt.Adaptor{}
+		return &Hub_openai.Adaptor{}
 	}
 
 	return nil
@@ -124,9 +123,6 @@ func SetCustomConfig(a *adaptor.Adaptor, customConfig *custom.CustomConfig) erro
 		v.CustomConfig = customConfig
 		v.CustomConfig.ConversationId = fmt.Sprintf("53AIHub_%d", customConfig.AIHubConversationId)
 	case *yuanqi.Adaptor:
-		v.CustomConfig = customConfig
-	case *fastgpt.Adaptor:
-		customConfig.ConversationId = fmt.Sprintf("53AIHub_%d", customConfig.AIHubConversationId)
 		v.CustomConfig = customConfig
 	}
 	return nil

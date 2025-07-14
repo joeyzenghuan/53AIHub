@@ -4,17 +4,15 @@ import { useRouter } from 'vue-router'
 
 import CreateDrawer from '@/views/agent/create/drawer.vue'
 
-import { deepCopy } from '@/utils'
 import eventBus from '@/utils/event-bus'
 
-import {
-  AGENT_APP_OPTIONS,
-  AGENT_TYPE,
-  agentApi,
-} from '@/api/modules/agent'
-import { PROVIDER_VALUE, providerApi } from '@/api/modules/provider'
+import { agentApi } from '@/api/modules/agent'
+import { providerApi } from '@/api/modules/provider'
 import { subscriptionApi } from '@/api/modules/subscription'
 import { GROUP_TYPE_AGENT } from '@/api/modules/group'
+import { getProvidersByAuth, getProviderByAgentId, AgentType } from '@/constants/platform/config'
+import { AGENT_APP_OPTIONS } from '@/constants/platform/agent'
+import { VERSION_MODULE } from '@/constants/enterprise'
 
 interface SubscriptionItem {
   group_id: number
@@ -34,20 +32,32 @@ const filter_form = reactive({
   group_id: '-1',
   keyword: '',
   page: 1,
-  page_size: 10,
+  page_size: 10
 })
+const all_total = ref(0)
 const table_data = ref<Agent.State[]>([])
 const table_total = ref(0)
 const table_loading = ref(false)
 const add_visible = ref(false)
-const agent_app_options = ref(deepCopy(AGENT_APP_OPTIONS))
 const subscriptionList = ref<SubscriptionItem[]>([])
 
+const auth_providers = ref<ProviderItem[]>([])
+
 const loadSubscriptionList = async () => {
-  if (!subscriptionList.value.length)
-    subscriptionList.value = await subscriptionApi.list({ params: { offset: 0, limit: 1000 } })
+  if (!subscriptionList.value.length) subscriptionList.value = await subscriptionApi.list({ params: { offset: 0, limit: 1000 } })
 }
 
+const loadAllTotal = async () => {
+  const { count = 0 } = await agentApi.list({
+    params: {
+      group_id: '-1',
+      keyword: '',
+      offset: 0,
+      limit: 1
+    }
+  })
+  all_total.value = count
+}
 const loadListData = async () => {
   table_loading.value = true
   await loadSubscriptionList()
@@ -58,8 +68,8 @@ const loadListData = async () => {
         group_id: filter_form.group_id,
         keyword: filter_form.keyword,
         offset: (filter_form.page - 1) * filter_form.page_size,
-        limit: filter_form.page_size,
-      },
+        limit: filter_form.page_size
+      }
     })
 
     table_total.value = count
@@ -69,17 +79,20 @@ const loadListData = async () => {
     table_data.value = agents.map((item: Partial<Agent.State> = {}) => {
       const agent = item as Agent.State
       agent.user_group_ids = agent.user_group_ids || []
-      agent.user_group_names = agent.user_group_ids.map((value) => {
-        const subscription = subscriptionList.value.find(row => row.group_id === value)
-        return subscription?.group_name || ''
-      }).filter(group_name => !!group_name)
+      agent.user_group_names = agent.user_group_ids
+        .map((value) => {
+          const subscription = subscriptionList.value.find((row) => row.group_id === value)
+          return subscription?.group_name || ''
+        })
+        .filter((group_name) => !!group_name)
 
       return agent
     })
-  }
-  finally {
+  } finally {
     table_loading.value = false
   }
+
+  loadAllTotal()
 }
 
 const refresh = async () => {
@@ -108,27 +121,32 @@ const coze_cn_is_auth = ref(false)
 const app_builder_is_auth = ref(false)
 
 const loadProviderList = async () => {
-  const list = await providerApi.list() as ProviderItem[]
-  coze_cn_is_auth.value = !!list.find(item => item.provider_type === PROVIDER_VALUE.COZE_CN)
-  app_builder_is_auth.value = !!list.find(item => item.provider_type === PROVIDER_VALUE.APP_BUILDER)
+  const list = (await providerApi.list()) as ProviderItem[]
+
+  auth_providers.value = getProvidersByAuth(true).map((item) => {
+    const provider_type = item.id
+    return {
+      ...item,
+      provider_type,
+      is_auth: !!list.find((row) => row.provider_type === provider_type)
+    }
+  })
 }
 
-const checkAuth = (value: string): Promise<void> => {
+const checkAuth = (value: AgentType): Promise<void> => {
   return new Promise<void>((resolve, reject) => {
-    if ((!coze_cn_is_auth.value && AGENT_TYPE.COZE_AGENT_CN === value)
-        || (!app_builder_is_auth.value && AGENT_TYPE.APP_BUILDER === value)) {
+    const provider = getProviderByAgentId(value)
+    const auth_provider = auth_providers.value.find((row) => row.provider_type === provider.id)
+
+    if (auth_provider && !auth_provider?.is_auth) {
       reject(new Error('Authentication required'))
-      return ElMessageBox.confirm(
-        window.$t(AGENT_TYPE.APP_BUILDER === value ? 'app_builder_not_auth' : 'coze_cn_not_auth', window.$t('tip')),
-        window.$t('tip'),
-        {
-          confirmButtonText: window.$t('action_go'),
-          cancelButtonText: window.$t('action_cancel'),
-          type: 'warning',
-        },
-      ).then(() => {
+      return ElMessageBox.confirm(window.$t('auth_required', { provider_name: window.$t(provider.label) }), window.$t('tip'), {
+        confirmButtonText: window.$t('action_go'),
+        cancelButtonText: window.$t('action_cancel'),
+        type: 'warning'
+      }).then(() => {
         router.push({
-          name: 'Platform',
+          name: 'Platform'
         })
       })
     }
@@ -142,8 +160,9 @@ const handleAgentPrepare = async (data: { value: string; channel_type: number })
   createDrawerRef.value.open({
     agent_type: data.value,
     group_id: +filter_form.group_id > 0 ? filter_form.group_id : undefined,
-    data: { channel_config: { channel_type: data.channel_type } },
+    data: { channel_config: { channel_type: data.channel_type } }
   })
+
   add_visible.value = false
 }
 
@@ -155,12 +174,12 @@ const onAgentAdd = async (value: string, data: Partial<Agent.State> = {}) => {
     query: data.agent_id
       ? {
           type: data.agent_type,
-          agent_id: data.agent_id,
+          agent_id: data.agent_id
         }
       : {
           type: value,
-          group_id: +filter_form.group_id > 0 ? filter_form.group_id : undefined,
-        },
+          group_id: +filter_form.group_id > 0 ? filter_form.group_id : undefined
+        }
   })
 }
 
@@ -191,7 +210,12 @@ onUnmounted(() => {
   <Layout class="px-[60px] py-8">
     <Header :title="$t('module.agent')">
       <template #right>
-        <el-button type="primary" size="large" @click="add_visible = true">
+        <el-button
+          type="primary"
+          v-version="{ module: VERSION_MODULE.AGENT, count: all_total, content: $t('version.agent_limit') }"
+          size="large"
+          @click="add_visible = true"
+        >
           + {{ $t('action_add') }}
         </el-button>
       </template>
@@ -199,19 +223,13 @@ onUnmounted(() => {
 
     <div class="flex items-center justify-between mt-5">
       <div class="flex-1 w-0">
-        <GroupTabs
-          ref="groupTabsRef" v-model="filter_form.group_id" :group-type="GROUP_TYPE_AGENT"
-          @change="refresh"
-        />
+        <GroupTabs ref="groupTabsRef" v-model="filter_form.group_id" :group-type="GROUP_TYPE_AGENT" @change="refresh" />
       </div>
       <div class="flex-none flex-center gap-3 ml-8">
         <Search v-model="filter_form.keyword" placeholder="module.agent_search_placeholder" @change="refresh" />
-        <div
-          class="flex items-center gap-1 whitespace-nowrap cursor-pointer text-[#576D9C]"
-          @click="groupTabsRef.open"
-        >
+        <div class="flex items-center gap-1 whitespace-nowrap cursor-pointer text-[#576D9C]" @click="groupTabsRef.open">
           <svg-icon name="cate-manage" width="14px" height="14px" />
-          <div class="text-sm ">
+          <div class="text-sm">
             {{ $t('group') }}
           </div>
         </div>
@@ -221,14 +239,19 @@ onUnmounted(() => {
     <div class="flex-1 overflow-y-auto bg-white rounded-lg px-5 py-5 mt-4">
       <TablePlus
         header-row-class-name="rounded overflow-hidden"
-        header-cell-class-name="!bg-[#F6F7F8] !h-[60px] !border-none" :data="table_data" :total="table_total"
-        :loading="table_loading" :page="filter_form.page" :limit="filter_form.page_size"
-        @page-size-change="onTableSizeChange" @page-current-change="onTableCurrentChange"
+        header-cell-class-name="!bg-[#F6F7F8] !h-[60px] !border-none"
+        :data="table_data"
+        :total="table_total"
+        :loading="table_loading"
+        :page="filter_form.page"
+        :limit="filter_form.page_size"
+        @page-size-change="onTableSizeChange"
+        @page-current-change="onTableCurrentChange"
       >
         <ElTableColumn prop="date" :label="$t('module.agent')" min-width="180" show-overflow-tooltip>
           <template #default="{ row }">
             <div class="flex items-center gap-2 w-full">
-              <img class="flex-none w-8 h-8 rounded-full overflow-hidden" :src="row.logo" alt="">
+              <img class="flex-none w-8 h-8 rounded-full overflow-hidden" :src="row.logo" alt="" />
               <div class="flex-1 w-0 text-sm flex flex-col">
                 <div class="text-[#2563EB] truncate">
                   {{ row.name || '--' }}
@@ -278,23 +301,21 @@ onUnmounted(() => {
 
   <el-drawer v-model="add_visible" :title="$t('action_add')" size="650px" @opened="onAddOpened">
     <ul class="w-full min-h-[300px] overflow-y-auto">
-      <li v-for="(item, itemIndex) in agent_app_options" :key="itemIndex">
+      <li v-for="(item, itemIndex) in AGENT_APP_OPTIONS" :key="itemIndex">
         <h4 class="text-sm text-[#939499]">
           {{ $t(item.title) }}
         </h4>
         <ul class="flex flex-col gap-5 pt-4 pb-6">
           <li
-            v-for="row in item.children" :key="row.value"
+            v-for="row in item.children"
+            :key="row.value"
             class="h-[72px] px-6 rounded flex items-center gap-3 bg-[#F8F9FA] cursor-pointer hover:shadow"
           >
-            <img class="flex-none size-10 rounded-lg" :src="row.icon" alt="">
+            <img class="flex-none size-10 rounded-lg" :src="row.icon" alt="" />
             <div class="flex-1 text-base text-[#1D1E1F] truncate">
               {{ $t(row.label) }}
             </div>
-            <ElButton
-              type="primary" plain class="border-none"
-              @click="handleAgentPrepare(row)"
-            >
+            <ElButton type="primary" plain class="border-none" @click="handleAgentPrepare(row)">
               {{ $t('action_add') }}
             </ElButton>
           </li>
@@ -303,7 +324,7 @@ onUnmounted(() => {
     </ul>
   </el-drawer>
 
-  <CreateDrawer ref="createDrawerRef" @success="row => onAgentAdd(row.agent_type, row)" />
+  <CreateDrawer ref="createDrawerRef" @success="(row) => onAgentAdd(row.agent_type, row)" />
 </template>
 
 <style lang="scss" scoped>

@@ -50,11 +50,14 @@ type EnterpriseAddUserRequest struct {
 
 // Modify EnterpriseUserGetRequest struct, add Role field
 type EnterpriseUserGetRequest struct {
-	Keyword string `json:"keyword" form:"keyword" example:"Json"`
-	GroupId int64  `json:"group_id" form:"group_id" example:"0"`
-	Role    string `json:"role" form:"role" example:"1,2"` // Role parameter, allows multiple role values separated by commas
-	Offset  int    `json:"offset" form:"offset" example:"0"`
-	Limit   int    `json:"limit" form:"limit" example:"10"`
+	Keyword   string `json:"keyword" form:"keyword" example:"Json"`
+	GroupId   int64  `json:"group_id" form:"group_id" example:"0"`
+	Role      string `json:"role" form:"role" example:"1,2"` // Role parameter, allows multiple role values separated by commas
+	Offset    int    `json:"offset" form:"offset" example:"0"`
+	Limit     int    `json:"limit" form:"limit" example:"10"`
+	StartTime int64  `json:"start_time" form:"start_time" example:"0"`
+	EndTime   int64  `json:"end_time" form:"end_time" example:"0"`
+	RangeBy   string `json:"range_by" form:"range_by" example:"expired_time"` // Sorting field, default is expired_time, optional value: created_time
 }
 
 type EnterpriseUsersResponse struct {
@@ -218,6 +221,15 @@ func PasswordRegister(c *gin.Context) {
 		return
 	}
 
+	params := map[string]interface{}{
+		"from": "user",
+	}
+	_, err = service.IsFeatureAvailable(c, "registered_user", params)
+	if err != nil {
+		c.JSON(http.StatusForbidden, model.FeatureNotAvailableError.ToResponse(err))
+		return
+	}
+
 	username := userRequest.Username
 
 	isEmail := helper.IsValidEmail(username)
@@ -339,11 +351,14 @@ func EnterpriseAddUser(c *gin.Context) {
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param keyword query string false "Keyword"
-// @Param group_id query int false "Group ID"
-// @Param role query string false "Role IDs, comma separated"
-// @Param offset query int false "Offset"
-// @Param limit query int false "Limit"
+// @Param keyword query string false "Search keyword, matches username, email or phone"
+// @Param group_id query int false "Filter by user group ID"
+// @Param role query string false "Filter by role IDs, multiple roles separated by commas"
+// @Param offset query int false "Pagination offset, default 0"
+// @Param limit query int false "Pagination limit, default 20, max 100"
+// @Param start_time query int64 false "Time range start (timestamp)"
+// @Param endtime query int64 false "Time range end (timestamp)"
+// @Param range_by query string false "Range field, default is expired_time, optional value: created_time"
 // @Success 200 {object} model.CommonResponse{data=EnterpriseUsersResponse} "Success"
 // @Router /api/users [get]
 // @Router /api/users/admin [get]
@@ -377,8 +392,43 @@ func EnterpriseUsers(c *gin.Context) {
 		limit = 10
 	}
 
-	eid := config.GetEID(c)
-	count, users, err := model.GetUserListWithRoles(eid, userGetRequest.Keyword, userGetRequest.GroupId, roleStr, userType, offset, limit)
+	// Process sorting parameters
+	rangeBy := userGetRequest.RangeBy
+	if rangeBy == "" {
+		rangeBy = "expired_time"
+	}
+	// Validate sorting field
+	validOrderFields := map[string]bool{"expired_time": true, "created_time": true}
+	if !validOrderFields[rangeBy] {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToNewErrorResponse("order by field must be either 'expired_time' or 'created_time'"))
+		return
+	}
+
+	// Get enterprise ID
+	enterpriseID := config.GetEID(c)
+
+	// Process time range filters
+	var timeStart, timeEnd int64
+	if userGetRequest.StartTime > 0 {
+		timeStart = userGetRequest.StartTime
+	}
+	if userGetRequest.EndTime > 0 {
+		timeEnd = userGetRequest.EndTime
+	}
+
+	// Get user list with filtering
+	count, users, err := model.GetUserListWithRoles(
+		enterpriseID,
+		userGetRequest.Keyword,
+		userGetRequest.GroupId,
+		roleStr,
+		userType,
+		rangeBy,
+		timeStart,
+		timeEnd,
+		offset,
+		limit,
+	)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
@@ -1065,11 +1115,13 @@ func RegisterUserToInternal(c *gin.Context) {
 
 // InternalUserRequest 定义获取内部用户列表的请求参数
 type InternalUserRequest struct {
-	Keyword string `json:"keyword" form:"keyword" example:"张三"` // 关键词，用于搜索部门名称或用户昵称/手机号
-	Status  int    `json:"status" form:"status" example:"-1""`  // 用户状态，-1表示全部，0未加入，1已加入，2被禁用
-	Offset  int    `json:"offset" form:"offset" example:"0"`    // 分页偏移量
-	Limit   int    `json:"limit" form:"limit" example:"10"`     // 每页数量
-	DID     int64  `json:"did" form:"did" example:"0"`          // 部门ID，0表示不按部门筛选
+	Keyword string `json:"keyword" form:"keyword" example:"张三"`  // 关键词，用于搜索部门名称或用户昵称/手机号
+	Status  int    `json:"status" form:"status" example:"-1""`   // 用户状态，-1表示全部，0未加入，1已加入，2被禁用
+	Offset  int    `json:"offset" form:"offset" example:"0"`     // 分页偏移量
+	Limit   int    `json:"limit" form:"limit" example:"10"`      // 每页数量
+	DID     int64  `json:"did" form:"did" example:"0"`           // 部门ID，0表示不按部门筛选
+	From    int    `json:"from" form:"from" example:"0"`         // 来源，0表示不按来源筛选
+	NotBind int    `json:"not_bind" form:"not_bind" example:"0"` // 是否未绑定，0表示不筛选，1表示未绑定
 }
 
 // InternalUserResponse 定义内部用户列表的响应结构
@@ -1089,7 +1141,9 @@ type InternalUserResponse struct {
 // @Param status query int false "用户状态，-1表示全部，0未加入，1已加入，2被禁用，默认为-1"
 // @Param offset query int false "分页偏移量，默认为0"
 // @Param limit query int false "每页数量，默认为10"
+// @Param not_bind query int false "筛选没有绑定的用户，0表示不筛选，1表示未绑定"
 // @Param did query int false "部门ID，0表示不按部门筛选"
+// @Param from query int false "来源，0 1企业微信"
 // @Success 200 {object} model.CommonResponse{data=InternalUserResponse} "成功"
 // @Failure 400 {object} model.CommonResponse "参数错误"
 // @Failure 401 {object} model.CommonResponse "未授权"
@@ -1128,7 +1182,9 @@ func GetInternalUsers(c *gin.Context) {
 		req.Status,
 		req.Offset,
 		req.Limit,
-		req.DID, // 传递部门ID参数
+		req.DID,
+		req.From,
+		req.NotBind,
 	)
 
 	if err != nil {
@@ -1334,8 +1390,15 @@ func UpdateInternalUser(c *gin.Context) {
 	// Update department relationships if provided
 	if len(req.Department) > 0 {
 		// Fetch existing department relationships
+		bindvalue, err := model.GetMemberBindingByDepartmentFromBackend(id, tx)
+		if err != nil || bindvalue == nil {
+			tx.Rollback()
+			c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+			return
+		}
+
 		var existingRelations []*model.MemberDepartmentRelation
-		if err := tx.Where("bid = ? AND eid = ?", id, eid).Find(&existingRelations).Error; err != nil {
+		if err := tx.Where("bid = ? AND eid = ?", bindvalue.ID, eid).Find(&existingRelations).Error; err != nil {
 			tx.Rollback()
 			c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
 			return
@@ -1364,7 +1427,7 @@ func UpdateInternalUser(c *gin.Context) {
 
 		// Delete removed department relationships
 		if len(deptToDelete) > 0 {
-			if err := tx.Where("bid = ? AND eid = ? AND did IN ?", id, eid, deptToDelete).Delete(&model.MemberDepartmentRelation{}).Error; err != nil {
+			if err := tx.Where("eid = ? AND did IN ?", eid, deptToDelete).Delete(&model.MemberDepartmentRelation{}).Error; err != nil {
 				tx.Rollback()
 				c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
 				return
@@ -1381,7 +1444,7 @@ func UpdateInternalUser(c *gin.Context) {
 			// Create new department relationship
 			relation := model.MemberDepartmentRelation{
 				EID: eid,
-				BID: id,
+				BID: bindvalue.ID,
 				DID: deptID,
 			}
 			if err := tx.Create(&relation).Error; err != nil {
@@ -1538,7 +1601,7 @@ func ResetPassword(c *gin.Context) {
 
 // UpdateUserMobileRequest 更新用户手机号请求结构体
 type UpdateUserMobileRequest struct {
-	OldCode   string `json:"old_code"`   // 原手机号验证码
+	OldCode   string `json:"old_code"`                      // 原手机号验证码
 	NewMobile string `json:"new_mobile" binding:"required"` // 新手机号
 	NewCode   string `json:"new_code" binding:"required"`   // 新手机号验证码
 }
@@ -1619,5 +1682,145 @@ func UpdateUserMobile(c *gin.Context) {
 		return
 	}
 
+	c.JSON(http.StatusOK, model.Success.ToResponse(user))
+}
+
+// @Summary 获取组织用户列表
+// @Description 获取指定组织下的所有用户信息及其成员绑定关系
+// @Tags User
+// @Accept application/json
+// @Produce application/json
+// @Security BearerAuth
+// @Param did query int64 false "部门ID" default(0)
+// @Param status query int false "用户状态（0：未加入，1：已加入 -1 全部）" default(-1)
+// @Param from query int false "绑定来源（0：默认，1：企业微信）" default(0)
+// @Param keyword query string false "搜索关键字"
+// @Param offset query int false "offset" default(0)
+// @Param limit query int false "limit" default(10)
+// @Param user_status query int false "用户状态 -1 全部" default(-1)
+// @Success 200 {object} model.CommonResponse(data=service.OrganizationUserListParams) "成功返回用户列表及绑定关系"
+// @Router /api/users/organization [get]
+func GetOrganizationUserList(c *gin.Context) {
+	var req service.OrganizationUserListParams
+	if err := c.ShouldBindQuery(&req); err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+	eid := config.GetEID(c)
+	req.EID = eid
+
+	if req.From == model.DepartmentFromBackend {
+		err := service.InitFromBackendMemberBinding(eid)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+			return
+		}
+	}
+
+	if req.From == model.DepartmentFromWecom {
+		if req.Status == model.MemberBindingStatusInactive {
+			req.UserStatus = model.UserStatusNotJoined
+		} else if req.Status == model.MemberBindingStatusActive {
+			req.UserStatus = model.UserStatusJoined
+		}
+	}
+
+	userListResp, err := service.GetOrganizationalUserList(req)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(userListResp))
+}
+
+// SetUserToDefaultSubscription sets a user's subscription to the default subscription
+// @Summary Set user to default subscription
+// @Description Updates the user's subscription to the default subscription and sets the expiration time to permanent
+// @Tags User
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param id path int true "User ID"
+// @Success 200 {object} model.CommonResponse "Success"
+// @Failure 400 {object} model.CommonResponse "Parameter error"
+// @Failure 403 {object} model.CommonResponse "Forbidden"
+// @Failure 404 {object} model.CommonResponse "User not found"
+// @Failure 500 {object} model.CommonResponse "System error"
+// @Router /api/users/{id}/default_subscription [put]
+func SetUserToDefaultSubscription(c *gin.Context) {
+	// Parse user ID from the request path
+	userID, err := strconv.ParseInt(c.Param("id"), 10, 64)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(fmt.Errorf("Invalid user ID")))
+		return
+	}
+
+	// Get the current logged-in user's ID and role
+	currentUserID := config.GetUserId(c)
+	currentUserRole := config.GetUserRole(c)
+
+	// Check if the current user is an admin
+	if currentUserRole < model.RoleAdminUser {
+		// If not an admin, ensure the user can only modify their own subscription
+		if currentUserID != userID {
+			c.JSON(http.StatusForbidden, model.ForbiddenError.ToResponse(fmt.Errorf("You can only modify your own subscription")))
+			return
+		}
+	}
+
+	// Retrieve the user by ID
+	user, err := model.GetUserByID(userID)
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			c.JSON(http.StatusNotFound, model.NotFound.ToResponse(fmt.Errorf("User not found")))
+			return
+		}
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	// Check if the user's subscription has expired
+	currentTime := time.Now().UnixMilli()
+	if user.ExpiredTime > currentTime {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(fmt.Errorf("Subscription has not expired yet")))
+		return
+	}
+
+	// Retrieve the default subscription setting
+	defaultSubscription, err := model.GetDefaultSubscription(user.Eid)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(fmt.Errorf("Failed to retrieve default subscription: %v", err)))
+		return
+	}
+
+	// Update the user's subscription to the default subscription
+	user.GroupId = defaultSubscription.GroupId
+	user.ExpiredTime = 0 // Set expiration time to permanent
+
+	// Save the updated user information
+	if err := user.Update(false); err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(fmt.Errorf("Failed to update user subscription: %v", err)))
+		return
+	}
+
+	// Log the subscription change
+	model.LogEntityChange(
+		fmt.Sprintf("User【%s】subscription updated to default", user.Nickname),
+		model.SystemLogActionUpdate,
+		user.Eid,
+		user.UserID,
+		user.Nickname,
+		model.SystemLogModuleRegistered,
+		nil,
+		user,
+		utils.GetClientIP(c),
+		map[string]string{
+			"GroupId":     "Subscription Group ID",
+			"ExpiredTime": "Expiration Time",
+		},
+	)
+
+	// Return success response
 	c.JSON(http.StatusOK, model.Success.ToResponse(user))
 }

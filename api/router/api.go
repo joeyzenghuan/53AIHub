@@ -54,6 +54,7 @@ func SetApiRouter(router *gin.Engine) {
 	userRoute.PATCH("/:id/email", middleware.UserTokenAuth(model.RoleCommonUser), controller.UpdateUserEmail)
 	userRoute.PUT("/me", middleware.UserTokenAuth(model.RoleCommonUser), controller.UpdateCurrentUser)
 	userRoute.POST("/system_log", middleware.UserTokenAuth(model.RoleCommonUser), controller.CreateSystemLogs)
+	userRoute.PUT("/:id/default_subscription", middleware.UserTokenAuth(model.RoleCommonUser), controller.SetUserToDefaultSubscription)
 	userRoute.Use(middleware.UserTokenAuth(model.RoleAdminUser))
 	{
 		userRoute.POST("", controller.EnterpriseAddUser)
@@ -70,6 +71,7 @@ func SetApiRouter(router *gin.Engine) {
 		userRoute.PATCH("/:id/status", controller.UpdateUserStatus)
 		userRoute.PUT("/internal/:id", controller.UpdateInternalUser)
 		userRoute.GET("/admin", controller.EnterpriseUsers)
+		userRoute.GET("/organization", controller.GetOrganizationUserList)
 	}
 
 	groupRoute := apiRouter.Group("/groups")
@@ -207,28 +209,31 @@ func SetApiRouter(router *gin.Engine) {
 
 	paySettingRouter := apiRouter.Group("/pay_settings")
 	paySettingRouter.GET("/type/:type", controller.GetPaySettingByType)
-	paySettingRouter.Use(middleware.UserTokenAuth(model.RoleAdminUser))
 	{
-		paySettingRouter.GET("", controller.GetPaySettings)
-		paySettingRouter.GET("/:id", controller.GetPaySetting)
-		paySettingRouter.POST("", controller.CreatePaySetting)
+		paySettingRouter.GET("", middleware.UserTokenAuth(model.RoleGuestUser), controller.GetPaySettings)
+		paySettingRouter.GET("/:id", middleware.UserTokenAuth(model.RoleGuestUser), controller.GetPaySetting)
+		paySettingRouter.POST("", middleware.UserTokenAuth(model.RoleAdminUser), controller.CreatePaySetting)
 		// paySettingRouter.PUT("/:id", controller.UpdatePaySetting)
-		paySettingRouter.DELETE("/:id", controller.DeletePaySetting)
-		paySettingRouter.PATCH("/:id/config", controller.UpdatePayConfig)
-		paySettingRouter.PATCH("/:id/status", controller.UpdatePayStatus)
+		paySettingRouter.DELETE("/:id", middleware.UserTokenAuth(model.RoleAdminUser), controller.DeletePaySetting)
+		paySettingRouter.PATCH("/:id/config", middleware.UserTokenAuth(model.RoleAdminUser), controller.UpdatePayConfig)
+		paySettingRouter.PATCH("/:id/status", middleware.UserTokenAuth(model.RoleAdminUser), controller.UpdatePayStatus)
 	}
 
 	orderRouter := apiRouter.Group("/orders")
 	{
 		orderRouter.POST("", middleware.UserTokenAuth(model.RoleCommonUser), controller.CreateOrder)
 		orderRouter.PUT("/:id/manual", middleware.UserTokenAuth(model.RoleAdminUser), controller.UpdateManualTransferOrder)
-		orderRouter.GET("", middleware.UserTokenAuth(model.RoleAdminUser), controller.GetOrders)
+		orderRouter.GET("", middleware.UserTokenAuth(model.RoleCommonUser), controller.GetOrders)
+		orderRouter.GET("/me", middleware.UserTokenAuth(model.RoleCommonUser), controller.GetOrders)
 		orderRouter.GET("/:id", middleware.UserTokenAuth(model.RoleAdminUser), controller.GetOrder)
 		orderRouter.PATCH("/:id/status", middleware.UserTokenAuth(model.RoleAdminUser), controller.UpdateOrderStatus) // Only manual transfers can be marked as paid
-		orderRouter.DELETE("/:id", middleware.UserTokenAuth(model.RoleAdminUser), controller.DeleteOrder)                                                            // Only manual transfers can be deleted, but paid ones cannot be deleted
+		orderRouter.DELETE("/:id", middleware.UserTokenAuth(model.RoleAdminUser), controller.DeleteOrder)             // Only manual transfers can be deleted, but paid ones cannot be deleted
 		orderRouter.GET("/status/:order_id", middleware.UserTokenAuth(model.RoleCommonUser), controller.QueryOrderStatus)
 		orderRouter.POST("/:id/confirm", middleware.UserTokenAuth(model.RoleCommonUser), controller.ConfirmManualPayment)
 		orderRouter.GET("/user", middleware.UserTokenAuth(model.RoleAdminUser), controller.GetUserOrders)
+		orderRouter.POST("/:id/close", middleware.UserTokenAuth(model.RoleCommonUser), controller.CloseOrder)
+		orderRouter.GET("/trade/:order_id", middleware.UserTokenAuth(model.RoleAdminUser), controller.QueryTradeOrder)
+		orderRouter.POST("/trade/:order_id/refund", middleware.UserTokenAuth(model.RoleAdminUser), controller.RefunTradeOrder)
 	}
 
 	paymentRouter := apiRouter.Group("/payment")
@@ -236,6 +241,7 @@ func SetApiRouter(router *gin.Engine) {
 		paymentRouter.GET("/available", controller.GetAvailablePayTypes)
 		// Payment notification routes
 		paymentRouter.POST("/wechat/notify/:id", controller.WechatPayNotify)
+		paymentRouter.POST("/alipay/notify/:id", controller.AlipayNotify)
 	}
 
 	// Department routes

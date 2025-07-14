@@ -1,12 +1,3 @@
-<script setup lang="ts">
-import PromptView from './view.vue'
-import MainHeader from '@/layout/header.vue'
-import MFooter from '@/layout/m-footer.vue'
-import { useNavigationStore } from '@/stores/modules/navigation'
-
-const navigationStore = useNavigationStore()
-</script>
-
 <template>
   <div class="h-full bg-white flex flex-col">
     <MainHeader sticky>
@@ -22,9 +13,18 @@ const navigationStore = useNavigationStore()
         </span> -->
       </template>
     </MainHeader>
-    <PromptView />
+    <PromptView class="flex-1" />
     <MFooter />
   </div>
 </template>
+
+<script setup lang="ts">
+import PromptView from './view.vue'
+import MainHeader from '@/layout/header.vue'
+import MFooter from '@/layout/m-footer.vue'
+import { useNavigationStore } from '@/stores/modules/navigation'
+
+const navigationStore = useNavigationStore()
+</script>
 
 <style scoped></style>

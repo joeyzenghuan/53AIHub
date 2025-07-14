@@ -1,79 +1,3 @@
-<script setup lang="ts">
-import UploadImage from '@/components/Upload/image.vue'
-
-import { reactive, ref } from 'vue'
-import { getTimeStamp } from '@/utils/moment'
-import { generateInputRules } from '@/utils/form-rule'
-import { useUserStore } from '@/stores'
-
-const emits = defineEmits<{
-	(e: 'success'): void
-}>()
-
-const user_store = useUserStore()
-
-const form_ref = ref()
-const visible = ref(false)
-const editable = ref(false)
-const form = reactive({
-  avatar: '',
-	nickname: '',
-	password: '',
-	group_id: 0,
-	expired_time: '',
-})
-const origin_data = ref({})
-const subscription_options = ref([])
-const submitting = ref(false)
-
-const open = ({ data = {}, subscription_options: _subscription_options = [] } = {}) => {
-	form.avatar = data.avatar || ''
-	form.nickname = data.nickname || ''
-  form.password = data.password || ''
-	form.group_id = data.group_id || (_subscription_options[0] || {}).value || 0
-	form.expired_time = data.expired_time || ''
-	editable.value = !!data.user_id
-  origin_data.value = data
-	subscription_options.value = _subscription_options
-	if (!_subscription_options.find(item => item.value === form.group_id)) form.group_id = ''
-  visible.value = true
-}
-const close = () => {
-  visible.value = false
-  reset()
-}
-const reset = () => {
-  form.avatar = ''
-	form.nickname = ''
-  form.password = ''
-}
-const handleSave = async () => {
-	const valid = await form_ref.value.validate()
-	if (!valid) return
-	submitting.value = true
-	await user_store.save({ data: {
-		user_id: origin_data.value.user_id,
-		avatar: form.avatar,
-		nickname: form.nickname,
-		password: form.password,
-		group_id: form.group_id,
-		expired_time: (form.expired_time && getTimeStamp(form.expired_time)) || 0,
-	}
-	}).finally(() => {
-		submitting.value = false
-	})
-	emits('success')
-	ElMessage.success(window.$t('action_save_success'))
-	close()
-}
-
-defineExpose({
-  open,
-  close,
-  reset,
-})
-</script>
-
 <template>
 	<ElDialog v-model="visible" :title="$t(editable ? 'action_edit' : 'action_add')" :close-on-click-modal="false"
 		width="600px" destroy-on-close append-to-body @close="close">
@@ -101,7 +25,7 @@ defineExpose({
 			}]">
 				<ElInput v-model="form.password" size="large" :placeholder="$t('empty_to_not_change')" clearable @blur="form_ref.validateField('password')" />
 			</ElFormItem>
-			<ElFormItem :label="$t('subscription')" prop="group_id" :rules="[{
+			<ElFormItem :label="$t('subscription.title')" prop="group_id" :rules="[{
 				validator: (rule, value, callback) => {
 					if (!value) return callback(new Error($t('form_select_placeholder')))
 					callback()
@@ -112,8 +36,8 @@ defineExpose({
 					<ElOption v-for="item in subscription_options" :key="item.value" :label="item.label" :value="item.value" />
 				</ElSelect>
 			</ElFormItem>
-			<ElFormItem :label="$t('subscription_end_at')" prop="expired_time" :rules="[]">
-				<ElDatePicker v-model="form.expired_time" format="YYYY-MM-DD" value-format="YYYY-MM-DD" size="large"
+			<ElFormItem :label="$t('subscription.end_at')" prop="expired_time" :rules="[]">
+				<ElDatePicker v-model="form.expired_time" format="YYYY-MM-DD HH:mm" type="datetime" value-format="YYYY-MM-DD HH:mm" size="large"
 					:placeholder="$t('permanent_effect')" />
 			</ElFormItem>
 			<h1 class="text-sm text-[#1D1E1F] mt-6">
@@ -171,5 +95,80 @@ defineExpose({
 	</ElDialog>
 </template>
 
-<style scoped lang="scss">
+<script setup lang="ts">
+import { reactive, ref } from 'vue'
+import UploadImage from '@/components/Upload/image.vue'
+
+import { getTimeStamp } from '@/utils/moment'
+import { generateInputRules } from '@/utils/form-rule'
+import { useUserStore } from '@/stores'
+
+const emits = defineEmits<{
+	(e: 'success'): void
+}>()
+
+const user_store = useUserStore()
+
+const form_ref = ref()
+const visible = ref(false)
+const editable = ref(false)
+const form = reactive({
+  avatar: '',
+	nickname: '',
+	password: '',
+	group_id: 0,
+	expired_time: '',
+})
+const origin_data = ref({})
+const subscription_options = ref([])
+const submitting = ref(false)
+
+const open = ({ data = {}, subscription_options: _subscription_options = [] } = {}) => {
+	form.avatar = data.avatar || ''
+	form.nickname = data.nickname || ''
+  form.password = data.password || ''
+	form.group_id = data.group_id || (_subscription_options[0] || {}).value || 0
+	form.expired_time = data.expired_time || ''
+	editable.value = !!data.user_id
+  origin_data.value = data
+	subscription_options.value = _subscription_options.filter(item => item.value !== 0)
+	if (!_subscription_options.find(item => item.value === form.group_id)) form.group_id = ''
+  visible.value = true
+}
+const close = () => {
+  visible.value = false
+  reset()
+}
+const reset = () => {
+  form.avatar = ''
+	form.nickname = ''
+  form.password = ''
+}
+const handleSave = async () => {
+	const valid = await form_ref.value.validate()
+	if (!valid) return
+	submitting.value = true
+	await user_store.save({ data: {
+		user_id: origin_data.value.user_id,
+		avatar: form.avatar,
+		nickname: form.nickname,
+		password: form.password,
+		group_id: form.group_id,
+		expired_time: (form.expired_time && getTimeStamp(form.expired_time)) || 0,
+	}}).finally(() => {
+		submitting.value = false
+	})
+	emits('success')
+	ElMessage.success(window.$t('action_save_success'))
+	close()
+}
+
+defineExpose({
+  open,
+  close,
+  reset,
+})
+</script>
+
+<style scoped>
 </style>

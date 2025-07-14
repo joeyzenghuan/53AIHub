@@ -1,5 +1,168 @@
+<template>
+  <!-- 顶栏显示 -->
+  <div class="flex justify-center mt-5">
+    <el-button
+      v-if="!isOpLocalEnv"
+      :class="[
+        'bg-transparent border-0 hover:bg-white hover:border-[#2563EB]',
+        'px-0',
+        'rounded-none',
+        register_way === 'mobile' ? 'border-b-0.75 border-[#2563EB]' : 'border-b-0 border-[#1D1E1F]'
+      ]"
+      @click="handleRegisterWay('mobile')"
+    >
+      <h4 class="text-xl text-center mb-3" :class="[register_way === 'mobile' ? 'text-[#1D1E1F] font-bold' : 'text-[#94959B]']">
+        {{ $t('form.mobile') + $t('action.register') }}
+      </h4>
+    </el-button>
+
+    <el-button
+      :class="[
+        'bg-transparent border-0 hover:bg-white hover:border-[#2563EB]',
+        'px-0',
+        'rounded-none',
+        '!ml-7.5',
+        register_way === 'email' ? 'border-b-0.75 border-[#2563EB]' : 'border-b-0 border-[#1D1E1F]'
+      ]"
+      @click="handleRegisterWay('email')"
+    >
+      <h4 class="text-xl text-center mb-3" :class="[register_way === 'email' ? 'text-[#1D1E1F] font-bold' : 'text-[#94959B]']">
+        {{ $t('form.email') + $t('action.register') }}
+      </h4>
+    </el-button>
+  </div>
+
+  <el-form ref="formRef" label-position="top" :model="form" :rules="[]" class="px-2 mt-7" @keyup.enter="handleSubmit">
+    <el-form-item
+      :label="register_way === 'mobile' ? $t('form.mobile') : $t('form.email')"
+      prop="username"
+      :rules="[
+        register_way === 'email' ? getEmailRules() : getMobileRules(),
+        {
+          validator: async (rule, value, callback) => {
+            try {
+              // 跳过空值触发和格式不符合触发
+              if (form.username.trim() === '' || !isFormatCorrect) {
+                return
+              }
+              // 等待验证完成
+              await onUsernameBlur()
+
+              // 检查完成后，根据isRegister的值进行验证
+              if (register_way === 'mobile' && !isRegister) {
+                existing_mobile = true
+                callback(new Error($t('form.mobile') + $t('register.unregistered')))
+              } else if (register_way === 'email' && !isRegister) {
+                existing_email = true
+                callback(new Error($t('form.email') + $t('register.unregistered')))
+              }
+            } catch (error) {}
+          },
+          trigger: 'blur'
+        }
+      ]"
+    >
+      <el-input
+        v-if="register_way === 'mobile'"
+        v-model="form.username"
+        v-trim
+        size="large"
+        class="input_style"
+        :placeholder="$t('form.input_placeholder') + $t('form.mobile')"
+        clearable
+        onblur="onUsernameBlur"
+      />
+      <el-input
+        v-else
+        v-model="form.username"
+        v-trim
+        size="large"
+        class="input_style"
+        :placeholder="$t('form.input_placeholder') + $t('form.email')"
+        clearable
+        onblur="onUsernameBlur"
+      />
+      <template #error>
+        <div v-if="existing_mobile || existing_email" class="text-xs text-[#f56c6c] absolute" style="top: 100%; left: 0">
+          {{ register_way === 'mobile' ? $t('form.existing_mobile') : $t('form.existing_email') }}
+          <button type="button" class="text-xs text-[#2563EB] underline" @click="handleClose">
+            {{ $t('action.login') }}
+          </button>
+        </div>
+      </template>
+    </el-form-item>
+
+    <el-form-item :label="$t('form.verify_code')" prop="verify_code" :rules="[register_way === 'email' ? emailCodeRule : codeRule]">
+      <div class="flex items-center" style="width: 100%">
+        <el-input
+          v-model="form.verify_code"
+          v-trim
+          size="large"
+          class="input_style w-80 no-right-radius flex-1"
+          :placeholder="$t('form.input_placeholder') + $t('form.verify_code')"
+        ></el-input>
+        <el-button
+          v-if="register_way === 'email'"
+          v-debounce
+          :disabled="!isRegister || isSending"
+          class="!bg-[#f5f5f5] border-0 h-[44px] w-[100px] no-left-radius"
+          @click.stop="handleGetCode"
+        >
+          <div :class="['text-sm', 'pl-4', 'border-l', 'pr-3', 'text-[#2563EB]', { 'text-[#9A9A9A]': !isRegister || isSending }]">
+            {{ emailCodeCount ? `${emailCodeCount}s` : $t('form.get_verify_code') }}
+          </div>
+        </el-button>
+        <el-button
+          v-else
+          v-debounce
+          :disabled="!isRegister || isSending"
+          class="!bg-[#f5f5f5] border-0 h-[44px] w-[100px] no-left-radius"
+          @click.stop="handleGetCode"
+        >
+          <div :class="['text-sm', 'pl-4', 'border-l', 'pr-3', 'text-[#2563EB]', { 'text-[#9A9A9A]': !isRegister || isSending }]">
+            {{ codeCount ? `${codeCount}s` : $t('form.get_verify_code') }}
+          </div>
+        </el-button>
+      </div>
+    </el-form-item>
+
+    <!-- 密码的输入框 -->
+    <el-form-item :label="$t('form.password')" prop="password" :rules="[getPasswordRules()]">
+      <el-input
+        v-model="form.password"
+        v-trim
+        show-password
+        size="large"
+        class="input_style"
+        :placeholder="$t('form.input_placeholder') + $t('form.password')"
+      ></el-input>
+    </el-form-item>
+  </el-form>
+
+  <!-- 已有账号立即登录 -->
+  <div class="flex justify-end items-center">
+    {{ $t('status.existing_account') }},
+    <el-button link type="primary" @click="handleClose">
+      {{ $t('action.login_directly') }}
+    </el-button>
+  </div>
+
+  <!-- 注册按钮  -->
+  <el-button v-debounce type="primary" round class="w-full mt-5 !h-10" @click="handleSubmit">
+    {{ $t('action.register') }}
+  </el-button>
+
+  <!-- 底部协议 -->
+  <div class="text-xs text-[#9A9A9A] text-center mt-5">
+    {{ $t('register.agree') }}
+    <a class="text-[#4F5052] cursor-pointer underline">{{ $t('register.terms_of_service') }}</a>
+    {{ $t('action.and') }}
+    <a class="text-[#4F5052] cursor-pointer underline">{{ $t('register.privacy_policy') }}</a>
+  </div>
+</template>
+
 <script setup lang="ts">
-import { ref, reactive, watch, computed, nextTick } from 'vue'
+import { ref, reactive, computed, nextTick, watch } from 'vue'
 import type { FormInstance } from 'element-plus'
 import { ElMessage } from 'element-plus'
 import { useUserStore } from '@/stores/modules/user'
@@ -21,6 +184,8 @@ const emits = defineEmits(['success', 'close'])
 const { isOpLocalEnv } = useEnv()
 const { emailCodeRule, sendEmailCode, emailCodeCount } = useEmail()
 const { sendcode, codeRule, codeCount } = useMobile()
+
+const isSending = ref(true)
 
 const form = reactive({
   username: '',
@@ -51,9 +216,8 @@ const handleRegisterWay = (way) => {
 const isFormatCorrect = computed(() => {
   if (register_way.value === 'mobile') {
     return /^1[3-9]\d{9}$/.test(form.username)
-  } else {
-    return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(form.username)
   }
+  return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(form.username)
 })
 
 const existing_mobile = ref(false)
@@ -161,190 +325,22 @@ const handleSubmit = () => {
     } catch (error) {}
   })
 }
+watch(
+  () => codeCount.value,
+  (newVal) => {
+    isSending.value = newVal > 0
+  },
+  {
+    immediate: true
+  }
+)
+watch(
+  () => emailCodeCount.value,
+  (newVal) => {
+    isSending.value = newVal > 0
+  },
+  {
+    immediate: true
+  }
+)
 </script>
-
-<template>
-  <!-- 顶栏显示 -->
-  <div class="flex justify-center mt-5">
-    <el-button
-      v-if="!isOpLocalEnv"
-      :class="[
-        'bg-transparent border-0 hover:bg-white hover:border-[#2563EB]',
-        'px-0',
-        'rounded-none',
-        register_way === 'mobile' ? 'border-b-0.75 border-[#2563EB]' : 'border-b-0 border-[#1D1E1F]'
-      ]"
-      @click="handleRegisterWay('mobile')"
-    >
-      <h4
-        class="text-xl text-center mb-3"
-        :class="[register_way === 'mobile' ? 'text-[#1D1E1F] font-bold' : 'text-[#94959B]']"
-      >
-        {{ $t('form.mobile') + $t('action.register') }}
-      </h4>
-    </el-button>
-
-    <el-button
-      :class="[
-        'bg-transparent border-0 hover:bg-white hover:border-[#2563EB]',
-        'px-0',
-        'rounded-none',
-        '!ml-7.5',
-        register_way === 'email' ? 'border-b-0.75 border-[#2563EB]' : 'border-b-0 border-[#1D1E1F]'
-      ]"
-      @click="handleRegisterWay('email')"
-    >
-      <h4
-        class="text-xl text-center mb-3"
-        :class="[register_way === 'email' ? 'text-[#1D1E1F] font-bold' : 'text-[#94959B]']"
-      >
-        {{ $t('form.email') + $t('action.register') }}
-      </h4>
-    </el-button>
-  </div>
-
-  <el-form
-    ref="formRef"
-    label-position="top"
-    :model="form"
-    :rules="[]"
-    class="px-2 mt-7"
-    @keyup.enter="handleSubmit"
-  >
-    <el-form-item
-      :label="register_way === 'mobile' ? $t('form.mobile') : $t('form.email')"
-      prop="username"
-      :rules="[
-        register_way === 'email' ? getEmailRules() : getMobileRules(),
-        {
-          validator: async (rule, value, callback) => {
-            try {
-              // 跳过空值触发和格式不符合触发
-              if (form.username.trim() === '' || !isFormatCorrect) {
-                return
-              }
-              // 等待验证完成
-              await onUsernameBlur()
-
-              // 检查完成后，根据isRegister的值进行验证
-              if (register_way === 'mobile' && !isRegister) {
-                existing_mobile = true
-                callback(new Error($t('form.mobile') + $t('register.unregistered')))
-              } else if (register_way === 'email' && !isRegister) {
-                existing_email = true
-                callback(new Error($t('form.email') + $t('register.unregistered')))
-              }
-            } catch (error) {}
-          },
-          trigger: 'blur'
-        }
-      ]"
-    >
-      <el-input
-        v-if="register_way === 'mobile'"
-        v-model="form.username"
-        v-trim
-        size="large"
-        class="input_style"
-        :placeholder="$t('form.input_placeholder') + $t('form.mobile')"
-        clearable
-        onblur="onUsernameBlur"
-      />
-      <el-input
-        v-else
-        v-model="form.username"
-        v-trim
-        size="large"
-        class="input_style"
-        :placeholder="$t('form.input_placeholder') + $t('form.email')"
-        clearable
-        onblur="onUsernameBlur"
-      />
-      <template #error>
-        <div
-          v-if="existing_mobile || existing_email"
-          class="text-xs text-[#f56c6c] absolute"
-          style="top: 100%; left: 0"
-        >
-          {{ register_way === 'mobile' ? $t('form.existing_mobile') : $t('form.existing_email') }}
-          <button type="button" class="text-xs text-[#2563EB] underline" @click="handleClose">
-            {{ $t('action.login') }}
-          </button>
-        </div>
-      </template>
-    </el-form-item>
-
-    <el-form-item
-      :label="$t('form.verify_code')"
-      prop="verify_code"
-      :rules="[register_way === 'email' ? emailCodeRule : codeRule]"
-    >
-      <el-input
-        v-model="form.verify_code"
-        v-trim
-        size="large"
-        class="input_style"
-        :placeholder="$t('form.input_placeholder') + $t('form.verify_code')"
-      >
-        <template #suffix>
-          <el-button
-            v-debounce
-            @click.stop="handleGetCode"
-            :disabled="!isRegister"
-            class="!bg-[#f5f5f5] border-0 pr-0"
-          >
-            <div
-              class="text-base pl-3 border-ltext-[#9A9A9A] cursor-not-allowed"
-              v-if="codeCount || emailCodeCount"
-            >
-              {{ codeCount || emailCodeCount }}s
-            </div>
-            <div
-              class="text-base pl-3 border-l"
-              v-else
-              :class="[
-                isRegister ? 'text-[#2563EB] cursor-pointer' : 'text-[#9A9A9A] cursor-not-allowed'
-              ]"
-            >
-              {{ $t('form.get_verify_code') }}
-            </div>
-          </el-button>
-        </template>
-      </el-input>
-    </el-form-item>
-
-    <!-- 密码的输入框 -->
-    <el-form-item :label="$t('form.password')" prop="password" :rules="[getPasswordRules()]">
-      <el-input
-        v-model="form.password"
-        v-trim
-        show-password
-        size="large"
-        class="input_style"
-        :placeholder="$t('form.input_placeholder') + $t('form.password')"
-      >
-      </el-input>
-    </el-form-item>
-  </el-form>
-
-  <!-- 已有账号立即登录 -->
-  <div class="flex justify-end items-center">
-    {{ $t('status.existing_account') }},
-    <el-button link type="primary" @click="handleClose">
-      {{ $t('action.login_directly') }}
-    </el-button>
-  </div>
-
-  <!-- 注册按钮  -->
-  <el-button type="primary" @click="handleSubmit" round v-debounce class="w-full mt-5 !h-10">
-    {{ $t('action.register') }}
-  </el-button>
-
-  <!-- 底部协议 -->
-  <div class="text-xs text-[#9A9A9A] text-center mt-5">
-    {{ $t('register.agree') }}
-    <a class="text-[#4F5052] cursor-pointer underline">{{ $t('register.terms_of_service') }}</a>
-    {{ $t('action.and') }}
-    <a class="text-[#4F5052] cursor-pointer underline">{{ $t('register.privacy_policy') }}</a>
-  </div>
-</template>

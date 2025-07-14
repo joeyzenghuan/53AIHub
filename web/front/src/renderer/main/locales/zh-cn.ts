@@ -10,7 +10,7 @@ export default {
     find: '发现',
     library: '知识库',
     crop_space: '企业空间',
-    prompt: '提示词',
+    prompt: '提示词'
   },
 
   // 浏览器相关
@@ -26,14 +26,14 @@ export default {
     leftWindow: '左侧小窗',
     centerWindow: '居中大窗',
     rightWindow: '右侧小窗',
-    alwaysOnTop: '窗口置顶',
+    alwaysOnTop: '窗口置顶'
   },
 
   // 清洗功能
   clean: {
     content: '内容抽取',
     knowledge: '知识整理',
-    summarize: '知识萃取',
+    summarize: '知识萃取'
   },
 
   // 更新相关
@@ -45,7 +45,7 @@ export default {
     completedTitle: '更新提示',
     noUpdate: '当前已是最新版本',
     currentVersion: '当前版本 v{version}',
-    checkUpdate: '检查更新',
+    checkUpdate: '检查更新'
   },
 
   // 通用文本
@@ -56,6 +56,7 @@ export default {
     screenshot: '截图',
     title: '标题',
     desc: '描述',
+    tip: '提示',
     create_time: '创建时间',
     update_time: '更新时间',
     recently_updated: '最近更新',
@@ -65,7 +66,7 @@ export default {
     load_new: '加载新消息',
     no_data: '暂无数据',
     unknown: '未知',
-    usual: "常用",
+    usual: '常用',
 
     render: '渲染',
     preview: '预览',
@@ -79,14 +80,15 @@ export default {
     image_cropper: '图片裁剪',
     back: '返回',
     go_admin: '去后台',
-    related_prompt: "相关提示词",
-    related_agent: "相关智能体",
+    related_prompt: '相关提示词',
+    related_agent: '相关智能体',
 
     view_more: '查看更多',
 
     expand_more: '展开更多',
     collapse_more: '收起更多',
     or: '或',
+    later: '稍后再说'
   },
 
   // 状态提示
@@ -104,7 +106,7 @@ export default {
     approve_success: '已点赞',
     approve_cancel: '已取消',
     register_success: '注册成功',
-    update_success: '更改成功',
+    update_success: '更改成功'
   },
 
   // 操作按钮
@@ -154,7 +156,7 @@ export default {
     stop: '停止',
     pay: '去支付',
     ok_v2: '好的',
-    view_more: '查看更多',
+    view_more: '查看更多'
   },
 
   // 表单相关
@@ -217,10 +219,10 @@ export default {
     toolbox_recommend: '精选AI工具',
     toolbox_recommend_desc: '用好 AI 工具才能始终领先一步',
     use_history: '{count}人聊过',
-    banner_title: "“{name} 专家”  效率倍增的秘密武器",
-    banner_desc: "精选工作场景 AI 资源，让 AI 成为你的生产力助手",
+    banner_title: '“{name} 专家”  效率倍增的秘密武器',
+    banner_desc: '精选工作场景 AI 资源，让 AI 成为你的生产力助手',
     search_placeholder: '输入您想查找的AI资源',
-    hot_search: '热门搜索',
+    hot_search: '热门搜索'
   },
 
   // 登录相关
@@ -239,19 +241,22 @@ export default {
     unregistered_account_desc: '未注册的账号，请先注册后再登录',
     unregistered_account_confirm: '未注册手机号验证后自动登录，',
     quit: '退出',
-    login_by_wechat: '使用微信登录',
+    login_by_wechat: '请使用微信扫码登录',
     login_by_password: '使用密码登录',
     login_by_mobile: '使用手机登录',
     bind_mobile: '绑定手机号',
     other_login_way: '其他登录方式',
+    login_by_wecom: '请使用企业微信扫码登录',
+    immediate_login: '立即登录',
+    wecom_login_error: '站点绑定的企业微信并非当前登录的企业微信!\n请用正确的企微登录。'
   },
 
-  //注册相关
+  // 注册相关
   register: {
     agree: '注册即视您同意',
     unregistered: '未注册',
     terms_of_service: '条款和条件',
-    privacy_policy: '隐私政策',
+    privacy_policy: '隐私政策'
   },
 
   // 聊天相关
@@ -282,7 +287,7 @@ export default {
     // 暂无可用的智能体
     no_available_agent: '暂无可用的智能体',
     completion_completed: '已完成深度思考',
-    completion_thinking: '深度思考中...',
+    completion_thinking: '深度思考中...'
   },
 
   // 知识库相关
@@ -307,11 +312,11 @@ export default {
     github_import: '从Github导入',
     docs_qq_import: '从腾讯文档导入',
     docs_feishu_import: '从钉钉文档导入',
-    docs_dingtalk_import: '从飞书文档导入',
+    docs_dingtalk_import: '从飞书文档导入'
   },
 
   agent: {
-    no_data: '管理员还未发布智能体',
+    no_data: '管理员还未发布智能体'
   },
 
   prompt: {
@@ -328,7 +333,7 @@ export default {
     title: '准备好了吗？开始体验AI聚合问答啦！',
     input_placeholder: '多个AI解答你输入的问题，Shift+Enter换行，Enter发送',
     max_agent_count: '最多只能选择{count}个模型',
-    search_placeholder: '搜索网站',
+    search_placeholder: '搜索网站'
   },
 
   // 空间相关
@@ -339,7 +344,7 @@ export default {
     member: '成员管理',
     settings: '空间设置',
     space_usage: '已用 {used} / {total}',
-    expand: '扩容',
+    expand: '扩容'
   },
 
   // 时间相关
@@ -351,7 +356,7 @@ export default {
     yesterday: '昨天',
     today: '今天',
     week_last: '一周内',
-    week_ago: '一周前',
+    week_ago: '一周前'
   },
 
   profile: {
@@ -361,6 +366,10 @@ export default {
     login_password: '登录密码',
     // 已绑定的账户
     bind_accounts: '账户信息',
+    // 订阅信息
+    subscription_info: '订阅信息',
+    order_info: '订单记录',
+
     unbind_account: '未绑定',
     bind_mobile: '手机号',
     bind_email: '电子邮箱',
@@ -379,75 +388,128 @@ export default {
     unbind_wechat_confirm_title: '解绑微信账号绑定',
     unbind_wechat_confirm_cancel: '暂不解绑',
     unbind_wechat_confirm_ok: '确认解绑',
-    bind_wechat_title: '微信扫码完成绑定',
+    bind_wechat_title: '微信扫码完成绑定'
   },
-  "response_status": {
-    "400": '请求参数错误',
-    "401": '未授权，请登录',
-    "403": '拒绝访问',
-    "404": '请求资源不存在',
-    "500": '服务器错误',
-    "502": '网关错误',
-    "504": '网关超时',
-    "503": '服务不可用',
+  response_status: {
+    '400': '请求参数错误',
+    '401': '未授权，请登录',
+    '403': '拒绝访问',
+    '404': '请求资源不存在',
+    '500': '服务器错误',
+    '502': '网关错误',
+    '504': '网关超时',
+    '503': '服务不可用'
   },
-  "response_code": {
-    "success": "成功",
-    "param_error": "参数错误",
-    "database_error": "数据库错误",
-    "network_error": "网络错误，请重新尝试",
-    "system_error": "系统错误",
-    "auth_error": "认证错误",
-    "not_found_error": "未找到错误",
-    "unauthorized_error": "身份认证错误",
-    "file_error": "文件错误",
-    "forbidden_error": "用户已禁用，请联系管理员 ",
-    "agent_error": "智能体错误",
-    "token_expired_error": "身份过期错误",
-    "verification_code_error": "验证码错误"
+  response_code: {
+    success: '成功',
+    param_error: '参数错误',
+    database_error: '数据库错误',
+    network_error: '网络错误，请重新尝试',
+    system_error: '系统错误',
+    auth_error: '认证错误',
+    not_found_error: '未找到错误',
+    unauthorized_error: '身份认证错误',
+    file_error: '文件错误',
+    forbidden_error: '用户已禁用，请联系管理员 ',
+    agent_error: '智能体错误',
+    token_expired_error: '身份过期错误',
+    verification_code_error: '验证码错误'
   },
-  "response_message": {
-    "unknown_error": "未知错误",
-    "user_not_found": "用户不存在",
-    "username_or_password_is_incorrect": "用户名或密码错误",
-    "username_already_exists": "用户名已存在",
-    "mobile_already_bind": "手机号已被其他用户绑定",
-    "email_already_bind": "邮箱已被其他用户绑定",
-    "model_changed": "管理员已修改模型，请新建对话",
-    "wechat_already_bind": "微信号已被其他用户绑定",
+  response_message: {
+    unknown_error: '未知错误',
+    user_not_found: '用户不存在',
+    username_or_password_is_incorrect: '用户名或密码错误',
+    username_already_exists: '用户名已存在',
+    mobile_already_bind: '手机号已被其他用户绑定',
+    email_already_bind: '邮箱已被其他用户绑定',
+    model_changed: '管理员已修改模型，请新建对话',
+    wechat_already_bind: '微信号已被其他用户绑定'
   },
-  "subscription": {
-    "free": "免费版",
-    "upgrade": "升级",
-    "version_title": "选择版本",
-    "time_title": "选择购买时长",
-    "month": "月",
-    "year": "年",
-    "credit_month_amount": "每月{amount}积分",
-    "agent_bots_title": "可使用智能体",
-    "ai_assistant_title": "跨平台的 AI 助手",
-    "time_unit_month": "1个月",
-    "time_unit_year": "1年",
-    "aside_title": "新订单购买详情",
-    "aside_desc": "为以下用户购买",
-    "payment": "支付方式",
-    "payment_wechat": "微信",
-    "payment_manual": "手动转账",
-    "total": '总计',
-    "order_title": "订单支付",
-    "pay_amount": "支付金额",
-    "pay_by_wechat": "使用 微信扫码 支付",
-    "pay_policy": "支付即视为你同意相关 {policy}",
-    "pay_success": "支付成功",
-    "pay_confirm": "确认支付完成，请点击",
-    "payed": "已支付",
-    "manual_pay_success_title": "订单已生成",
-    "manual_pay_success_desc": "请等待或联系管理员确认支付信息",
+  subscription: {
+    free: '免费版',
+    upgrade: '升级',
+    version_title: '选择版本',
+    time_title: '选择购买时长',
+    month: '月',
+    year: '年',
+    credit_month_amount: '每月{amount}积分',
+    agent_bots_title: '可使用智能体',
+    ai_assistant_title: '跨平台的 AI 助手',
+    time_unit_month: '1个月',
+    time_unit_year: '1年',
+    aside_title: '新订单购买详情',
+    aside_desc: '为以下用户购买',
+    payment: '支付方式',
+    wechat_pay: '微信',
+    alipay: '支付宝',
+    manual_pay: '手动转账',
+    paypal: 'PayPal',
+    total: '总计',
+    order_title: '订单支付',
+    pay_amount: '支付金额',
+    pay_by_wechat: '使用 微信扫码 支付',
+    pay_policy: '支付即视为你同意相关 {policy}',
+    pay_success: '支付成功',
+    pay_confirm: '确认支付完成，请点击',
+    payed: '已支付',
+    manual_pay_success_title: '订单已生成',
+    manual_pay_success_desc: '请等待或联系管理员确认支付信息',
+    expire_time: '到期时间',
+    renew: '续费',
+    expire_time_desc: '{group_name}将于{day}天后({expire_time})到期，马上续费延续会员权益',
+    expired_time_desc: '{group_name}已于{expire_time}到期，马上续费延续会员权益'
   },
-  "authority": {
-    "group_not_permission": "您所在的分组无权限",
-    "payment_not_setting": "站点未配置收费方式，请直接联系管理员",
-    "agent_not_permission": "无权限使用此智能体，请联系管理员",
-    "use_range": "使用范围"
+  authority: {
+    group_not_permission: '您所在的分组无权限',
+    payment_not_setting: '站点未配置收费方式，请直接联系管理员',
+    agent_not_permission: '无权限使用此智能体，请联系管理员',
+    login_not_permission: '请先登录',
+    use_range: '使用范围'
+  },
+  upgrade_dialog: {
+    title: '站点注册用户已达上限，请联系管理员~~',
+    cancel: '关闭注册'
+  },
+  order: {
+    id: '订单ID',
+    subscription: '订阅服务',
+    amount: '订单金额',
+    pay_type: '支付方式',
+    create_time: '下单时间',
+    status: '状态',
+    action: '操作',
+    search_placeholder: '请输入订单ID',
+
+    payment: '支付',
+    cancel: '取消订单',
+    cancel_confirm: '确认取消该订单？',
+
+    status_list: {
+      all: '全部',
+      not_confirm: '待确定',
+      pending: '待支付',
+      paid: '已支付',
+      expired: '已超时',
+      cancel: '已取消'
+    }
+  },
+  filter: {
+    start_time: '开始时间',
+    end_time: '结束时间',
+
+    date_range: {
+      today: '今天',
+      last_7_days: '过去7天',
+      last_4_weeks: '过去4周',
+      last_3_months: '过去3月',
+      last_12_months: '过去12月',
+      this_month: '本月至今',
+      this_quarter: '本季度至今',
+      this_year: '本年至今',
+      all_time: '所有时间'
+    }
+  },
+  table: {
+    footer_text: '共有 {total} 条'
   }
 }

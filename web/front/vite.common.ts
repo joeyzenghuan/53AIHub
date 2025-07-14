@@ -11,8 +11,7 @@ import fs from 'fs'
 
 // 读取 package.json 获取版本号
 const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf-8'))
-const version = packageJson.version
-
+const { version } = packageJson
 
 // 创建生成 version.txt 的插件
 const versionPlugin = () => {
@@ -24,11 +23,10 @@ const versionPlugin = () => {
       handler: async (options: any) => {
         const outDir = options.dir || 'dist'
         fs.writeFileSync(path.join(outDir, 'version.txt'), version)
-      },
-    },
+      }
+    }
   }
 }
-
 
 // 公共插件配置
 export const commonPlugins = [
@@ -51,9 +49,7 @@ export const commonPlugins = [
   }),
   Components({
     dts: true, // 为组件类型声明生成 dts 文件
-    resolvers: [
-      ElementPlusResolver(),
-    ] // 使用 Element Plus 的组件解析器
+    resolvers: [ElementPlusResolver()] // 使用 Element Plus 的组件解析器
   }),
   AutoImport({
     resolvers: [
@@ -70,13 +66,13 @@ export const commonPlugins = [
 // 公共服务器配置
 export const commonServer = {
   host: '0.0.0.0',
-  port: 80,
+  port: 80
 }
 
 // 公共解析配置
 export const commonResolve = {
   alias: {
-    '@': resolve('src/renderer/main'),
+    '@': resolve('src/renderer/main')
   }
 }
 
@@ -91,7 +87,7 @@ export const commonCss = {
 export const commonBuild = {
   rollupOptions: {
     input: {
-      main: resolve(__dirname, 'src/renderer/index.html'),
+      main: resolve(__dirname, 'src/renderer/index.html')
     }
   }
 }

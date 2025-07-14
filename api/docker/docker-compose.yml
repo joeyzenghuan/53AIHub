@@ -2,7 +2,10 @@ version: '3.8'
 
 services:
   53aihub:
-    build: ..
+    build:
+      context: ..
+      dockerfile: Dockerfile
+    env_file: .env
     ports:
       - "3000:3000"
     environment:
@@ -15,6 +18,7 @@ services:
 
   redis:
     image: redis:6-alpine
+    command: redis-server --requirepass your_redis_password  # 设置 Redis 密码
     ports:
       - "6379:6379"
     volumes:

@@ -3,9 +3,9 @@ import navigationApi from '@/api/modules/navigation'
 import { NAVIGATION_TYPE, NAVIGATION_TARGET } from '@/constants/navigation'
 import { cacheManager } from '@/utils/cache'
 
-const getFormatData = (data = {}) => {
+const getFormatData = (data: Navigation.State) => {
   try {
-    data.config = JSON.parse(data.config)
+    data.config = typeof data.config === 'string' ? JSON.parse(data.config) : data.config
   } catch (error) {
     data.config = {}
   }
@@ -21,15 +21,19 @@ const getFormatData = (data = {}) => {
   return data
 }
 
-const cacheNavigations = JSON.parse(localStorage.getItem('navigation_list') || '[]')
+const CACHE_KEYS = {
+  NAVIGATION_LIST: 'navigation_list',
+}
+
+const cacheNavigations = JSON.parse(localStorage.getItem(CACHE_KEYS.NAVIGATION_LIST) || '[]')
 
 export const useNavigationStore = defineStore('navigation', {
   state: (): {
-    navigations: any[]
-    agentNavigation: any
-    promptNavigation: any
-    toolkitNavigation: any
-    homeNavigation: any
+    navigations: Navigation.State[]
+    agentNavigation: Partial<Navigation.State>
+    promptNavigation: Partial<Navigation.State>
+    toolkitNavigation: Partial<Navigation.State>
+    homeNavigation: Partial<Navigation.State>
     loading: boolean
   } => ({
     navigations: cacheNavigations,
@@ -44,20 +48,20 @@ export const useNavigationStore = defineStore('navigation', {
 
   },
   actions: {
-    async fetchNavigations(): Promise<void> {
+    async fetchNavigations(): Promise<Navigation.State[]> {
+      this.loading = true
       const fetchData = async () => {
-        this.loading = true
         const { list = [] } = await navigationApi.list().catch(() => {
           this.loading = false
         })
         if (!list.length) {
           await navigationApi.init()
-          return this.fetchData()
+          return fetchData()
         }
         return list
       }
       const list = await cacheManager.getOrFetch(
-        'navigation_list',
+        CACHE_KEYS.NAVIGATION_LIST,
         fetchData
       )
       this.loading = false
@@ -66,7 +70,7 @@ export const useNavigationStore = defineStore('navigation', {
       this.promptNavigation = this.navigations.find(item => item.jump_path === '/prompt') || {}
       this.toolkitNavigation = this.navigations.find(item => item.jump_path === '/toolkit') || {}
       this.homeNavigation = this.navigations.find(item => item.jump_path === '/index') || {}
-      localStorage.setItem('navigation_list', JSON.stringify(this.navigations))
+      localStorage.setItem(CACHE_KEYS.NAVIGATION_LIST, JSON.stringify(this.navigations))
       return this.navigations
     }
   }

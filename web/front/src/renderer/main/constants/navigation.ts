@@ -1,14 +1,14 @@
-export enum NAVIGATION_TYPE {
-  SYSTEM = 1,
-  EXTERNAL = 2,
-  CUSTOM = 3,
-}
-export type NavigationType = keyof typeof NAVIGATION_TYPE
-export enum NAVIGATION_TARGET {
-  SELF = 1,
-  BLANK = 2,
-}
-export type NavigationTarget = keyof typeof NAVIGATION_TARGET
+export const NAVIGATION_TYPE = {
+  SYSTEM: 1,
+  EXTERNAL: 2,
+  CUSTOM: 3,
+} as const
+export type NavigationType = (typeof NAVIGATION_TYPE)[keyof typeof NAVIGATION_TYPE]
+export const NAVIGATION_TARGET = {
+  SELF: 1,
+  BLANK: 2,
+} as const
+export type NavigationTarget = (typeof NAVIGATION_TARGET)[keyof typeof NAVIGATION_TARGET]
 
 export const INIT_DATA_LIST = [
   {

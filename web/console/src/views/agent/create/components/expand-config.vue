@@ -1,12 +1,6 @@
-<script setup lang="ts">
-import { useAgentFormStore } from '../store'
-
-const store = useAgentFormStore()
-</script>
-
 <template>
   <template v-if="store.support_file || store.support_image">
-    <div class="text-base text-[#1D1E1F] font-medium mb-4">
+    <div class="text-base text-[#1D1E1F] font-medium mb-4 mt-10">
       {{ $t('expand_setting') }}
     </div>
     <div v-if="store.support_file" class="flex items-center gap-2">
@@ -33,6 +27,12 @@ const store = useAgentFormStore()
     </div>
   </template>
 </template>
+
+<script setup lang="ts">
+import { useAgentFormStore } from '../store';
+
+const store = useAgentFormStore()
+</script>
 
 <style scoped>
 

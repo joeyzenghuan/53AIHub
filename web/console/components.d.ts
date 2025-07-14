@@ -92,6 +92,7 @@ declare module '@vue/runtime-core' {
     Search: typeof import('./src/components/Search/index.vue')['default']
     Select: typeof import('./src/components/Filter/select.vue')['default']
     SelectPlus: typeof import('./src/components/SelectPlus/index.vue')['default']
+    ServiceDialog: typeof import('./src/components/ServiceDialog/index.vue')['default']
     Simple: typeof import('./src/components/Pagination/simple.vue')['default']
     Sortable: typeof import('./src/components/Sortable/index.vue')['default']
     SvgIcon: typeof import('./src/components/SvgIcon/index.vue')['default']

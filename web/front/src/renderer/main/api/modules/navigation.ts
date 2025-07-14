@@ -10,7 +10,6 @@ export const navigation = {
       limit?: number
     } = {}
   ) {
-    params = JSON.parse(JSON.stringify(params))
     let { data = [] } = await service.get(`/api/navigations`, { params }).catch(handleError)
     return { total: data.length, list: data }
   },

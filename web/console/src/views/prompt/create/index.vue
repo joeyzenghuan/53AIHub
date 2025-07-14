@@ -1,50 +1,3 @@
-<script setup lang="ts">
-import { EditPen } from '@element-plus/icons-vue'
-import PromptInput from '@/components/Prompt/input.vue'
-import CreateDrawer from './create-drawer.vue'
-import GuideView from './guide.vue'
-
-import { computed, nextTick, onMounted, provide, ref, watch, reactive, onUnmounted } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import { promptApi } from '@/api/modules/prompt'
-import eventBus from '@/utils/event-bus'
-import { useFormDataStore } from './store'
-
-const route = useRoute()
-const router = useRouter()
-
-const formDataStore = useFormDataStore()
-const formData = formDataStore.formData
-const detailData = formDataStore.detailData
-const loading = formDataStore.loading
-const submitting = formDataStore.submitting
-const formRef = ref()
-const createRef = ref()
-const tabActiveName = ref('config')
-
-const handleEdit = async () => {
-	formDataStore.formatFormData()
-	await nextTick()
-	createRef.value.open()
-}
-const handleSave = async () => {
-	const valid = await formRef.value.validate()
-	if (!valid) return
-	const data = await formDataStore.save()
-	eventBus.emit(`prompt-update`, { data })
-	formDataStore.fetchDetail()
-}
-
-onMounted(async () => {
-	const prompt_id = route.query.prompt_id as string
-	if (prompt_id) formDataStore.fetchDetail({ prompt_id })
-})
-
-onUnmounted(() => {
-	formDataStore.reset()
-})
-</script>
-
 <template>
 	<Layout class="px-[60px] py-8">
 		<Header back :title="detailData.name || $t('action_edit')" class="mb-5">
@@ -54,9 +7,9 @@ onUnmounted(() => {
 		</Header>
 		<ElTabs v-model="tabActiveName" class="flex-1 prompt-tabs el-tabs--full">
 			<ElTabPane :label="$t('prompt.config')" name="config" lazy>
-				<div id="app-config-full-screen-hook" v-loading="loading" class="relative h-full bg-white flex flex-col">
+				<div id="app-config-full-screen-hook" v-loading="loading" class="relative h-full px-8 bg-white flex flex-col">
 					<div class="flex-1 flex flex-col overflow-hidden">
-						<ElForm class="py-6 px-8" :model="formData" ref="formRef" label-position="top" label-width="120px">
+						<ElForm ref="formRef" class="py-6" :model="formData" label-position="top" label-width="120px">
 							<ElFormItem :label="$t('prompt.content')" prop="content"
 								:rules="[{ required: true, message: $t('form_input_placeholder') }]">
 								<!-- <Fullscreen class="w-full" :z-index="9">
@@ -95,12 +48,36 @@ onUnmounted(() => {
 										</el-tooltip> -->
 										</div>
 									</div>
-									<PromptInput v-model="formData.content" style="flex: none; height: calc(100vh - 400px);" showLine showToken
+									<PromptInput v-model="formData.content" style="flex: none; height: calc(100vh - 400px);" show-line show-token
 										@change="formRef.validateField('content')" />
 								</div>
 							</ElFormItem>
 						</ElForm>
 					</div>
+          <div v-if="false" class="mt-6 pb-6">
+            <div class="flex items-center justify-between mb-4">
+              <h3 class="text-sm text-[#1D1E1F]">应用场景</h3>
+              <ElButton link type="primary" size="large" @click="handleAddScene">默认设置</ElButton>
+            </div>
+            <div class="flex flex-wrap gap-2">
+              <div class="h-10 flex items-center gap-2 px-3 border rounded">
+                <img class="size-6">
+                <p class="text-sm text-[#1D1E1F]">豆包</p>
+                <el-icon>
+                  <Close />
+                </el-icon>
+              </div>
+              <div class="h-10 flex items-center gap-2 px-3 border rounded">
+                <img class="size-6">
+                <p class="text-sm text-[#1D1E1F]">豆包</p>
+                <el-icon>
+                  <Close />
+                </el-icon>
+              </div>
+
+              <ElButton class="border-dashed bg-transparent" plain type="primary" size="large" @click="handleAddScene">+添加</ElButton>
+            </div>
+          </div>
 				</div>
 			</ElTabPane>
 			<ElTabPane :label="$t('prompt.guide')" name="guide" lazy>
@@ -114,7 +91,97 @@ onUnmounted(() => {
 		</div>
 	</Layout>
 	<CreateDrawer ref="createRef" />
+  <el-dialog>
+    <ElTable ref="table_ref" class="w-full rounded" :data="nav_list"
+			:header-cell-style="{ background: '#F6F7F8', height: '60px' }" :cell-style="{ height: '66px' }"
+			height="calc(100vh - 296px)">
+			<ElTableColumn width="40">
+				<div class="pr-3 sort-icon cursor-move">
+					<svg-icon name="drag" width="24px" height="32px" color="#a1a5af" />
+				</div>
+			</ElTableColumn>
+			<ElTableColumn prop="name" :label="$t('module.nav_name')" min-width="120" show-overflow-tooltip />
+			<ElTableColumn :label="$t('module.nav_type')" show-overflow-tooltip min-width="100">
+				<template #default="{ row = {} }">
+				</template>
+			</ElTableColumn>
+			<ElTableColumn :label="$t('module.nav_target')" show-overflow-tooltip min-width="100">
+				<template #default="{ row = {} }">
+				</template>
+			</ElTableColumn>
+			<ElTableColumn :label="$t('module.nav_visible')" width="120">
+				<template #default="scope">
+				</template>
+			</ElTableColumn>
+			<ElTableColumn :label="$t('module.nav_operation')" align="right" width="180" fixed="right">
+				<template #default="{ row = {}, $index }">
+					<ElButton class="h-auto !p-0 leading-none text-[#576D9C]" type="text" size="default"
+						@click.stop="handleCreate({ data: row })">
+						{{ $t('action_edit') }}
+					</ElButton>
+					<ElButton class="h-auto !p-0 leading-none text-[#576D9C]" type="text" size="default"
+						@click.stop="handlePreview({ data: row })">
+						{{ $t('action_preview') }}
+					</ElButton>
+					<ElButton class="h-auto !p-0 leading-none text-[#576D9C]" type="text" size="default"
+						@click.stop="handleSeoSetting({ data: row })">
+						{{ $t('module.nav_operation_seo') }}
+					</ElButton>
+					<ElButton class="h-auto !p-0 leading-none text-[#576D9C]" type="text" size="default"
+						@click.stop="handleDelete({ data: row, index: $index })">
+						{{ $t('action_delete') }}
+					</ElButton>
+				</template>
+			</ElTableColumn>
+		</ElTable>
+  </el-dialog>
 </template>
+
+<script setup lang="ts">
+import { EditPen, Close } from '@element-plus/icons-vue'
+import { nextTick, onMounted, ref, onUnmounted } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import PromptInput from '@/components/Prompt/input.vue'
+import CreateDrawer from './create-drawer.vue'
+import GuideView from './guide.vue'
+
+import eventBus from '@/utils/event-bus'
+import { useFormDataStore } from './store'
+
+const route = useRoute()
+const router = useRouter()
+
+const formDataStore = useFormDataStore()
+const {formData} = formDataStore
+const {detailData} = formDataStore
+const {loading} = formDataStore
+const {submitting} = formDataStore
+const formRef = ref()
+const createRef = ref()
+const tabActiveName = ref('config')
+
+const handleEdit = async () => {
+	formDataStore.formatFormData()
+	await nextTick()
+	createRef.value.open()
+}
+const handleSave = async () => {
+	const valid = await formRef.value.validate()
+	if (!valid) return
+	const data = await formDataStore.save()
+	eventBus.emit(`prompt-update`, { data })
+	formDataStore.fetchDetail()
+}
+
+onMounted(async () => {
+	const prompt_id = route.query.prompt_id as string
+	if (prompt_id) formDataStore.fetchDetail({ prompt_id })
+})
+
+onUnmounted(() => {
+	formDataStore.reset()
+})
+</script>
 
 <style scoped>
 .prompt-tabs :deep(.el-tabs__nav-wrap) {

@@ -3,36 +3,33 @@ const colors = require('tailwindcss/colors')
 
 module.exports = {
   darkMode: 'class',
-  content: [
-    './index.html',
-    './src/**/*.{vue,js,ts,jsx,tsx}',
-  ],
+  content: ['./index.html', './src/**/*.{vue,js,ts,jsx,tsx}'],
   theme: {
     colors: {
-      ...colors,
+      ...colors
     },
     extend: {
       height: {
-        15: '60px',
+        15: '60px'
       },
       animation: {
-        blink: 'blink 1.2s infinite steps(1, start)',
+        blink: 'blink 1.2s infinite steps(1, start)'
       },
       keyframes: {
         blink: {
           '0%, 100%': { 'background-color': 'currentColor' },
-          '50%': { 'background-color': 'transparent' },
-        },
-      },
-    },
+          '50%': { 'background-color': 'transparent' }
+        }
+      }
+    }
   },
   plugins: [
     function ({ addBase }) {
       addBase({
         '.el-button': {
-          'background-color': 'var(--el-button-bg-color,val(--el-color-white))',
-        },
+          'background-color': 'var(--el-button-bg-color,val(--el-color-white))'
+        }
       })
-    },
-  ],
+    }
+  ]
 }

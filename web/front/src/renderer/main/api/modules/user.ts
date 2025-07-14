@@ -2,19 +2,25 @@ import service from '../config'
 import { handleError } from '../errorHandler'
 
 const userApi = {
-  login(data: { username: string, password: string }) {
+  login(data: { username: string; password: string }) {
     return service.post('/api/login', data).catch(handleError)
   },
-  sms_login(data: { mobile: string, verify_code: string }) {
+  sms_login(data: { mobile: string; verify_code: string }) {
     return service.post('/api/sms_login', data).catch(handleError)
   },
-  wechat_login(params: { openid: string }) {
+  wechat_login(params: { unionid: string }) {
     // return service.get('/api/saas/wechat/user', { params }).catch(handleError)
     return service.get('/api/saas/wechat/user', { params })
   },
-  bind_wechat(data: { mobile?: string, verify_code?: string, openid: string, unionid?: string, nickname?: string }) {
+  bind_wechat(data: {
+    mobile?: string
+    verify_code?: string
+    openid: string
+    unionid?: string
+    nickname?: string
+  }) {
     let api_url = '/api/saas/wechat/bind'
-    if (data.mobile) api_url ='/api/saas/wechat/user'
+    if (data.mobile) api_url = '/api/saas/wechat/user'
     return service.post(api_url, data).catch(handleError)
   },
   unbind_wechat() {
@@ -32,17 +38,22 @@ const userApi = {
   me() {
     return service.get('/api/users/me').catch(handleError)
   },
-  update(data: { nickname?: string; avatar?: string; }) {
+  update(data: { nickname?: string; avatar?: string }) {
     return service.put(`/api/users/me`, data).catch(handleError)
   },
   updatePassword(data: { password: string; newPassword: string }) {
     return service.put(`/api/users/password`, data).catch(handleError)
   },
   checkUsername(account: string) {
-    return service.post(`/api/check_account`, {
-      account,
-    }).catch(handleError)
+    return service
+      .post(`/api/check_account`, {
+        account
+      })
+      .catch(handleError)
   },
+  update_default_subscription(user_id: number) {
+    return service.put(`/api/users/${user_id}/default_subscription`).catch(handleError)
+  }
 }
 
 export default userApi

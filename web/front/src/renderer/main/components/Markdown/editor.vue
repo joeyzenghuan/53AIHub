@@ -105,13 +105,13 @@ onUnmounted(() => {
 <template>
   <div class="h-full relative">
     <div
-      class="w-full !h-full vditor-custom"
       id="vditor"
+      class="w-full !h-full vditor-custom"
       style="--toolbar-background-color: white"
     />
 
     <div class="absolute right-5 top-1">
-      <div class="h-10 flex items-center border rounded px-2" ref="menuRef">
+      <div ref="menuRef" class="h-10 flex items-center border rounded px-2">
         <div
           class="text-[#4F5052] flex-center gap-2 px-2 cursor-pointer"
           :class="{ 'text-[#1e80ff]': currentMode === 'wysiwyg' }"
@@ -151,7 +151,8 @@ onUnmounted(() => {
 .vditor-custom .vditor-toolbar {
   padding-top: 6px;
   padding-bottom: 6px;
-  /* height: 54px;*/
+
+  /* height: 54px; */
 }
 
 .vditor-custom-menu .vditor-tooltipped {

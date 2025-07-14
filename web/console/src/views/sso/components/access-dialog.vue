@@ -2,7 +2,7 @@
 import { ref } from 'vue'
 import { Close } from '@element-plus/icons-vue'
 
-import { useEnterpriseStore } from '@/stores'
+import { useEnterpriseStore, useUserStore } from '@/stores'
 import { api_host } from '@/utils/config'
 
 type Type = 'wecom' | 'dingtalk'
@@ -11,15 +11,18 @@ const LOGO_MAP = {
   dingtalk: window.$getRealPath({ url: '/images/sso/dingtalk.png' }),
 }
 
+const user_store = useUserStore()
+
 const enterpriseStore = useEnterpriseStore()
 const visible = ref(false)
 const app_type = ref<Type>('wecom')
+const WECOM_SUITE_ID = import.meta.env.VITE_GLOB_SUITEID
 
 const handleInstall = () => {
   let url = ''
   switch (app_type.value) {
     case 'wecom':
-      url = `${api_host}/api/saas/wecom/callback/start-install/wwdce32ea39893200f?eid=${enterpriseStore.info.eid}`
+      url = `${api_host}/api/saas/wecom/callback/start-install/${WECOM_SUITE_ID}?tk=${encodeURIComponent(user_store.info.access_token)}`
       break
     case 'dingtalk':
       url = `${location.origin}${location.pathname}#/dingtalk-bind`

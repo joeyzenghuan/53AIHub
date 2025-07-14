@@ -1,44 +1,3 @@
-<script setup lang="ts">
-import { computed, onMounted, ref, watchEffect } from 'vue'
-import { useRoute } from 'vue-router'
-import { ArrowRight } from '@element-plus/icons-vue'
-import { useEnterpriseStore, useUserStore } from '@/stores'
-import { useEnv } from '@/hooks/useEnv'
-
-withDefaults(defineProps<{
-  siderHidden?: boolean
-}>(), {
-  siderHidden: false,
-})
-
-const { isOpLocalEnv, isWorkEnv } = useEnv()
-const route = useRoute()
-const user_store = useUserStore()
-const enterprise_store = useEnterpriseStore()
-const activeName = ref('')
-const openedMenu = ref('') // 新增：存储当前展开的子菜单
-
-const dialogVisible = ref(false)
-const enterprise_info = computed(() => enterprise_store.info)
-
-watchEffect(() => {
-  const paths = route.path.match(/\/[^/]+/g) || ['']
-  activeName.value = paths[0]
-  openedMenu.value = paths[0]
-})
-
-onMounted(() => {
-})
-
-const onExit = () => {
-  user_store.logoff({ show_confirm: true, back_to_login: true })
-}
-const handleFunctionUpdate = () => {
-  // dialogVisible.value = true
-  window.open('https://doc.53ai.com/%E5%85%A5%E9%97%A8/%E4%BA%A7%E5%93%81%E8%B7%AF%E7%BA%BF%E5%9B%BE.html', '_blank')
-}
-</script>
-
 <template>
   <el-aside v-show="!siderHidden" width="232px">
     <div class="flex flex-col flex-1 h-full ">
@@ -49,7 +8,9 @@ const handleFunctionUpdate = () => {
         <el-menu
           router :default-active="activeName" :default-openeds="[openedMenu, '/agent']"
           active-text-color="#2563EB" background-color="#F6F7F8" class="border-none mx-4" text-color="#4C4D4E"
-          style="--el-menu-item-height: 54px; --el-menu-item-font-size: 16px; --el-menu-hover-bg-color: #EEEFF0;"
+          style="
+
+--el-menu-item-height: 54px; --el-menu-item-font-size: 16px; --el-menu-hover-bg-color: #EEEFF0;"
         >
           <el-menu-item index="/index">
             <svg-icon name="home" width="18px" class="mr-2" />
@@ -84,7 +45,7 @@ const handleFunctionUpdate = () => {
               <el-menu-item v-if="enterprise_info.is_independent || enterprise_info.is_industry" index="/user/register">
                 {{ $t('register_user.title') }}
               </el-menu-item>
-              <el-menu-item v-if="!isOpLocalEnv && (enterprise_info.is_enterprise || enterprise_info.is_industry)" index="/user/internal">
+              <el-menu-item v-if="!isOpLocalEnv && (!enterprise_info.is_independent)" index="/user/internal">
                 {{ $t('internal_user.title') }}
               </el-menu-item>
               <el-menu-item index="/subscription">
@@ -124,7 +85,7 @@ const handleFunctionUpdate = () => {
               <el-menu-item index="/info">
                 {{ $t('module.website_info') }}
               </el-menu-item>
-              <el-menu-item v-if="!isWorkEnv" index="/sso">
+              <el-menu-item v-if="!isOpLocalEnv && (!enterprise_info.is_independent)" index="/sso">
                 {{ $t('sso.title') }}
               </el-menu-item>
               <el-menu-item index="/platform">
@@ -193,46 +154,52 @@ const handleFunctionUpdate = () => {
     </div>
   </el-aside>
 
-  <el-dialog
-    v-model="dialogVisible" width="600px" align-center class="el-dialog--noheader" :show-close="false"
-    :close-on-click-modal="false"
-  >
-    <div class="h-[115px] bg-[#D4E4FC] p-8 rounded-lg mb-5  bg-[url('/images/version_log.png')] bg-cover bg-no-repeat">
-      <h4 class="text-lg text-[#1D1E1F] font-semibold">
-        {{ $t('function_update_desc') }}
-      </h4>
-      <span class="text-xs text-[#8591AB]">2025-03-06</span>
-    </div>
-    <div>
-      <div class="flex flex-col gap-2">
-        <h5 class="text-sm text-[#1D1E1F]">
-          【新增】
-        </h5>
-        <p class="text-sm text-[#4F5052]">
-          1、线索、客户、联系人、商机增加合并功能，对在系统中重复的数据可以执行数据合并操作
-        </p>
-        <p class="text-sm text-[#4F5052]">
-          2、合同模块增加合并收款、合并开票功能，在创建收款和开票时支持选择同一个客户下的多个合同
-        </p>
-      </div>
-    </div>
-    <template #footer>
-      <div class="flex-center">
-        <el-button @click="dialogVisible = false">
-          {{ $t('action_close') }}
-        </el-button>
-        <el-button type="primary" @click="dialogVisible = false">
-          {{ $t('action_view_more') }}
-        </el-button>
-      </div>
-    </template>
-  </el-dialog>
 </template>
+
+<script setup lang="ts">
+import { computed, onMounted, ref, watchEffect } from 'vue'
+import { useRoute } from 'vue-router'
+import { ArrowRight } from '@element-plus/icons-vue'
+import { useEnterpriseStore, useUserStore } from '@/stores'
+import { useEnv } from '@/hooks/useEnv'
+
+withDefaults(defineProps<{
+  siderHidden?: boolean
+}>(), {
+  siderHidden: false,
+})
+
+const { isOpLocalEnv, isWorkEnv } = useEnv()
+const route = useRoute()
+const user_store = useUserStore()
+const enterprise_store = useEnterpriseStore()
+const activeName = ref('')
+const openedMenu = ref('') // 新增：存储当前展开的子菜单
+
+const enterprise_info = computed(() => enterprise_store.info)
+
+watchEffect(() => {
+  const paths = route.path.match(/\/[^/]+/g) || ['']
+  activeName.value = paths[0]
+  openedMenu.value = paths[0]
+})
+
+onMounted(() => {
+})
+
+const onExit = () => {
+  user_store.logoff({ show_confirm: true, back_to_login: true })
+}
+const handleFunctionUpdate = () => {
+  window.open('https://doc.53ai.com/%E5%85%A5%E9%97%A8/%E4%BA%A7%E5%93%81%E8%B7%AF%E7%BA%BF%E5%9B%BE.html', '_blank')
+}
+</script>
 
 <style scoped>
 :deep(.el-menu-item-group__title:empty) {
 	display: none;
 }
+
 /* :deep(.el-menu-item)  {
 	margin-bottom: 6px;
 } */
@@ -240,19 +207,24 @@ const handleFunctionUpdate = () => {
 :deep(.el-sub-menu__title) {
 	padding: 0 16px !important;
 }
+
 :deep(.el-menu-item:hover),
 :deep(.el-sub-menu__title:hover) {
 	border-radius: 8px;
 }
+
 :deep(.el-sub-menu .el-menu-item) {
 	--el-menu-sub-item-height: 40px;
 	--el-menu-base-level-padding: 0px;
 	--el-menu-level-padding: 16px;
+
 	font-size: 14px;
 }
+
 :deep(.el-menu-item-group) {
 	padding-left: 30px;
 }
+
 :deep(.el-sub-menu .el-menu-item:hover) {
 	background-color: #EEEFF0;
 	border-radius: 8px;

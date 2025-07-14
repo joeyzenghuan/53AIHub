@@ -57,8 +57,6 @@ func DeleteProviderByID(id, eid int64) error {
 
 func UpdateProvider(provider *Provider) error {
 	return DB.Model(provider).
-		Select("name", "provider_type", "configs",
-			"is_authorized", "updated_time", "access_token", "refresh_token", "expires_in", "authed_time").
 		Updates(provider).Error
 }
 

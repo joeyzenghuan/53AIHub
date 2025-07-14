@@ -7,17 +7,102 @@ import (
 
 	"github.com/53AI/53AIHub/config"
 	"github.com/53AI/53AIHub/model"
+	"github.com/53AI/53AIHub/service/payment"
 	"github.com/gin-gonic/gin"
+	"github.com/go-pay/xlog"
 )
+
+// 响应类型定义
+type Response struct {
+	Code    string      `json:"code,omitempty"`
+	Message string      `json:"message,omitempty"`
+	Data    interface{} `json:"data,omitempty"`
+}
+
+type ErrorResponse struct {
+	Code    string `json:"code"`
+	Message string `json:"message"`
+}
+
+// @Summary Close order
+// @Description Close an existing order
+// @Tags Order
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @param referer header string true "Referer"
+// @Param id path string true "Order ID"
+// @Success 200 {object} model.CommonResponse{data=model.Order}
+// @Router /api/orders/{id}/close [post]
+func CloseOrder(c *gin.Context) {
+	orderID := c.Param("id")
+	if orderID == "" {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Order ID is required"))
+		return
+	}
+
+	eid := config.GetEID(c)
+	userID := config.GetUserId(c)
+
+	// Get order from database
+	order, err := model.GetOrderByOrderId(eid, orderID)
+	if err != nil {
+		xlog.Errorf("Failed to get order: %v", err)
+		c.JSON(http.StatusNotFound, model.NotFound.ToResponse(model.OrderNotFound))
+		return
+	}
+
+	// Check if order belongs to current user
+	if order.UserID != userID {
+		c.JSON(http.StatusForbidden, model.ForbiddenError.ToResponse("No permission to close this order"))
+		return
+	}
+
+	paySetting, err := model.GetPaySettingByType(eid, model.PayTypeAlipay)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Payment method not configured"))
+		return
+	}
+
+	switch order.PayType {
+	case model.PayTypeAlipay:
+		factory := &payment.PaymentFactory{}
+		payment, err := factory.NewPayment(model.PayTypeWechat)
+		if err != nil {
+			c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+			return
+		}
+		tradeNo, err := payment.CloseOrder(order, paySetting)
+		if err != nil {
+			c.JSON(http.StatusInternalServerError, model.ParamError.ToResponse(err))
+			return
+		}
+		order.TransactionId = tradeNo
+	default:
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Unsupported payment method"))
+		return
+	}
+
+	order.Status = model.OrderStatusClosed
+	if err := order.Update(); err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(nil))
+}
 
 // OrderListRequest represents the request for listing orders
 type OrderListRequest struct {
 	// UserID    int64  `form:"user_id" example:"0"` // 0 means all users
-	Offset  int    `form:"offset" example:"0"`
-	Limit   int    `form:"limit" example:"10"`
-	Status  int    `form:"status" example:"-1"`   // -1 means all statuses (default -1)
-	PayType int    `form:"pay_type" example:"-1"` // -1 means all payment types (default -1)
-	Keyword string `form:"keyword" example:""`    // Search by nickname or order ID
+	Offset       int    `form:"offset" example:"0"`
+	Limit        int    `form:"limit" example:"10"`
+	Status       int    `form:"status" example:"-1"`      // -1 means all statuses (default -1)
+	PayType      int    `form:"pay_type" example:"-1"`    // -1 means all payment types (default -1)
+	Keyword      string `form:"keyword" example:""`       // Search by nickname or order ID
+	Subscription int64  `form:"subscription" example:"0"` // Subscription ID (0 means all subscriptions)
+	StartTime    int64  `form:"start_time" example:"0"`   // Start time (timestamp in milliseconds)
+	EndTime      int64  `form:"end_time" example:"0"`     // End time (timestamp in milliseconds)
 }
 
 // OrderListResponse represents the response for listing orders
@@ -28,18 +113,24 @@ type OrderListResponse struct {
 
 // GetOrders gets orders with pagination
 // @Summary Get orders
-// @Description Get orders with pagination
+// @Description Retrieve orders with pagination and filtering options. Supports distinguishing between backend and wecom requests.
 // @Tags Order
 // @Accept json
 // @Produce json
 // @Security BearerAuth
-// @Param offset query int false "Offset"
-// @Param limit query int false "Limit"
-// @Param status query int false "Order status (-1 for all statuses, 1:Not confirmed 2:Pending 3:Paid 4:Expired)"
-// @Param pay_type query int false "Payment type (-1 for all types, 1:WeChat Pay 2:Manual Transfer 3:PayPal)"
+// @Param offset query int false "Offset for pagination (default: 0)"
+// @Param limit query int false "Limit for pagination (default: 10)"
+// @Param status query int false "Order status (-1 for all statuses, 1: Not confirmed, 2: Pending, 3: Paid, 4: Expired 5:Closed)"
+// @Param pay_type query int false "Payment type (-1 for all types, 1: WeChat Pay, 2: Manual Transfer, 3: PayPal 4:Alipay)"
 // @Param keyword query string false "Search by nickname or order ID"
+// @Param subscription query int64 false "Subscription ID (0 for all subscriptions)"
+// @Param start_time query int64 false "Start time for filtering (timestamp in milliseconds)"
+// @Param end_time query int64 false "End time for filtering (timestamp in milliseconds)"
 // @Success 200 {object} model.CommonResponse{data=OrderListResponse}
+// @Failure 400 {object} model.CommonResponse "Invalid parameters"
+// @Failure 500 {object} model.CommonResponse "Internal server error"
 // @Router /api/orders [get]
+// @Router /api/orders/me [get]
 func GetOrders(c *gin.Context) {
 	var req OrderListRequest
 	if err := c.ShouldBindQuery(&req); err != nil {
@@ -48,6 +139,26 @@ func GetOrders(c *gin.Context) {
 	}
 
 	eid := config.GetEID(c)
+	userID := config.GetUserId(c)
+
+	isBackend := true
+
+	path := c.Request.URL.Path
+	if path == "/api/orders/me" {
+		isBackend = false
+	}
+
+	var userIdScope int64
+
+	// 获取当前用户角色
+	user, err := model.GetUserByID(userID)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	// 判断是否为管理员角色
+	isAdmin := user.Role == model.RoleAdminUser || user.Role == model.RoleCreatorUser || user.Role == model.RoleRootUser
 
 	offset := req.Offset
 	if offset == 0 {
@@ -67,9 +178,15 @@ func GetOrders(c *gin.Context) {
 		limit = 10
 	}
 
+	// 如果不是管理员,并且不是后台请求，则限制查询条件为当前用户的 ID
+	if !(isAdmin && isBackend) {
+		userIdScope = userID // 限制查询条件为当前用户的 ID
+	}
+
 	// Get orders with extended filters
-	orders, total, err := model.GetOrdersWithFilters(eid, req.Status,
-		req.PayType, req.Keyword, offset, limit)
+	orders, total, err := model.GetOrdersWithFilters(
+		eid, userIdScope, req.Status, req.PayType, req.Keyword, req.Subscription, req.StartTime, req.EndTime, offset, limit,
+	)
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
 		return
@@ -399,4 +516,77 @@ func UpdateManualTransferOrder(c *gin.Context) {
 	}
 
 	c.JSON(http.StatusOK, model.Success.ToResponse(order))
+}
+
+func QueryTradeOrder(c *gin.Context) {
+	orderId := c.Param("order_id")
+	if orderId == "" {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Order ID is required"))
+		return
+	}
+
+	eid := config.GetEID(c)
+	// Try to get order from database
+	order, err := model.GetOrderByOrderId(eid, orderId)
+	if err != nil {
+		c.JSON(http.StatusNotFound, model.NotFound.ToNewErrorResponse(model.OrderNotFound))
+		return
+	}
+
+	paySetting, err := model.GetPaySettingByType(eid, order.PayType)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Payment method not configured"))
+		return
+	}
+
+	factory := &payment.PaymentFactory{}
+	newPayment, err := factory.NewPayment(order.PayType)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+	rsp, err := newPayment.QueryPaymentStatus(order, paySetting)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.ParamError.ToResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(rsp))
+}
+
+func RefunTradeOrder(c *gin.Context) {
+	orderId := c.Param("order_id")
+	if orderId == "" {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Order ID is required"))
+		return
+	}
+
+	eid := config.GetEID(c)
+	// Try to get order from database
+	order, err := model.GetOrderByOrderId(eid, orderId)
+	if err != nil {
+		c.JSON(http.StatusNotFound, model.NotFound.ToNewErrorResponse(model.OrderNotFound))
+		return
+	}
+
+	paySetting, err := model.GetPaySettingByType(eid, order.PayType)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Payment method not configured"))
+		return
+	}
+
+	factory := &payment.PaymentFactory{}
+	newPayment, err := factory.NewPayment(order.PayType)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	rsp, err := newPayment.Refund(order, paySetting)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.ParamError.ToResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(rsp))
 }

@@ -1,7 +1,14 @@
 <template>
-  <Chat ref="chatRef" class="flex-1" :key="currentConv.virtual_id || currentConv.conversation_id"
-    :hideMenuHeader="hideMenuHeader" :hideFooter="hideFooter" :showRecommend="showRecommend"
-    :useCaseFixed="useCaseFixed" :showHistory="showHistory" />
+  <Chat
+    ref="chatRef"
+    :key="currentConv.virtual_id || currentConv.conversation_id"
+    class="flex-1"
+    :hide-menu-header="hideMenuHeader"
+    :hide-footer="hideFooter"
+    :show-recommend="showRecommend"
+    :use-case-fixed="useCaseFixed"
+    :show-history="showHistory"
+  />
   <Completion v-if="false" />
   <!-- </div> -->
 </template>
@@ -10,11 +17,13 @@
 import { ref, onMounted, onUnmounted, defineAsyncComponent, computed, watch } from 'vue'
 import { useRoute } from 'vue-router'
 
-const Chat = defineAsyncComponent(() => import('./chat/index.vue'))
-const Completion = defineAsyncComponent(() => import('./completion/index.vue'))
-
 import { useAgentStore } from '@/stores/modules/agent'
 import { useConversationStore } from '@/stores/modules/conversation'
+import eventBus from '@/utils/event-bus'
+import { EVENT_NAMES } from '@/constants/events'
+
+const Chat = defineAsyncComponent(() => import('./chat/index.vue'))
+const Completion = defineAsyncComponent(() => import('./completion/index.vue'))
 
 const route = useRoute()
 const agentStore = useAgentStore()
@@ -22,19 +31,22 @@ const convStore = useConversationStore()
 
 const chatRef = ref<InstanceType<typeof Chat>>()
 
-const props = withDefaults(defineProps<{
-  hideMenuHeader?: boolean
-  hideFooter?: boolean
-  showRecommend?: boolean
-  useCaseFixed?: boolean
-  showHistory?: boolean
-}>(), {
-  hideMenuHeader: false,
-  hideFooter: false,
-  showRecommend: false,
-  useCaseFixed: false,
-  showHistory: false
-})
+withDefaults(
+  defineProps<{
+    hideMenuHeader?: boolean
+    hideFooter?: boolean
+    showRecommend?: boolean
+    useCaseFixed?: boolean
+    showHistory?: boolean
+  }>(),
+  {
+    hideMenuHeader: false,
+    hideFooter: false,
+    showRecommend: false,
+    useCaseFixed: false,
+    showHistory: false
+  }
+)
 
 const currentConv = computed(() => convStore.currentConversation)
 const currentAgent = computed(() => convStore.currentAgent)
@@ -78,13 +90,15 @@ onMounted(async () => {
   agentStore.loadCategorys()
 
   convStore.loadConversations()
+  eventBus.on(EVENT_NAMES.LOGIN_SUCCESS, () => {
+    convStore.loadConversations()
+  })
 })
 
 onUnmounted(() => {
   // 清理逻辑
   convStore.clearCurrentState()
 })
-
 
 defineExpose({
   detailData: currentAgent,

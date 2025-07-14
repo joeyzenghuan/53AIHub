@@ -63,6 +63,7 @@
 <script setup lang="ts">
 import { defineAsyncComponent } from 'vue'
 import { ArrowLeft, Download, CopyDocument } from '@element-plus/icons-vue'
+
 const Helper = defineAsyncComponent(() => import('../helper.vue'))
 </script>
 
@@ -71,7 +72,8 @@ const Helper = defineAsyncComponent(() => import('../helper.vue'))
   text-indent: 12px;
   position: relative;
 }
-.completion-form .el-form-item__label:before {
+
+.completion-form .el-form-item__label::before {
   content: '';
   position: absolute;
   left: 0;
@@ -85,18 +87,23 @@ const Helper = defineAsyncComponent(() => import('../helper.vue'))
 .completion-tabs {
   --el-tabs-header-height: 56px;
   --el-font-size-base: 16px;
+
   height: 100%;
 }
+
 .completion-tabs .el-tabs__header {
   margin-bottom: 0;
 }
+
 .completion-tabs .el-tab-pane {
   height: 100%;
 }
+
 .completion-tabs .el-tabs__nav-scroll {
   padding: 0 20px;
 }
-.completion-tabs .el-tabs__nav-wrap:after {
+
+.completion-tabs .el-tabs__nav-wrap::after {
   height: 1px;
 }
 </style>

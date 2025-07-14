@@ -5,6 +5,7 @@ import eventBus from '@/utils/event-bus'
 import { getFormatUserData } from '@/api/modules/user'
 import { systemLogApi } from '@/api/modules/system-log'
 import { SYSTEM_LOG_ACTION } from '@/constants/system-log'
+
 export interface User {
   access_token: string
   user_id: string
@@ -15,7 +16,7 @@ export const useDefaultUser = () => ({
   access_token: localStorage.getItem('access_token') || '',
   user_id: '',
   eid: '',
-  ...JSON.parse(localStorage.getItem('user_info') || '{}'),
+  ...JSON.parse(localStorage.getItem('user_info') || '{}')
 })
 const default_user = useDefaultUser()
 
@@ -23,14 +24,28 @@ export const useUserStore = defineStore('user-store', {
   state: () => ({
     info: deepCopy(default_user),
     is_new_user: false,
-    is_saas_login: false,
+    is_saas_login: false
   }),
   actions: {
-    async login({ type = 'password', data: { username, password, verify_code }, hideError = false }: { type: 'password' | 'mobile'; data: { username: string; password: string; verify_code: string }; hideError: boolean }) {
-      const { data = {} } = await api.user[type === 'mobile' ? 'saas_sms_login' : 'saas_login']({ data: type === 'mobile' ? { mobile: username, verify_code } : { username, password, verify_code }, hideError })
+    async login({
+      type = 'password',
+      data: { username, password, verify_code },
+      hideError = false
+    }: {
+      type: 'password' | 'mobile'
+      data: { username: string; password: string; verify_code: string }
+      hideError: boolean
+    }) {
+      const { data = {} } = await api.user[type === 'mobile' ? 'saas_sms_login' : 'saas_login']({
+        data:
+          type === 'mobile'
+            ? { mobile: username, verify_code }
+            : { username, password, verify_code },
+        hideError
+      })
       this.info = {
         ...this.info,
-        ...data,
+        ...data
       }
       this.is_new_user = !!+data.is_new_user
       localStorage.setItem('access_token', this.info.access_token)
@@ -45,18 +60,23 @@ export const useUserStore = defineStore('user-store', {
         await ElMessageBox.confirm(window.$t('action_exit_confirm'), window.$t('action_exit'))
         await systemLogApi.create({
           action: SYSTEM_LOG_ACTION.LOGOUT,
-          content: '退出',
+          content: '退出'
         })
       }
       localStorage.removeItem('access_token')
       localStorage.removeItem('user_info')
       this.is_saas_login = false
       this.info = useDefaultUser()
-      if (back_to_login)
-        eventBus.emit('user-login-expired', this)
+      if (back_to_login) eventBus.emit('user-login-expired', this)
     },
-    async resetPassword({ data: { mobile, new_password, confirm_password, verify_code } }: { data: { mobile: string; new_password: string; confirm_password: string; verify_code: string } }) {
-      return api.user.reset_password({ data: { mobile, new_password, confirm_password, verify_code } })
+    async resetPassword({
+      data: { mobile, new_password, confirm_password, verify_code }
+    }: {
+      data: { mobile: string; new_password: string; confirm_password: string; verify_code: string }
+    }) {
+      return api.user.reset_password({
+        data: { mobile, new_password, confirm_password, verify_code }
+      })
     },
     setAccessToken(access_token: string) {
       this.info.access_token = access_token
@@ -73,11 +93,38 @@ export const useUserStore = defineStore('user-store', {
     setIsNewUser(is_new_user: boolean) {
       this.is_new_user = is_new_user
     },
-    async loadListData({ data: { role = '', keyword = '', group_id, offset = 0, limit = 10 }, hideError = false }: { data: { role?: string; keyword?: string; group_id?: number; offset?: number; limit?: number }; hideError: boolean }) {
-      const { data: { count = 0, users = [] } = {} } = await api.user.list({ data: { role, keyword, group_id, offset, limit }, hideError })
+    async loadListData({
+      data: {
+        role = '',
+        keyword = '',
+        group_id,
+        offset = 0,
+        limit = 10,
+        start_time,
+        end_time,
+        range_by
+      },
+      hideError = false
+    }: {
+      data: {
+        role?: string
+        keyword?: string
+        group_id?: number
+        offset?: number
+        limit?: number
+        start_time?: string
+        end_time?: string
+        range_by?: string
+      }
+      hideError: boolean
+    }) {
+      const { data: { count = 0, users = [] } = {} } = await api.user.list({
+        data: { role, keyword, group_id, offset, limit, start_time, end_time, range_by },
+        hideError
+      })
       return {
         total: count,
-        list: users.map(item => getFormatUserData(item)),
+        list: users.map((item) => getFormatUserData(item))
       }
     },
     async delete({ data: { user_id } }: { data: { user_id: string } }) {
@@ -91,28 +138,25 @@ export const useUserStore = defineStore('user-store', {
         group_id: 0,
         nickname: '',
         password: '',
-        ...data,
+        ...data
       }
-      if (!data.user_id)
-        delete data.user_id
-      if (!data.password)
-        delete data.password
+      if (!data.user_id) delete data.user_id
+      if (!data.password) delete data.password
       return api.user.update({ data })
     },
 
     async loadSelfInfo() {
       const access_token = localStorage.getItem('access_token')
-      if (!access_token)
-        return Promise.reject('no access_token')
+      if (!access_token) return Promise.reject('no access_token')
       const { data = {} } = await api.user.self_info()
       this.info = {
         ...this.info,
-        ...data,
+        ...data
       }
       localStorage.setItem('user_info', JSON.stringify(this.info))
       eventBus.emit('load-user-self-info-success', this)
       return this
-    },
+    }
     // async register({ data: { username, password, nickname } }: { data: { username: string, password: string, nickname: string } }) {
     // 	const { data = {} } = await api.user.register({ data: { username, password, nickname: nickname || username } })
     // 	this.info.access_token = data.access_token || ''
@@ -131,5 +175,5 @@ export const useUserStore = defineStore('user-store', {
     // 	}
     // 	return this
     // },
-  },
+  }
 })

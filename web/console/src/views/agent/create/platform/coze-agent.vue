@@ -1,39 +1,3 @@
-<script setup lang="ts">
-import { ref, watch } from 'vue'
-import AgentInfo from '../components/agent-info.vue'
-import BaseConfig from '../components/base-config.vue'
-import ExpandConfig from '../components/expand-config.vue'
-import UseScope from '../components/use-scope.vue'
-
-import { useAgentFormStore } from '../store'
-// import LimitConfig from '../components/limit-config.vue'
-import { generateInputRules } from '@/utils/form-rule'
-const props = defineProps({
-  showChannelConfig: {
-    type: Boolean,
-    default: false,
-  },
-})
-
-const store = useAgentFormStore()
-
-const form_ref = ref()
-
-const validateForm = async () => form_ref.value.validate()
-
-defineExpose({
-  validateForm,
-})
-
-let first_load = true
-watch(() => store.form_data.custom_config.coze_workspace_id, (workspace_id) => {
-  if (!first_load)
-    store.loadCozeBotOptions(workspace_id)
-
-  first_load = false
-})
-</script>
-
 <template>
   <div :class="[showChannelConfig ? '' : 'py-7']">
     <ElForm ref="form_ref" :model="store.form_data" label-width="104px" label-position="top">
@@ -74,6 +38,43 @@ watch(() => store.form_data.custom_config.coze_workspace_id, (workspace_id) => {
     </ElForm>
   </div>
 </template>
+
+<script setup lang="ts">
+import { ref, watch } from 'vue'
+import AgentInfo from '../components/agent-info.vue'
+import BaseConfig from '../components/base-config.vue'
+import ExpandConfig from '../components/expand-config.vue'
+import UseScope from '../components/use-scope.vue'
+
+import { useAgentFormStore } from '../store'
+// import LimitConfig from '../components/limit-config.vue'
+import { generateInputRules } from '@/utils/form-rule'
+
+const props = defineProps({
+  showChannelConfig: {
+    type: Boolean,
+    default: false,
+  },
+})
+
+const store = useAgentFormStore()
+
+const form_ref = ref()
+
+const validateForm = async () => form_ref.value.validate()
+
+defineExpose({
+  validateForm,
+})
+
+let first_load = true
+watch(() => store.form_data.custom_config.coze_workspace_id, (workspace_id) => {
+  if (!first_load)
+    store.loadCozeBotOptions(workspace_id)
+
+  first_load = false
+})
+</script>
 
 <style scoped>
 ::v-deep(.el-input-number--large) {

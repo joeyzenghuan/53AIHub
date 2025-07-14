@@ -1,17 +1,25 @@
 {
   "name": "53aihub-front",
-  "version": "0.1.4",
+  "version": "0.1.5",
   "description": "53aihub-front",
   "author": "53aihub",
   "homepage": "https://53ai.com/",
   "scripts": {
     "format": "prettier --write .",
     "lint": "eslint . --ext .js,.jsx,.cjs,.mjs,.ts,.tsx,.cts,.mts,.vue --fix",
+    "lint:vue": "eslint \"src/**/*.vue\" --fix",
+    "format:vue": "prettier --write \"src/**/*.vue\"",
+    "fix:vue-order": "npm run lint:vue && npm run format:vue",
     "typecheck:node": "tsc --noEmit -p tsconfig.node.json --composite false",
     "typecheck:web": "vue-tsc --noEmit -p tsconfig.web.json --composite false",
     "typecheck": "npm run typecheck:node && npm run typecheck:web",
+    "commitlint": "commitlint --edit",
+    "stylelint": "stylelint \"src/**/*.{vue,css,scss,sass,less,styl}\" --fix",
+    "lint-staged": "lint-staged",
     "dev": "cross-env VITE_PLATFORM=op-local vite",
-    "build": "cross-env VITE_PLATFORM=op-local vite build"
+    "dev:win": "electron-vite dev",
+    "build": "cross-env VITE_PLATFORM=op-local vite build",
+    "prepare": "husky"
   },
   "dependencies": {
     "@electron-toolkit/preload": "^3.0.0",
@@ -24,7 +32,7 @@
     "electron-updater": "^6.3.9",
     "element-plus": "^2.9.6",
     "file-saver": "^2.0.5",
-    "hub-ui-x": "^0.0.17",
+    "hub-ui-x": "^0.0.20",
     "markmap-common": "^0.18.9",
     "markmap-lib": "^0.18.11",
     "markmap-view": "^0.18.10",
@@ -35,7 +43,6 @@
     "uiohook-napi": "^1.5.4",
     "vditor": "^3.10.9",
     "vis-network": "^9.1.9",
-    "vite-plugin-wasm": "^3.4.1",
     "vue-codemirror": "^6.1.1",
     "vue-cropper": "^1.0.9",
     "vue-demi": "^0.14.6",
@@ -43,6 +50,8 @@
     "vue-router": "^4.5.0"
   },
   "devDependencies": {
+    "@commitlint/cli": "^19.8.1",
+    "@commitlint/config-conventional": "^19.8.1",
     "@electron-toolkit/eslint-config": "^1.0.2",
     "@electron-toolkit/eslint-config-ts": "^1.0.1",
     "@electron-toolkit/tsconfig": "^1.0.1",
@@ -57,10 +66,16 @@
     "electron-builder": "^24.9.1",
     "electron-vite": "^2.0.0",
     "eslint": "^8.56.0",
+    "eslint-config-airbnb-base": "^15.0.0",
     "eslint-plugin-vue": "^9.20.1",
+    "husky": "^9.1.7",
+    "lint-staged": "^16.1.2",
     "postcss": "^8.4.21",
     "prettier": "^3.2.4",
     "rollup": "^4.41.1",
+    "stylelint": "^16.21.0",
+    "stylelint-config-recommended-vue": "^1.6.1",
+    "stylelint-config-standard": "^38.0.0",
     "tailwindcss": "^3.2.7",
     "typescript": "^5.8.2",
     "unplugin-auto-import": "^19.1.1",
@@ -68,6 +83,7 @@
     "unplugin-vue-components": "^28.4.1",
     "vite": "^5.0.12",
     "vite-plugin-svg-icons": "^2.0.1",
+    "vite-plugin-wasm": "^3.4.1",
     "vue": "^3.4.15",
     "vue-tsc": "^1.8.27"
   }

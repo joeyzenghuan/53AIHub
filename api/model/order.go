@@ -11,6 +11,7 @@ const (
 	OrderStatusPending    = 2 // Pending payment
 	OrderStatusPaid       = 3 // Paid
 	OrderStatusExpired    = 4 // Expired
+	OrderStatusClosed     = 5 // Closed
 )
 
 // Service type constants
@@ -323,26 +324,43 @@ func GetRecentOrders(eid int64, limit int) ([]*Order, error) {
 }
 
 // GetOrdersWithFilters gets orders with extended filters
-func GetOrdersWithFilters(eid int64, status, payType int,
-	keyword string, offset, limit int) ([]*Order, int64, error) {
-
+func GetOrdersWithFilters(eid int64, userID int64, status, payType int, keyword string, subscriptionID int64, startTime, endTime int64, offset, limit int) ([]*Order, int64, error) {
 	query := DB.Model(&Order{}).Where("eid = ?", eid)
 
+	// Filter by user ID
+	if userID > 0 {
+		query = query.Where("user_id = ?", userID)
+	}
+
+	// Filter by status
 	if status >= 0 {
 		query = query.Where("status = ?", status)
 	}
 
+	// Filter by payment type
 	if payType >= 0 {
 		query = query.Where("pay_type = ?", payType)
 	}
 
-	// Apply keyword search
+	// Filter by keyword (user ID )
 	if keyword != "" {
-		query = query.Where("order_id LIKE ? OR nickname LIKE ?",
-			"%"+keyword+"%", "%"+keyword+"%")
+		query = query.Where("order_id LIKE ? OR nickname LIKE ?", "%"+keyword+"%", "%"+keyword+"%")
 	}
 
-	// Count total
+	// Filter by subscription ID
+	if subscriptionID > 0 {
+		query = query.Where("service_id = ?", subscriptionID)
+	}
+
+	// Validate and apply time range filters
+	if startTime > 0 {
+		query = query.Where("created_time >= ?", startTime)
+	}
+	if endTime > 0 {
+		query = query.Where("created_time <= ?", endTime)
+	}
+
+	// Count total records
 	var total int64
 	if err := query.Count(&total).Error; err != nil {
 		return nil, 0, err
@@ -350,8 +368,7 @@ func GetOrdersWithFilters(eid int64, status, payType int,
 
 	// Get paginated results
 	var orders []*Order
-	if err := query.Offset(offset).Limit(limit).
-		Order("created_time DESC").Find(&orders).Error; err != nil {
+	if err := query.Offset(offset).Limit(limit).Order("created_time DESC").Find(&orders).Error; err != nil {
 		return nil, 0, err
 	}
 

@@ -1,22 +1,3 @@
-<script setup lang="ts">
-import { ref } from 'vue'
-import { useFormDataStore } from './store'
-import PromptInput from '@/components/Prompt/input.vue'
-
-import { GROUP_TYPE_INTERNAL_USER, GROUP_TYPE_PROMPT, GROUP_TYPE_USER } from '@/api/modules/group'
-import { useEnterpriseStore } from '@/stores/modules/enterprise'
-
-const enterprise = useEnterpriseStore()
-const formDataStore = useFormDataStore()
-
-const formData = formDataStore.formData
-const formRef = ref()
-
-defineExpose({
-  validate: () => formRef.value.validate(),
-})
-</script>
-
 <template>
   <ElForm ref="formRef" class="py-0 px-3" :model="formData" label-position="top" label-width="120px">
     <!-- <h1 class="font-semibold text-[#1D1E1F]">{{ $t('basic_info') }}</h1> -->
@@ -100,17 +81,36 @@ defineExpose({
     <h1 class="font-semibold text-[#1D1E1F] mt-8 mb-4">
       {{ $t('usage_range') }}
     </h1>
-    <ElFormItem :label="$t('register_user.title')" prop="subscription_group_ids" v-if="enterprise.info.is_independent || enterprise.info.is_industry">
+    <ElFormItem :hidden="!(enterprise.info.is_independent || enterprise.info.is_industry)" :label="$t('register_user.title')" prop="subscription_group_ids">
       <GroupSelect
         v-model="formData.subscription_group_ids" type="checkbox" :group-type="GROUP_TYPE_USER" multiple
         default-all
       />
     </ElFormItem>
-    <ElFormItem :label="$t('internal_user.title')" prop="user_group_ids" v-if="enterprise.info.is_enterprise || enterprise.info.is_industry">
+    <ElFormItem :hidden="!(enterprise.info.is_enterprise || enterprise.info.is_industry)" :label="$t('internal_user.title')" prop="user_group_ids">
       <GroupSelect v-model="formData.user_group_ids" type="picker" :group-type="GROUP_TYPE_INTERNAL_USER" multiple />
     </ElFormItem>
   </ElForm>
 </template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import { useFormDataStore } from './store'
+import PromptInput from '@/components/Prompt/input.vue'
+
+import { GROUP_TYPE_INTERNAL_USER, GROUP_TYPE_PROMPT, GROUP_TYPE_USER } from '@/api/modules/group'
+import { useEnterpriseStore } from '@/stores/modules/enterprise'
+
+const enterprise = useEnterpriseStore()
+const formDataStore = useFormDataStore()
+
+const {formData} = formDataStore
+const formRef = ref()
+
+defineExpose({
+  validate: () => formRef.value.validate(),
+})
+</script>
 
 <style scoped>
 .is-error .prompt-input-wrapper {

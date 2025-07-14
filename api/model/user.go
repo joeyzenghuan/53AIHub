@@ -2,6 +2,7 @@ package model
 
 import (
 	"errors"
+	"fmt"
 	"strconv"
 	"strings"
 	"time"
@@ -241,14 +242,29 @@ func DeleteUser(eid int64, user_id int64) error {
 	}
 
 	if user.Type == UserTypeInternal {
-		if err := tx.Where("eid = ? AND mid = ? and `from` = ?", eid, user_id, MemberBindingSourceNone).Delete(&MemberBinding{}).Error; err != nil {
-			tx.Rollback()
-			return err
-		}
-
-		if err := tx.Where("eid = ? AND bid = ? and `from` = ?", eid, user_id, MemberDepartmentRelationFromBackend).Delete(&MemberDepartmentRelation{}).Error; err != nil {
-			tx.Rollback()
-			return err
+		var binds []*MemberBinding
+		tx.Where("eid = ? AND mid = ?", eid, user_id).Find(&binds)
+		if len(binds) > 0 {
+			for _, bind := range binds {
+				if bind.From == DepartmentFromBackend {
+					err := tx.Where("eid = ? AND bid = ? AND `from` = ? ", eid, bind.ID, DepartmentFromBackend).Delete(&MemberDepartmentRelation{}).Error
+					if err != nil {
+						tx.Rollback()
+						return err
+					}
+					tx.Where("eid = ? AND id = ?", eid, bind.ID).Delete(&MemberBinding{})
+				} else if bind.From == DepartmentFromWecom {
+					err := tx.Model(&MemberBinding{}).Where("eid = ? AND id = ?", eid, bind.ID).Updates(
+						map[string]interface{}{
+							"mid":    0,
+							"status": MemberBindingStatusInactive,
+						}).Error
+					if err != nil {
+						tx.Rollback()
+						return err
+					}
+				}
+			}
 		}
 	}
 
@@ -307,7 +323,7 @@ func GetUserByRelatedId(eid int64, relatedId int64) (*User, error) {
 }
 
 // GetUserListWithRoles retrieves user list with role filtering
-func GetUserListWithRoles(eid int64, keyword string, groupId int64, roleStr string, userType int64, offset, limit int) (int64, []*User, error) {
+func GetUserListWithRoles(eid int64, keyword string, groupId int64, roleStr string, userType int64, rangeBy string, timeStart, timeEnd int64, offset, limit int) (int64, []*User, error) {
 	var users []*User
 	query := DB.Model(&User{}).Where("eid = ?", eid)
 
@@ -339,6 +355,14 @@ func GetUserListWithRoles(eid int64, keyword string, groupId int64, roleStr stri
 		if len(roles) > 0 {
 			query = query.Where("role IN ?", roles)
 		}
+	}
+
+	if timeStart > 0 {
+		query = query.Where(fmt.Sprintf("%s >= ?", rangeBy), timeStart)
+	}
+
+	if timeEnd > 0 {
+		query = query.Where(fmt.Sprintf("%s <= ?", rangeBy), timeEnd)
 	}
 
 	// Get total count
@@ -385,13 +409,13 @@ func IsUserExistsByAccount(eid int64, account string) (bool, error) {
 }
 
 // LoadDepartments 加载用户关联的部门信息
-func (u *User) LoadDepartments() error {
+func (u *User) LoadDepartments(from int) error {
 	var departments []Department
 	err := DB.Table("departments").
-		Joins("JOIN member_department_relations ON departments.did = member_department_relations.did").
-		Where("member_department_relations.bid = ? AND member_department_relations.eid = ? AND departments.eid = ?",
-			u.UserID, u.Eid, u.Eid).
-		Find(&departments).Error
+		Joins("JOIN member_department_relations ON departments.did = member_department_relations.did AND member_department_relations.eid = departments.eid").
+		Joins("JOIN member_bindings ON member_department_relations.bid = member_bindings.id AND member_bindings.eid = departments.eid AND member_bindings.`from` = member_department_relations.`from`").
+		Where("member_bindings.mid = ? AND departments.eid = ? AND member_department_relations.`from` = ?",
+			u.UserID, u.Eid, from).Find(&departments).Error
 
 	if err == nil && len(departments) > 0 {
 		u.Departments = departments
@@ -399,18 +423,22 @@ func (u *User) LoadDepartments() error {
 	return err
 }
 
-func (u *User) LoadMemberBindings() error {
+func (u *User) LoadMemberBindings(from int) error {
 	var memberBindings []MemberBinding
-	err := DB.Where("mid = ? AND eid = ?", u.UserID, u.Eid).Find(&memberBindings).Error
+	if u.UserID == 0 {
+		return nil
+	}
+	err := DB.Where("mid = ? AND eid = ? AND `from`=?", u.UserID, u.Eid, from).
+		Find(&memberBindings).Error
 	if err == nil && len(memberBindings) > 0 {
 		u.MemberBindings = memberBindings
 	}
 	return err
 }
 
-func (u *User) LoadUserInfo() {
-	_ = u.LoadDepartments()
-	_ = u.LoadMemberBindings()
+func (u *User) LoadUserInfo(from int) {
+	_ = u.LoadDepartments(from)
+	_ = u.LoadMemberBindings(from)
 }
 
 func (u *User) GetUserGroupIds() ([]int64, error) {
@@ -474,6 +502,14 @@ func GetUserByOpenId(openId string, eid int64) (*User, error) {
 	return &user, nil
 }
 
+func GetUserByUnionId(unionId string, eid int64) (*User, error) {
+	var user User
+	if err := DB.Where("unionid = ? and eid = ?", unionId, eid).First(&user).Error; err != nil {
+		return nil, err
+	}
+	return &user, nil
+}
+
 // IsOpenIdExists 检查OpenID是否已存在
 func IsOpenIdExists(openId string) (bool, error) {
 	var count int64
@@ -481,4 +517,12 @@ func IsOpenIdExists(openId string) (bool, error) {
 		return false, err
 	}
 	return count > 0, nil
+}
+
+func GetUserCountByEIDAndType(eid int64, theType int) (int64, error) {
+	var count int64
+	if err := DB.Model(&User{}).Where("eid =? and type = ?", eid, theType).Count(&count).Error; err != nil {
+		return 0, err
+	}
+	return count, nil
 }

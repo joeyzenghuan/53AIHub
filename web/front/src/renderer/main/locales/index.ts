@@ -6,7 +6,6 @@ import elementZhLocale from 'element-plus/es/locale/lang/zh-cn'
 import elementZhTwLocale from 'element-plus/es/locale/lang/zh-tw'
 import elementJaLocale from 'element-plus/es/locale/lang/ja'
 
-
 // 自己的语言配置
 import zhLocale from './zh-cn'
 import zhTwLocale from './zh-tw'
@@ -17,28 +16,29 @@ import jpLocale from './jp'
 const messages = {
   'zh-cn': {
     ...zhLocale,
-    ...elementZhLocale,
+    ...elementZhLocale
   },
   'zh-tw': {
     ...zhTwLocale,
-    ...elementZhTwLocale,
+    ...elementZhTwLocale
   },
-  'en': {
+  en: {
     ...enLocale,
-    ...elementEnLocale,
+    ...elementEnLocale
   },
-  'jp': {
+  jp: {
     ...jpLocale,
-    ...elementJaLocale,
-  },
+    ...elementJaLocale
+  }
 }
 
 // 创建 i18n
 const i18n = createI18n({
   legacy: false,
+  fallbackLocale: 'zh-cn',
   globalInjection: true, // 全局模式，可以直接使用 $t
   locale: 'zh-cn',
-  messages,
+  messages
 })
 
 // 注册到全局，方便js上使用

@@ -3,7 +3,7 @@ import { handleError } from '../errorHandler'
 
 export const conversation = {
   list() {
-    return service.get(`/api/conversations`).catch(handleError)
+    return service.get(`/api/conversations`, { requiresAuth: true }).catch(handleError)
   },
   create(data: { agent_id: number, title: string }) {
     return service.post(`/api/conversations`, data).catch(handleError)

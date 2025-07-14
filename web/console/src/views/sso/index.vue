@@ -7,11 +7,9 @@ import eventBus from '@/utils/event-bus'
 import { useEnterpriseStore } from '@/stores'
 
 import { useSso } from '@/hooks/useSso'
-import { useEnv } from '@/hooks/useEnv'
 
 const route = useRoute()
 const enterpriseStore = useEnterpriseStore()
-const { isWorkEnv } = useEnv()
 const { syncValue, loadSyncSetting, saveSyncSetting } = useSso()
 
 const ssoList = ref([
@@ -115,7 +113,7 @@ onUnmounted(() => {
               </ElButton>
               <template v-else>
                 <ElButton
-                  type="primary" :disabled="['dingtalk', 'ad_ldap', 'feishu'].includes(item.type) || isWorkEnv"
+                  type="primary" :disabled="['dingtalk', 'ad_ldap', 'feishu'].includes(item.type)"
                   @click="handleAuthorized({ type: item.type })"
                 >
                   {{ $t('sso.auth_access') }}

@@ -4,12 +4,12 @@ import { ElMessage, ElMessageBox } from 'element-plus'
 import { computed, nextTick, reactive, ref } from 'vue'
 import AgentCreateDrawer from '@/views/agent/create/drawer.vue'
 
-import {
-  PROVIDER_VALUE,
-} from '@/constants/platform/provider'
+import { PROVIDER_VALUE } from '@/constants/platform/provider'
 import { AGENT_TYPE, agentApi } from '@/api/modules/agent'
 import { subscriptionApi } from '@/api/modules/subscription'
 import { getAgentByChannelType } from '@/constants/platform/config'
+
+import { VERSION_MODULE } from '@/constants/enterprise'
 
 interface AgentData {
   agent_id?: number
@@ -38,7 +38,7 @@ const filterForm = reactive({
   channel_types: PROVIDER_VALUE.DIFY as string,
   keyword: '',
   offset: 0,
-  limit: 10,
+  limit: 10
 })
 const drawerTitle = computed(() => {
   const agent = getAgentByChannelType(filterForm.channel_types)
@@ -49,6 +49,7 @@ const tableTotal = ref(0)
 const tableLoading = ref(false)
 const originData = ref<Record<string, any>>({})
 const subscriptionList = ref<SubscriptionData[]>([])
+const all_total = ref(0)
 
 const loadSubscriptionList = async () => {
   if (!subscriptionList.value.length) {
@@ -57,27 +58,38 @@ const loadSubscriptionList = async () => {
   }
 }
 
+const loadAllTotal = async () => {
+  const { count = 0 } = await agentApi.list({
+    params: {
+      group_id: '-1',
+      keyword: '',
+      offset: 0,
+      limit: 1
+    }
+  })
+  all_total.value = count
+}
+
 const loadListData = async ({ channel_types = filterForm.channel_types } = {}) => {
   tableLoading.value = true
   await loadSubscriptionList()
-
+  loadAllTotal()
   try {
     const { count = 0, agents = [] } = await agentApi.list({ params: { ...filterForm, channel_types } })
 
     tableData.value = agents.map((item: Agent.State) => ({
       ...item,
       user_group_ids: item.user_group_ids || [],
-      user_group_names: (item.user_group_ids || []).map(value =>
-        (subscriptionList.value.find(row => row.group_id === value) || {}).group_name,
-      ).filter(Boolean),
+      user_group_names: (item.user_group_ids || [])
+        .map((value) => (subscriptionList.value.find((row) => row.group_id === value) || {}).group_name)
+        .filter(Boolean)
     }))
 
     tableTotal.value = count
     originData.value.agent_total = count
 
     return { count, agents }
-  }
-  finally {
+  } finally {
     tableLoading.value = false
   }
 }
@@ -140,28 +152,20 @@ defineExpose({
     filterForm.channel_types = type
     originData.value = data
     onAgentCreate()
-  },
+  }
 })
 </script>
 
 <template>
-  <ElDrawer
-    v-model="visible"
-    :title="drawerTitle"
-    size="70%"
-    destroy-on-close
-    append-to-body
-    :close-on-click-modal="false"
-  >
+  <ElDrawer v-model="visible" :title="drawerTitle" size="70%" destroy-on-close append-to-body :close-on-click-modal="false">
     <div class="flex items-center justify-between gap-4 mb-4">
-      <ElInput
-        v-model="filterForm.keyword"
-        :prefix-icon="Search"
-        :placeholder="$t('action_search')"
+      <ElInput v-model="filterForm.keyword" :prefix-icon="Search" :placeholder="$t('action_search')" size="large" @change="refresh" />
+      <ElButton
+        type="primary"
         size="large"
-        @change="refresh"
-      />
-      <ElButton type="primary" size="large" @click="onAgentCreate">
+        v-version="{ module: VERSION_MODULE.AGENT, count: all_total, content: $t('version.agent_limit') }"
+        @click="onAgentCreate"
+      >
         {{ $t('action_add') }}
       </ElButton>
     </div>
@@ -180,7 +184,7 @@ defineExpose({
       <ElTableColumn prop="date" :label="$t('module.agent')" min-width="180" show-overflow-tooltip>
         <template #default="{ row }">
           <div class="flex items-center gap-2 w-full">
-            <img class="flex-none w-8 h-8 rounded-full overflow-hidden" :src="row.logo" alt="">
+            <img class="flex-none w-8 h-8 rounded-full overflow-hidden" :src="row.logo" alt="" />
             <div class="flex-1 w-0 text-sm flex flex-col">
               <div class="text-[#2563EB] truncate">
                 {{ row.name || '--' }}
@@ -229,5 +233,4 @@ defineExpose({
   <AgentCreateDrawer ref="agentCreateRef" @success="onAgentCreateSuccess" />
 </template>
 
-<style scoped>
-</style>
+<style scoped></style>
