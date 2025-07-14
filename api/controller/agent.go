@@ -12,6 +12,7 @@ import (
 	"github.com/53AI/53AIHub/common/utils"
 	"github.com/53AI/53AIHub/config"
 	"github.com/53AI/53AIHub/model"
+	"github.com/53AI/53AIHub/service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -75,6 +76,15 @@ func CreateAgent(c *gin.Context) {
 	agentReq.Model = model.ProcessModelNames(agentReq.Model, agentReq.ChannelType)
 	if agentReq.Model == "" {
 		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(errors.New("model is required")))
+		return
+	}
+
+	params := map[string]interface{}{
+		"from": "agent",
+	}
+	_, err := service.IsFeatureAvailable(c, "agent", params)
+	if err != nil {
+		c.JSON(http.StatusForbidden, model.FeatureNotAvailableError.ToResponse(err))
 		return
 	}
 

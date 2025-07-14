@@ -1,41 +1,3 @@
-<script setup lang="ts">
-import { ref } from 'vue'
-import LoginForm from './components/login-form.vue'
-import ForgetForm from './components/forget-form.vue'
-import ApplyForm from './components/apply-form-v2.vue'
-import RegisterForm from './components/register-form.vue'
-
-import { useEnterpriseStore, useUserStore } from '@/stores'
-
-const user_store = useUserStore()
-const enterprise_store = useEnterpriseStore()
-const form_type = ref<'login' | 'apply' | 'forget' | 'register'>('login')
-
-const onGithubOpen = () => {
-  ElMessage.warning(window.$t('feature_coming_soon'))
-}
-const onOfficialWebsiteOpen = () => {
-  window.open('https://www.53ai.com', '_blank')
-}
-const onApplyOpen = async () => {
-  const { access_token } = user_store.info
-  // if (access_token) {
-  // 	const { list = [] } = await enterprise_store.loadListData({ data: { status: 0 } })
-  // 	if (list.length > 0) return ElMessage.warning($t('login.apply_open_repetition'))
-  // }
-  form_type.value = 'apply'
-}
-const onForgetOpen = () => {
-  form_type.value = 'forget'
-}
-const onLoginOpen = () => {
-  form_type.value = 'login'
-}
-const onRegisterOpen = () => {
-  form_type.value = 'register'
-}
-</script>
-
 <template>
   <ElContainer class="w-screen h-screen bg-white">
     <ElAside
@@ -76,6 +38,44 @@ const onRegisterOpen = () => {
     </ElMain>
   </ElContainer>
 </template>
+
+<script setup lang="ts">
+import { ref } from 'vue'
+import LoginForm from './components/login-form.vue'
+import ForgetForm from './components/forget-form.vue'
+import ApplyForm from './components/apply-form-v2.vue'
+import RegisterForm from './components/register-form.vue'
+
+import { useEnterpriseStore, useUserStore } from '@/stores'
+
+const user_store = useUserStore()
+const enterprise_store = useEnterpriseStore()
+const form_type = ref<'login' | 'apply' | 'forget' | 'register'>('login')
+
+const onGithubOpen = () => {
+  ElMessage.warning(window.$t('feature_coming_soon'))
+}
+const onOfficialWebsiteOpen = () => {
+  window.open('https://hub.53ai.com', '_blank')
+}
+const onApplyOpen = async () => {
+  const { access_token } = user_store.info
+  // if (access_token) {
+  // 	const { list = [] } = await enterprise_store.loadListData({ data: { status: 0 } })
+  // 	if (list.length > 0) return ElMessage.warning($t('login.apply_open_repetition'))
+  // }
+  form_type.value = 'apply'
+}
+const onForgetOpen = () => {
+  form_type.value = 'forget'
+}
+const onLoginOpen = () => {
+  form_type.value = 'login'
+}
+const onRegisterOpen = () => {
+  form_type.value = 'register'
+}
+</script>
 
 <style lang="scss" scoped>
 

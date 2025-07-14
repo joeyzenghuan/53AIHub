@@ -1,5 +1,141 @@
+<template>
+  <div class="mb-2">
+    <h3>{{ $t('form.reset_password_method') }}</h3>
+    <el-radio-group v-model="verify_way" @change="handleVerifyWayChange">
+      <el-radio value="email_verify" size="large">{{ $t('form.email_verify') }}</el-radio>
+      <el-radio value="mobile_verify" size="large">{{ $t('form.mobile_verify') }}</el-radio>
+    </el-radio-group>
+  </div>
+
+  <el-form ref="formRef" label-position="top" :model="form" :rules="[]" @keyup.enter="handleSubmit">
+    <el-form-item
+      :label="verify_way === 'email_verify' ? $t('form.email') : $t('form.mobile')"
+      prop="username"
+      :rules="[
+        verify_way === 'email_verify' ? getEmailRules() : getMobileRules(),
+        {
+          validator: async (rule, value, callback) => {
+            try {
+              // 跳过空值触发和格式不符合触发
+              if (form.username.trim() === '' || !isFormatCorrect) {
+                return callback()
+              }
+              // 等待验证完成
+              await onUsernameBlur()
+
+              // 检查完成后，根据isRegister的值进行验证
+              if (verify_way === 'mobile_verify' && isRegister) {
+                existing_mobile = false
+                callback(new Error($t('form.mobile') + $t('register.unregistered')))
+              } else if (verify_way === 'email_verify' && isRegister) {
+                existing_email = false
+                callback(new Error($t('form.email') + $t('register.unregistered')))
+              }
+            } catch (error) {}
+          },
+          trigger: 'blur'
+        }
+      ]"
+    >
+      <el-input
+        v-if="verify_way === 'email_verify'"
+        v-model="form.username"
+        v-trim
+        size="large"
+        class="input_style"
+        :placeholder="$t('form.input_placeholder') + $t('form.email')"
+        clearable
+        onblur="onUsernameBlur"
+      />
+      <el-input
+        v-else
+        v-model="form.username"
+        v-trim
+        size="large"
+        class="input_style"
+        :placeholder="$t('form.input_placeholder') + $t('form.mobile')"
+        clearable
+        onblur="onUsernameBlur"
+      />
+      <template #error>
+        <div v-if="!existing_mobile || !existing_email" class="text-xs text-[#f56c6c] absolute" style="top: 100%; left: 0">
+          {{ $t('status.not_found_account') }}
+          <button type="button" class="text-xs text-[#2563EB] underline" @click="handleClose">
+            {{ $t('action.register') }}
+          </button>
+        </div>
+      </template>
+    </el-form-item>
+
+    <el-form-item :label="$t('form.verify_code')" prop="verify_code" :rules="[verify_way === 'email_verify' ? emailCodeRule : codeRule]">
+      <div class="flex items-center" style="width: 100%">
+        <el-input
+          v-model="form.verify_code"
+          v-trim
+          size="large"
+          class="input_style min-w-80 no-right-radius flex-1"
+          :placeholder="$t('form.input_placeholder') + $t('form.verify_code')"
+        ></el-input>
+        <el-button
+          v-if="verify_way === 'email'"
+          v-debounce
+          :disabled="isRegister || isSending"
+          class="!bg-[#f5f5f5] border-0 h-[44px] w-29 no-left-radius"
+          @click.stop="handleGetCode"
+        >
+          <div :class="['text-sm', 'pl-5', 'border-l', 'pr-1', 'text-[#2563EB]', { 'text-[#9A9A9A]': isRegister || isSending }]">
+            {{ emailCodeCount ? `${emailCodeCount}s` : $t('form.get_verify_code') }}
+          </div>
+        </el-button>
+        <el-button
+          v-else
+          v-debounce
+          :disabled="isRegister || isSending"
+          class="!bg-[#f5f5f5] border-0 h-[44px] w-29 no-left-radius"
+          @click.stop="handleGetCode"
+        >
+          <div :class="['text-sm', 'pl-5', 'border-l', 'pr-1', 'text-[#2563EB]', { 'text-[#9A9A9A]': isRegister || isSending }]">
+            {{ codeCount ? `${codeCount}s` : $t('form.get_verify_code') }}
+          </div>
+        </el-button>
+      </div>
+    </el-form-item>
+
+    <el-form-item :label="$t('form.new_password')" prop="new_password" :rules="[getPasswordRules()]">
+      <el-input
+        v-model="form.new_password"
+        v-trim
+        show-password
+        size="large"
+        class="input_style"
+        :placeholder="$t('form.new_password_placeholder')"
+      ></el-input>
+    </el-form-item>
+
+    <el-form-item
+      :label="$t('form.new_password_confirm')"
+      prop="confirm_password"
+      :rules="[getPasswordRules(), getConfirmPasswordRules(form, 'new_password')]"
+    >
+      <el-input
+        v-model="form.confirm_password"
+        v-trim
+        show-password
+        size="large"
+        class="input_style"
+        :placeholder="$t('form.new_password_confirm_placeholder')"
+      ></el-input>
+    </el-form-item>
+
+    <!-- 修改按钮 -->
+    <el-button v-debounce type="primary" round class="w-full mt-3 !h-10" @click="handleSubmit">
+      {{ $t('action.update_password') }}
+    </el-button>
+  </el-form>
+</template>
+
 <script setup lang="ts">
-import { ref, reactive, computed, nextTick } from 'vue'
+import { ref, reactive, computed, nextTick, watch } from 'vue'
 import { ElMessage } from 'element-plus'
 import type { FormInstance } from 'element-plus'
 import commonApi from '@/api/modules/common'
@@ -8,12 +144,7 @@ import userApi from '@/api/modules/user'
 import { useUserStore } from '@/stores/modules/user'
 import useEmail from '@/hooks/useEmail'
 import useMobile from '@/hooks/useMobile'
-import {
-  getMobileRules,
-  getEmailRules,
-  getPasswordRules,
-  getConfirmPasswordRules
-} from '@/utils/form-rules'
+import { getMobileRules, getEmailRules, getPasswordRules, getConfirmPasswordRules } from '@/utils/form-rules'
 
 const emits = defineEmits(['success', 'close'])
 
@@ -31,6 +162,8 @@ const form = reactive({
 })
 
 const verify_way = ref('email_verify')
+
+const isSending = ref(true)
 
 // 添加清除表单验证的方法
 const clearFormValidation = () => {
@@ -60,9 +193,8 @@ const handleVerifyWayChange = () => {
 const isFormatCorrect = computed(() => {
   if (verify_way.value === 'mobile_verify') {
     return /^1[3-9]\d{9}$/.test(form.username)
-  } else {
-    return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(form.username)
   }
+  return /^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/.test(form.username)
 })
 
 const existing_mobile = ref(true)
@@ -173,177 +305,24 @@ const handleSubmit = () => {
     }
   })
 }
+watch(
+  () => codeCount.value,
+  (newVal) => {
+    isSending.value = newVal > 0
+  },
+  {
+    immediate: true
+  }
+)
+watch(
+  () => emailCodeCount.value,
+  (newVal) => {
+    isSending.value = newVal > 0
+  },
+  {
+    immediate: true
+  }
+)
 </script>
-
-<template>
-  <div class="mb-2">
-    <h3>{{ $t('form.reset_password_method') }}</h3>
-    <el-radio-group v-model="verify_way" @change="handleVerifyWayChange">
-      <el-radio value="email_verify" size="large">{{ $t('form.email_verify') }}</el-radio>
-      <el-radio value="mobile_verify" size="large">{{ $t('form.mobile_verify') }}</el-radio>
-    </el-radio-group>
-  </div>
-
-  <el-form ref="formRef" label-position="top" :model="form" :rules="[]" @keyup.enter="handleSubmit">
-    <el-form-item
-      :label="verify_way === 'email_verify' ? $t('form.email') : $t('form.mobile')"
-      prop="username"
-      :rules="[
-        verify_way === 'email_verify' ? getEmailRules() : getMobileRules(),
-        {
-          validator: async (rule, value, callback) => {
-            try {
-              // 跳过空值触发和格式不符合触发
-              if (form.username.trim() === '' || !isFormatCorrect) {
-                return callback()
-              }
-              // 等待验证完成
-              await onUsernameBlur()
-
-              // 检查完成后，根据isRegister的值进行验证
-              if (verify_way === 'mobile_verify' && isRegister) {
-                existing_mobile = false
-                callback(new Error($t('form.mobile') + $t('register.unregistered')))
-              } else if (verify_way === 'email_verify' && isRegister) {
-                existing_email = false
-                callback(new Error($t('form.email') + $t('register.unregistered')))
-              }
-            } catch (error) {}
-          },
-          trigger: 'blur'
-        }
-      ]"
-    >
-      <el-input
-        v-if="verify_way === 'email_verify'"
-        v-model="form.username"
-        v-trim
-        size="large"
-        class="input_style"
-        :placeholder="$t('form.input_placeholder') + $t('form.email')"
-        clearable
-        onblur="onUsernameBlur"
-      />
-      <el-input
-        v-else
-        v-model="form.username"
-        v-trim
-        size="large"
-        class="input_style"
-        :placeholder="$t('form.input_placeholder') + $t('form.mobile')"
-        clearable
-        onblur="onUsernameBlur"
-      />
-      <template #error>
-        <div
-          v-if="!existing_mobile || !existing_email"
-          class="text-xs text-[#f56c6c] absolute"
-          style="top: 100%; left: 0"
-        >
-          {{ $t('status.not_found_account') }}
-          <button type="button" class="text-xs text-[#2563EB] underline" @click="handleClose">
-            {{ $t('action.register') }}
-          </button>
-        </div>
-      </template>
-    </el-form-item>
-
-    <el-form-item
-      :label="$t('form.verify_code')"
-      prop="verify_code"
-      :rules="[verify_way === 'email_verify' ? emailCodeRule : codeRule]"
-    >
-      <el-input
-        v-model="form.verify_code"
-        v-trim
-        size="large"
-        class="input_style"
-        :placeholder="$t('form.input_placeholder') + $t('form.verify_code')"
-      >
-        <template #suffix>
-          <el-button
-            v-if="verify_way === 'mobile_verify'"
-            v-debounce
-            @click.stop="handleGetCode"
-            :disabled="isRegister"
-            class="!bg-[#f5f5f5] border-0 pr-0"
-          >
-            <div class="text-base pl-3 border-ltext-[#9A9A9A] cursor-not-allowed" v-if="codeCount">
-              {{ codeCount }}s
-            </div>
-            <div
-              class="text-base pl-3 border-l"
-              v-else
-              :class="[
-                isRegister ? 'text-[#9A9A9A] cursor-not-allowed' : 'text-[#2563EB] cursor-pointer'
-              ]"
-            >
-              {{ $t('form.get_verify_code') }}
-            </div>
-          </el-button>
-          <el-button
-            v-else
-            v-debounce
-            @click.stop="handleGetCode"
-            :disabled="isRegister"
-            class="!bg-[#f5f5f5] border-0 pr-0"
-          >
-            <div
-              class="text-base pl-3 border-ltext-[#9A9A9A] cursor-not-allowed"
-              v-if="emailCodeCount"
-            >
-              {{ emailCodeCount }}s
-            </div>
-            <div
-              class="text-base pl-3 border-l"
-              v-else
-              :class="[
-                isRegister ? 'text-[#9A9A9A] cursor-not-allowed' : 'text-[#2563EB] cursor-pointer'
-              ]"
-            >
-              {{ $t('form.get_verify_code') }}
-            </div>
-          </el-button>
-        </template>
-      </el-input>
-    </el-form-item>
-    <el-form-item
-      :label="$t('form.new_password')"
-      prop="new_password"
-      :rules="[getPasswordRules()]"
-    >
-      <el-input
-        v-model="form.new_password"
-        v-trim
-        show-password
-        size="large"
-        class="input_style"
-        :placeholder="$t('form.new_password_placeholder')"
-      >
-      </el-input>
-    </el-form-item>
-
-    <el-form-item
-      :label="$t('form.new_password_confirm')"
-      prop="confirm_password"
-      :rules="[getPasswordRules(), getConfirmPasswordRules(form, 'new_password')]"
-    >
-      <el-input
-        v-model="form.confirm_password"
-        v-trim
-        show-password
-        size="large"
-        class="input_style"
-        :placeholder="$t('form.new_password_confirm_placeholder')"
-      >
-      </el-input>
-    </el-form-item>
-
-    <!-- 修改按钮 -->
-    <el-button type="primary" @click="handleSubmit" round v-debounce class="w-full mt-3 !h-10">
-      {{ $t('action.update_password') }}
-    </el-button>
-  </el-form>
-</template>
 
 <style scoped></style>

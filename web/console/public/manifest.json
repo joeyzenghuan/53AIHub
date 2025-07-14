@@ -8,22 +8,22 @@
   "homepage": "https://chat.53ai.com/",
   "icons": [
     {
-      "src": "/images/logo-square.png",
+      "src": "/images/logo.png",
       "type": "image/png",
       "sizes": "48x48"
     },
     {
-      "src": "/images/logo-square.png",
+      "src": "/images/logo.png",
       "type": "image/png",
       "sizes": "96x96"
     },
     {
-      "src": "/images/logo-square.png",
+      "src": "/images/logo.png",
       "type": "image/png",
       "sizes": "144x144"
     },
     {
-      "src": "/images/logo-square.png",
+      "src": "/images/logo.png",
       "type": "image/png",
       "sizes": "192x192"
     }

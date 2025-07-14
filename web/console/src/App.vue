@@ -1,3 +1,11 @@
+<template>
+  <ElConfigProvider :locale="locale === 'en' ? en : locale === 'ja' ? ja : locale === 'zh-tw' ? zhTw : zhCn">
+    <RouterView />
+    <UserLoginDialog />
+  </ElConfigProvider>
+</template>
+
+
 <script setup lang="ts">
 import { ElConfigProvider } from 'element-plus'
 import { useI18n } from 'vue-i18n'
@@ -23,16 +31,9 @@ enterprise_store.loadSelfInfo()
 user_store.loadSelfInfo()
 </script>
 
-<template>
-  <ElConfigProvider :locale="locale === 'en' ? en : locale === 'ja' ? ja : locale === 'zh-tw' ? zhTw : zhCn">
-    <RouterView />
-    <UserLoginDialog />
-  </ElConfigProvider>
-</template>
-
 <style>
 /* 临时添加，后续hub-ui-x 要支持 */
 .markdown-body img {
-	display: inline;
+  display: inline;
 }
 </style>

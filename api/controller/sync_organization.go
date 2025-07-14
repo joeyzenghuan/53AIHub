@@ -47,15 +47,9 @@ func SyncOrganization(c *gin.Context) {
 	}
 
 	lockKey := fmt.Sprintf("%s:%s:%d", model.LockOrganizationKeyPre, fromStr, enterprise.Eid)
-	data, err := common.RedisGet(lockKey)
-	if data != "" {
-		c.JSON(http.StatusOK, model.OperateTooFast.ToResponse(nil))
-		return
-	}
-
-	err = common.RedisSet(lockKey, "1", 60*5*time.Second)
-	if err != nil {
-		c.JSON(http.StatusOK, model.OperateTooFast.ToResponse(nil))
+	isLock := common.LOCKER.TryLock(lockKey, 60*5*time.Second)
+	if !isLock {
+		c.JSON(http.StatusNotFound, model.OperateTooFast.ToResponse(nil))
 		return
 	}
 

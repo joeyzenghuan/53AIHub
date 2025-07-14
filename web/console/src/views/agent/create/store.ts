@@ -6,7 +6,7 @@ import {
 import { CHANNEL_TYPE_VALUE_MAP, channelApi } from '@/api/modules/channel'
 import { GROUP_TYPE_AGENT, groupApi } from '@/api/modules/group'
 import { useEnterpriseStore } from '@/stores'
-import { AGENT_TYPES, getAgentByAgentType } from '@/constants/platform/config'
+import { AGENT_TYPES, getAgentByAgentType, getModelChannelTypes } from '@/constants/platform/config'
 import type { AgentType } from '@/constants/platform/config'
 
 const enterprise_store = useEnterpriseStore()
@@ -27,7 +27,6 @@ export const useAgentFormStore = defineStore('agent-form-store', {
     form_data: Agent.FormData
     agent_data: Record<string, any>
     group_options: any[]
-    channel_options: any[]
     model_options: any[]
     coze_workspace_options: any[]
     coze_bot_options: any[]
@@ -73,7 +72,6 @@ export const useAgentFormStore = defineStore('agent-form-store', {
     },
     agent_data: {},
     group_options: [],
-    channel_options: [],
     model_options: [],
     coze_workspace_options: [],
     coze_bot_options: [],
@@ -170,8 +168,6 @@ export const useAgentFormStore = defineStore('agent-form-store', {
         item.label = item.group_name || ''
         return item
       })
-      // if (this.group_options.length && !this.group_options.find(item => item.value === this.form_data.group_id))
-      // 	this.form_data.group_id = this.group_options[0].value
       if (this.group_options.length && !this.form_data.group_id)
         this.form_data.group_id = this.group_options[0].value
       if (!this.group_options.find(item => item.value === this.form_data.group_id))
@@ -180,38 +176,34 @@ export const useAgentFormStore = defineStore('agent-form-store', {
 
     async loadChannelOptions() {
       const list = await channelApi.list()
-      this.channel_options = (list || []).filter((item = {}) => [36, 3, 1, 44].includes(item.channel_type))
+      const model_List = (list || []).filter((item = {}) => getModelChannelTypes().includes(item.channel_type))
+
       const all_model_options = []
-      this.model_options = this.channel_options.map((item = {}) => {
-        item.value = `${item.channel_id}_${item.channel_type}`
+      this.model_options = model_List.reduce((acc, item) => {
+        item.value = item.channel_type,
         item.icon = window.$getRealPath({ url: `/images/platform/${item.icon}.png` })
-        item.options = (item.model_options || []).map((row = {}) => {
-          row.value = `${item.value}_${row.value}`
-          row.icon = window.$getRealPath({ url: `/images/platform/${row.icon}.png` })
-          return row
+
+        const options = (item.model_options || []).map((option = {}) => {
+          option.value = `${item.channel_id}_${item.channel_type}_${option.value}`
+          option.icon = window.$getRealPath({ url: `/images/platform/${option.icon}.png` })
+          return option
         })
-        all_model_options.push(...item.options)
-        return item
-      })
-      // if (all_model_options.length && !all_model_options.find(item => item.value === this.form_data.model)) this.form_data.model = all_model_options[0].value
+        const model = acc.find(res => res.value === item.channel_type)
+      	if (model) {
+          model.options.push(...options)
+      	}
+        else {
+          item.options = options
+          acc.push(item)
+        }
+        all_model_options.push(...options)
+
+        return acc
+      }, [])
       if (all_model_options.length && !this.form_data.model)
         this.form_data.model = all_model_options[0].value
       if ([AGENT_TYPE.PROMPT].includes(this.agent_type) && !all_model_options.find(item => item.value === this.form_data.model))
         this.form_data.model = ''
-      // const channel_data = this.channel_options.find(item => item.channel_type === AGENT_TO_PROVIDER_VALUE_MAP[this.agent_type])
-
-      // switch (this.agent_type) {
-      //   case AGENT_TYPE.DIFY_AGENT:
-      //   case AGENT_TYPE['53AI_AGENT']:
-      //   case AGENT_TYPE.BAILIAN:
-      //   case AGENT_TYPE.VOLCENGINE:
-      //   case AGENT_TYPE.YUANQI:
-      //     if (channel_data && channel_data.models && channel_data.models[0])
-      //       this.form_data.model = channel_data.models[0]
-      //     break
-      //   default:
-      //     break
-      // }
     },
 
     async loadCozeWorkspaceOptions() {
@@ -341,7 +333,6 @@ export const useAgentFormStore = defineStore('agent-form-store', {
       }
       this.agent_data = {}
       this.group_options = []
-      this.channel_options = []
       this.model_options = []
       this.coze_workspace_options = []
       this.coze_bot_options = []
@@ -367,7 +358,6 @@ export const useAgentFormStore = defineStore('agent-form-store', {
         custom_config = {},
         settings = {},
       } = this.form_data
-
       const data = {
         agent_id: this.agent_id || 0,
         channel_type,

@@ -19,11 +19,8 @@
     <template v-else v-for="item in showList" :key="item.agent_id">
       <div
         class="relative flex items-start p-4 rounded-lg overflow-hidden bg-cover cursor-pointer border border-[#ECECEC] hover:shadow-md transition-all duration-300 bg-white"
-        v-permission="{
-          group_ids: item.user_group_ids,
-          onclick: () => {
-            router.push({ name: route.path.includes('/index') ? 'HomeChat' : 'Chat', query: { agent_id: item.agent_id } })
-          }
+        @click="() => {
+          router.push({ name: route.path.includes('/index') ? 'HomeChat' : 'Chat', query: { agent_id: item.agent_id } })
         }">
         <el-image class="flex-none size-[50px] mr-4 rounded-full" :src="item.logo" fit="contain" />
         <div class="flex-1 overflow-hidden">

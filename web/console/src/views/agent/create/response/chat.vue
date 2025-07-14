@@ -1,19 +1,96 @@
+<template>
+  <div class="flex flex-col pt-7 relative">
+    <div v-if="is_config_changed" class="absolute top-0 left-0 w-full h-full bg-black/70 z-10">
+      <div class="flex flex-col items-center justify-center gap-6 w-full h-full box-border">
+        <div class="text-base text-[#fff] text-center mx-8">
+          {{ $t('debugger_config_change_confirm') }}
+        </div>
+        <ElButton v-debounce type="primary" size="large" @click="onRestart({ saveAction: true })">
+          {{ $t('save_and_restart') }}
+        </ElButton>
+      </div>
+    </div>
+    <div class="flex items-center justify-between px-4 mb-2">
+      <div class="text-base text-[#1D1E1F]">
+        {{ $t('debug_preview') }}
+      </div>
+      <div class="flex-center gap-1 cursor-pointer" @click="onRestart">
+        <ElIcon>
+          <RefreshRight />
+        </ElIcon>
+        <span class="text-sm text-[#1D1E1F]">
+          {{ $t('restart') }}
+        </span>
+      </div>
+    </div>
+
+    <x-bubble-list
+      :messages="chat_list"
+      class="flex-1 px-4 relative py-4"
+      main-class="mx-5"
+    >
+      <template #header>
+        <ElEmpty v-if="showChatListEmpty" class="mt-10" :description="$t('chat.empty_desc')" />
+        <x-bubble-assistant
+          v-if="showWelcome"
+          type="welcome"
+          :content="agentFormStore.form_data.settings.opening_statement"
+          :suggestions="agentFormStore.form_data.settings.suggested_questions"
+          @suggestion="handleSuggestion"
+        />
+      </template>
+      <template #item="{ message, index }">
+        <x-bubble-user :content="message.question.content" :files="message.question.user_files">
+          <template v-if="!message.answer.loading" #menu>
+            <x-icon size="16" class="cursor-pointer" name="copy" @click="onCopy(message.question.content)" />
+          </template>
+        </x-bubble-user>
+        <x-bubble-assistant :content="message.answer.content" :reasoning="message.answer.reasoning_content" :reasoning-expanded="message.answer.reasoning_expanded" :streaming="message.answer.loading" :always-show-menu="message_index === chat_list.length - 1">
+          <template v-if="!message.answer.loading" #menu>
+            <x-icon size="16" class="cursor-pointer" name="copy" @click="onCopy(message.answer.content)" />
+            <x-icon size="16" class="cursor-pointer" name="refresh" @click="onRestartGeneration(message)" />
+          </template>
+        </x-bubble-assistant>
+      </template>
+
+      <!-- <div class="flex flex-col space-y-4">
+        <ElEmpty v-if="!chat_list.length" class="mt-10" :description="$t('chat.empty_desc')" />
+        <template v-else>
+          <template v-for="(item, item_index) in chat_list" :key="item_index">
+
+          </template>
+        </template>
+      </div> -->
+    </x-bubble-list>
+    <div class="px-6 py-3">
+      <x-sender
+        :enable-upload="enable_upload"
+        :accept-types="upload_accept"
+        :http-request="httpRequest"
+        :loading="chat_loading"
+        allow-multiple
+        enable-drag-upload
+        :allow-send-with-files="allowSendWithFiles"
+        @send="onSendConfirm"
+        @stop="onStopGeneration"
+      />
+    </div>
+  </div>
+</template>
+
 <script setup lang="ts">
 import { RefreshRight } from '@element-plus/icons-vue'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useAgentFormStore } from '../store'
 
 import api from '@/apis'
-import { useConversationStore, useEnterpriseStore, useUserStore } from '@/stores'
+import { useConversationStore } from '@/stores'
 import { copyToClip } from '@/utils/copy'
 import { api_host } from '@/utils/config'
-
-const emits = defineEmits(['save'])
+import { AGENT_TYPES } from '@/constants/platform/config'
 
 const agentFormStore = useAgentFormStore()
 const conversation_store = useConversationStore()
-const user_store = useUserStore()
-const enterprise_store = useEnterpriseStore()
 const scroll_ref = ref()
 const chat_list = ref([])
 const conversation_creating = ref(false)
@@ -28,9 +105,12 @@ const upload_accept = computed(() => {
     accept += ',image/*'
   return accept
 })
+const allowSendWithFiles = computed(() => {
+  return [AGENT_TYPES['53AI_AGENT'], AGENT_TYPES.FASTGPT_AGENT].includes(agentFormStore.agent_type)
+})
 
 const showWelcome = computed(() => {
-  const settings = agentFormStore.form_data.settings
+  const {settings} = agentFormStore.form_data
   if (settings.opening_statement.replace(/\s/g, ''))
     return true
   if (settings.suggested_questions.length && settings.suggested_questions.some(item => item.content.replace(/\s/g, '')))
@@ -198,83 +278,6 @@ defineExpose({
   getIsConfigChanged: () => is_config_changed.value,
 })
 </script>
-
-<template>
-  <div class="flex flex-col pt-7 relative">
-    <div v-if="is_config_changed" class="absolute top-0 left-0 w-full h-full bg-black/70 z-10">
-      <div class="flex flex-col items-center justify-center gap-6 w-full h-full box-border">
-        <div class="text-base text-[#fff] text-center mx-8">
-          {{ $t('debugger_config_change_confirm') }}
-        </div>
-        <ElButton v-debounce type="primary" size="large" @click="onRestart({ saveAction: true })">
-          {{ $t('save_and_restart') }}
-        </ElButton>
-      </div>
-    </div>
-    <div class="flex items-center justify-between px-4 mb-2">
-      <div class="text-base text-[#1D1E1F]">
-        {{ $t('debug_preview') }}
-      </div>
-      <div class="flex-center gap-1 cursor-pointer" @click="onRestart">
-        <ElIcon>
-          <RefreshRight />
-        </ElIcon>
-        <span class="text-sm text-[#1D1E1F]">
-          {{ $t('restart') }}
-        </span>
-      </div>
-    </div>
-
-    <x-bubble-list
-      :messages="chat_list"
-      class="flex-1 px-4 relative py-4"
-      main-class="mx-5"
-    >
-      <template #header>
-        <ElEmpty v-if="showChatListEmpty" class="mt-10" :description="$t('chat.empty_desc')" />
-        <x-bubble-assistant
-          v-if="showWelcome"
-          type="welcome"
-          :content="agentFormStore.form_data.settings.opening_statement"
-          :suggestions="agentFormStore.form_data.settings.suggested_questions"
-          @suggestion="handleSuggestion"
-        />
-      </template>
-      <template #item="{ message, index }">
-        <x-bubble-user :content="message.question.content" :files="message.question.user_files">
-          <template v-if="!message.answer.loading" #menu>
-            <x-icon size="16" class="cursor-pointer" name="copy" @click="onCopy(message.question.content)" />
-          </template>
-        </x-bubble-user>
-        <x-bubble-assistant :content="message.answer.content" :reasoning="message.answer.reasoning_content" :reasoning-expanded="message.answer.reasoning_expanded" :streaming="message.answer.loading" :always-show-menu="message_index === chat_list.length - 1">
-          <template v-if="!message.answer.loading" #menu>
-            <x-icon size="16" class="cursor-pointer" name="copy" @click="onCopy(message.answer.content)" />
-            <x-icon size="16" class="cursor-pointer" name="refresh" @click="onRestartGeneration(message)" />
-          </template>
-        </x-bubble-assistant>
-      </template>
-
-      <!-- <div class="flex flex-col space-y-4">
-        <ElEmpty v-if="!chat_list.length" class="mt-10" :description="$t('chat.empty_desc')" />
-        <template v-else>
-          <template v-for="(item, item_index) in chat_list" :key="item_index">
-
-          </template>
-        </template>
-      </div> -->
-    </x-bubble-list>
-    <div class="px-6 py-3">
-      <x-sender
-        :enable-upload="enable_upload"
-        :accept-types="upload_accept"
-        :http-request="httpRequest"
-        :loading="chat_loading"
-        @send="onSendConfirm"
-        @stop="onStopGeneration"
-      />
-    </div>
-  </div>
-</template>
 
 <style scoped>
 

@@ -1,0 +1,2 @@
+# 只对 staged 文件运行 lint 检查和格式化
+npx lint-staged

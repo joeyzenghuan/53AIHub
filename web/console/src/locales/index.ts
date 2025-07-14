@@ -15,20 +15,20 @@ import jaLocale from './ja.json'
 const messages = {
   'zh-cn': {
     ...zhLocale,
-    elementZhLocale,
+    elementZhLocale
   },
   'zh-tw': {
     ...twLocale,
-    elementZhTwLocale,
+    elementZhTwLocale
   },
-  'en': {
+  en: {
     ...enLocale,
-    elementEnLocale,
+    elementEnLocale
   },
-  'ja': {
+  ja: {
     ...jaLocale,
-    elementJaLocale,
-  },
+    elementJaLocale
+  }
 }
 
 const browser_lang = navigator.language.toLowerCase()
@@ -38,14 +38,16 @@ const is_ja = /^ja\b/.test(browser_lang)
 const is_tw = /^tw\b/.test(browser_lang)
 console.info('browser_lang: ', browser_lang)
 
-const locale = localStorage.getItem('default_lang') || (is_ja ? 'ja' : is_en ? 'en' : is_tw ? 'zh-tw' : 'zh-cn')
+const locale =
+  localStorage.getItem('default_lang') || (is_ja ? 'ja' : is_en ? 'en' : is_tw ? 'zh-tw' : 'zh-cn')
 
 // 创建 i18n
 const i18n = createI18n({
   legacy: false,
+  fallbackLocale: 'zh-cn',
   globalInjection: true, // 全局模式，可以直接使用 $t
   locale,
-  messages,
+  messages
 })
 
 HubUiX.setLang(locale)

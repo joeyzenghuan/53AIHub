@@ -1,3 +1,86 @@
+<template>
+  <Layout class="px-[60px] py-8">
+    <Header :title="$t('module.system_log')" />
+    <div class="flex-1 flex flex-col bg-white p-6 mt-3 box-border  max-h-[calc(100vh-100px)] overflow-auto">
+      <div class="flex items-center justify-between">
+        <div class="flex items-center gap-3">
+          <FilterDateRange v-model="filter_form.time" size="large" :value-format="date => new Date(date).getTime()" @change="onRefresh" />
+
+          <FilterSelect v-model="filter_form.action" show-all :options="actions" :prop="{ value: 'value', label: 'text' }" @change="onRefresh" />
+          <FilterSelect v-model="filter_form.module" show-all :options="modules" :prop="{ value: 'value', label: 'text' }" @change="onRefresh" />
+          <FilterUser v-model="filter_form.user_id" type="user" @change="onRefresh" />
+          <!-- <DeptMemberPicker @confirm="handleUserAddConfirm">
+            <template #trigger>
+              <ElButton class="min-w-[100px]" type="primary" size="large">
+                + {{ $t('action_add') }}
+              </ElButton>
+            </template>
+          </DeptMemberPicker> -->
+        </div>
+      </div>
+
+      <div v-loading="tableLoading" class="flex-1 overflow-y-auto bg-white rounded-lg mt-4">
+        <TablePlus
+          :data="tableData" :total="tableTotal" style="width: 100%"
+          header-row-class-name="rounded overflow-hidden" header-cell-class-name="!bg-[#F6F7F8] !h-[60px] !border-none"
+          @page-size-change="handleSizeChange" @page-current-change="handleCurrentChange"
+        >
+          <ElTableColumn :label="$t('system_log.log_time')" min-width="160" prop="action_time" />
+          <ElTableColumn :label="$t('system_log.log_action')" min-width="100" prop="action" show-overflow-tooltip>
+            <template #default="{ row }">
+              <span :class="{ 'text-[#9B9B9B]': !row.action }">
+                {{ getActionLabel(row.action) }}
+              </span>
+            </template>
+          </ElTableColumn>
+          <ElTableColumn
+            :label="$t('system_log.log_module')" min-width="100" prop="module"
+            show-overflow-tooltip
+          >
+            <template #default="{ row }">
+              <span :class="{ 'text-[#9B9B9B]': !row.module }">
+                {{ getModuleLabel(row.module) }}
+              </span>
+            </template>
+          </ElTableColumn>
+          <ElTableColumn :label="$t('system_log.log_operator')" min-width="100" prop="nickname" show-overflow-tooltip>
+            <template #default="{ row }">
+              <span :class="{ 'text-[#9B9B9B]': !row.nickname }">
+                {{ row.nickname }}
+              </span>
+            </template>
+          </ElTableColumn>
+          <ElTableColumn :label="$t('system_log.log_label')" prop="content" min-width="140" show-overflow-tooltip />
+          <ElTableColumn :label="$t('system_log.log_ip')" min-width="120" show-overflow-tooltip>
+            <template #default="{ row }">
+              <span :class="{ 'text-[#9B9B9B]': !row.ip }">
+                {{ row.ip }}
+              </span>
+            </template>
+          </ElTableColumn>
+
+          <!-- <ElTableColumn :label="$t('operation')" width="100" fixed="right" align="right">
+						<template #default="{ row }">
+							<template v-if="ORDER_PAYMENT_TYPE_MANUAL === row.payment_type">
+								<ElButton class="text-[#5A6D9E]" type="text" @click="handleAdd({ data: row })">
+									{{ $t('action_edit') }}
+								</ElButton>
+								<ElButton class="text-[#5A6D9E]" type="text" @click="handleDelete({ data: row })">
+									{{ $t('action_delete') }}
+								</ElButton>
+							</template>
+							<span v-else class="text-[#9B9B9B]">
+								--
+							</span>
+						</template>
+					</ElTableColumn> -->
+        </TablePlus>
+      </div>
+    </div>
+  </Layout>
+  <OrderAddDialog ref="add_ref" />
+</template>
+
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 
@@ -83,88 +166,6 @@ onMounted(async () => {
   // await Promise.all([])
 })
 </script>
-
-<template>
-  <Layout class="px-[60px] py-8">
-    <Header :title="$t('module.system_log')" />
-    <div class="flex-1 flex flex-col bg-white p-6 mt-3 box-border  max-h-[calc(100vh-100px)] overflow-auto">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <FilterDateRange v-model="filter_form.time" size="default" :value-format="date => new Date(date).getTime()" @change="onRefresh" />
-          <FilterSelect v-model="filter_form.action" show-all :options="actions" :prop="{ value: 'value', label: 'text' }" @change="onRefresh" />
-          <FilterSelect v-model="filter_form.module" show-all :options="modules" :prop="{ value: 'value', label: 'text' }" @change="onRefresh" />
-          <FilterUser v-model="filter_form.user_id" type="user" @change="onRefresh" />
-          <!-- <DeptMemberPicker @confirm="handleUserAddConfirm">
-            <template #trigger>
-              <ElButton class="min-w-[100px]" type="primary" size="large">
-                + {{ $t('action_add') }}
-              </ElButton>
-            </template>
-          </DeptMemberPicker> -->
-        </div>
-      </div>
-
-      <div v-loading="tableLoading" class="flex-1 overflow-y-auto bg-white rounded-lg mt-4">
-        <TablePlus
-          :data="tableData" :total="tableTotal" style="width: 100%"
-          header-row-class-name="rounded overflow-hidden" header-cell-class-name="!bg-[#F6F7F8] !h-[60px] !border-none"
-          @page-size-change="handleSizeChange" @page-current-change="handleCurrentChange"
-        >
-          <ElTableColumn :label="$t('system_log.log_time')" min-width="160" prop="action_time" />
-          <ElTableColumn :label="$t('system_log.log_action')" min-width="100" prop="action" show-overflow-tooltip>
-            <template #default="{ row }">
-              <span :class="{ 'text-[#9B9B9B]': !row.action }">
-                {{ getActionLabel(row.action) }}
-              </span>
-            </template>
-          </ElTableColumn>
-          <ElTableColumn
-            :label="$t('system_log.log_module')" min-width="100" prop="module"
-            show-overflow-tooltip
-          >
-            <template #default="{ row }">
-              <span :class="{ 'text-[#9B9B9B]': !row.module }">
-                {{ getModuleLabel(row.module) }}
-              </span>
-            </template>
-          </ElTableColumn>
-          <ElTableColumn :label="$t('system_log.log_operator')" min-width="100" prop="nickname" show-overflow-tooltip>
-            <template #default="{ row }">
-              <span :class="{ 'text-[#9B9B9B]': !row.nickname }">
-                {{ row.nickname }}
-              </span>
-            </template>
-          </ElTableColumn>
-          <ElTableColumn :label="$t('system_log.log_label')" prop="content" min-width="140" show-overflow-tooltip />
-          <ElTableColumn :label="$t('system_log.log_ip')" min-width="120" show-overflow-tooltip>
-            <template #default="{ row }">
-              <span :class="{ 'text-[#9B9B9B]': !row.ip }">
-                {{ row.ip }}
-              </span>
-            </template>
-          </ElTableColumn>
-
-          <!-- <ElTableColumn :label="$t('operation')" width="100" fixed="right" align="right">
-						<template #default="{ row }">
-							<template v-if="ORDER_PAYMENT_TYPE_MANUAL === row.payment_type">
-								<ElButton class="text-[#5A6D9E]" type="text" @click="handleAdd({ data: row })">
-									{{ $t('action_edit') }}
-								</ElButton>
-								<ElButton class="text-[#5A6D9E]" type="text" @click="handleDelete({ data: row })">
-									{{ $t('action_delete') }}
-								</ElButton>
-							</template>
-							<span v-else class="text-[#9B9B9B]">
-								--
-							</span>
-						</template>
-					</ElTableColumn> -->
-        </TablePlus>
-      </div>
-    </div>
-  </Layout>
-  <OrderAddDialog ref="add_ref" />
-</template>
 
 <style scoped>
 

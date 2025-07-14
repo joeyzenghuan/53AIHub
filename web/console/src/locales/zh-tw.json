@@ -117,6 +117,7 @@
     "platform_model_organization_id_placeholder": "輸入您的組織 ID",
     "platform_model_base_url": "API Base",
     "platform_model_base_url_placeholder": "輸入您的API Base，如：https://api.openai.com",
+    "platform_model_base_url_placeholder_53ai": "輸入您的API Base，如：https://api.53ai.com",
     "platform_model_api_endpoint": "自定義 API endpoint 地址",
     "platform_model_api_endpoint_placeholder": "輸入您的自定義 API endpoint 地址，如：https://api.deepseek.com/v1 or https://api.deepseek.com",
     "platform_model_models_azure": "基础模型",
@@ -128,7 +129,6 @@
     "platform_model_models_id": "模型ID",
     "platform_model_models_name": "模型名稱",
     "platform_model_delete_confirm": "確定刪除該模型嗎？",
-    "platform_model_delete_confirm_v2": "確定刪除該模型嗎？移除最後一個模型後，整個配置將被移除",
     "navigation": "導航菜單",
     "pc_navigation": "PC端導航",
     "mobile_navigation": "移動端導航",
@@ -154,24 +154,6 @@
     "nav_seo_setting_keywords_tip": "每個關鍵詞請用逗號隔開",
     "nav_seo_setting_description": "SEO Description",
     "payment": "支付配置",
-    "payment_wechat_app_id": "AppID",
-    "payment_wechat_app_id_placeholder": "請輸入AppID",
-    "payment_wechat_mch_id": "微信支付商戶號",
-    "payment_wechat_mch_id_placeholder": "請輸入微信支付商戶號",
-    "payment_wechat_api_secret": "APIv3密鑰",
-    "payment_wechat_api_secret_placeholder": "請輸入APIv3密鑰",
-    "payment_wechat_app_id_tip": "登錄微信支付商戶平台 → 點擊「賬戶中心」→ 在「商戶信息」中獲取「微信支付商戶號」",
-    "payment_wechat_mch_id_tip": "登錄微信公眾平台 → 設置 → 公眾號設置 → 基本配置 → 查看「開發者ID（AppID）」",
-    "payment_wechat_api_secret_tip": "登錄微信支付商戶平台 → 賬戶中心 → API安全 → 設置「API密鑰」",
-    "payment_wechat_serial_no": "證書序列號",
-    "payment_wechat_serial_no_placeholder": "請輸入證書序列號",
-    "payment_wechat_cert": "證書文件",
-    "payment_wechat_cert_placeholder": "請上傳證書文件",
-    "payment_wechat_private_key": "證書密鑰",
-    "payment_wechat_private_key_placeholder": "請上傳證書密鑰",
-    "payment_manual_tip": "如果不便提供包括支付寶和微信等支付通道，您也可以留下二維碼或，用戶支付後手動確認單。",
-    "payment_manual_pay_qrcode": "付款碼",
-    "payment_manual_pay_qrcode_placeholder": "請上傳付款碼",
     "subscription": "訂閱服務",
     "subscription_header_title": "訂閱服務與定價",
     "subscription_free": "免費版",
@@ -287,7 +269,8 @@
     "contact_customer_service": "遇到問題？聯繫客服解答",
     "create_site": "創建站點",
     "waiting_audit": "等待審核",
-    "create_success": "創建成功"
+    "create_success": "創建成功",
+    "expired_time_forever": "永久生效"
   },
   "service": {
     "title": "立即開通",
@@ -296,8 +279,8 @@
     "desc_2": "開通使用"
   },
   "website_version": {
-    "free": "免費版",
-    "standard": "標準版",
+    "free": "創業版",
+    "standard": "專業版",
     "enterprise": "企業版"
   },
   "language_option_label": {
@@ -327,13 +310,15 @@
       "not_confirm": "待確認",
       "pending": "待支付",
       "paid": "已支付",
-      "expired": "已超時"
+      "expired": "已超時",
+      "cancelled": "已取消"
     },
     "confirm_tip": "确定则订单会设置为已支付，且会增加用户对应权益。"
   },
   "payment": {
     "type": {
-      "all": "全部支付方式",
+      "all": "全部支付",
+      "alipay": "支付寶",
       "wechat": "微信支付",
       "manual": "手動轉賬",
       "paypal": "PayPal"
@@ -343,7 +328,32 @@
       "qrcode_placeholder": "請上傳收款碼",
       "desc": "備註",
       "desc_placeholder": "請輸入備註，如：請使用微信/支付寶 掃碼支付以上金額"
-    }
+    },
+    "wechat_app_id": "AppID",
+    "wechat_app_id_placeholder": "請輸入AppID",
+    "wechat_mch_id": "微信支付商戶號",
+    "wechat_mch_id_placeholder": "請輸入微信支付商戶號",
+    "wechat_api_secret": "APIv3密鑰",
+    "wechat_api_secret_placeholder": "請輸入APIv3密鑰",
+    "wechat_app_id_tip": "登錄微信支付商戶平台 → 點擊「賬戶中心」→ 在「商戶信息」中獲取「微信支付商戶號」",
+    "wechat_mch_id_tip": "登錄微信公眾平台 → 設置 → 公眾號設置 → 基本配置 → 查看「開發者ID（AppID）」",
+    "wechat_api_secret_tip": "登錄微信支付商戶平台 → 賬戶中心 → API安全 → 設置「API密鑰」",
+    "wechat_serial_no": "證書序列號",
+    "wechat_serial_no_placeholder": "請輸入證書序列號",
+    "wechat_cert": "證書文件",
+    "wechat_cert_placeholder": "請上傳證書文件",
+    "wechat_private_key": "證書密鑰",
+    "wechat_private_key_placeholder": "請上傳證書密鑰",
+    "manual_tip": "如果不便提供包括支付寶和微信等支付通道，您也可以留下二維碼或，用戶支付後手動確認單。",
+    "manual_pay_qrcode": "付款碼",
+    "manual_pay_qrcode_placeholder": "請上傳付款碼",
+    "alipay_app_id": "支付寶AppID",
+    "alipay_app_id_placeholder": "請輸入支付寶AppID",
+    "alipay_mch_id": "應用私鑰",
+    "alipay_mch_id_placeholder": "請輸入應用私鑰",
+    "alipay_api_secret": "支付寶公鑰",
+    "alipay_api_secret_placeholder": "請輸入支付寶公鑰",
+    "alipay_guide_html": "1、登錄支付寶開放平台<a class='text-[#5A6D9E]' href='https://open.alipay.com/module/webApp/' target='_blank'>https://open.alipay.com/module/webApp/</a>創建\"網頁/移動應用\"，獲得APPID；\n2、點擊進入應用，在「開發設置」\"接口加簽方式\"中按照支付寶官方的引導進行配置，獲取應用私鑰、支付寶公鑰；\n3、在「開發設置」\"授權回調地址\"中填入: <span  style=\"color: #FA5151;\">{callback_url}</span><span class='copy-hook'></span>\n4、在【API管理】接入\"電腦網站支付\"的能力，按照支付寶官方的引導進行配置或開通；"
   },
   "template_style": {
     "website_style": "網站風格",
@@ -389,6 +399,12 @@
     "serial_guide": {
       "title": "如何获取证书序列号",
       "step_1": "1、在微信支付商户平台的【账户中心 - API安全 】中查看证书的序列号。"
+    }
+  },
+  "alipay_payment": {
+    "app_guide": {
+      "title": "如何獲取APPID",
+      "step_1": "1、複製應用名稱下方的數字即是APPID"
     }
   },
   "platform_auth": {
@@ -604,6 +620,7 @@
   "action_edit": "編輯",
   "action_save": "保存",
   "action_save_success": "已保存",
+  "action_save_failed": "保存失敗",
   "action_delete": "刪除",
   "action_delete_tip": "刪除提示",
   "action_delete_confirm": "確定刪除該數據嗎？",
@@ -664,6 +681,8 @@
   "action_unbind": "取消關聯",
   "action_bind_success": "已關聯",
   "action_unbind_success": "已取消關聯",
+  "action_confirm_payment": "確認收款",
+  "action_confirm_payment_success": "已確認收款",
   "completion_completed": "已完成深度思考",
   "completion_thinking": "深度思考中...",
   "form_input_placeholder": "請輸入",
@@ -681,11 +700,8 @@
   "image_cropper": "圖片裁剪",
   "reupload": "重新上傳",
   "wechat": "微信",
-  "wechat_pay": "微信支付",
   "alipay": "支付寶",
   "alipay_pay": "支付寶支付",
-  "paypal": "PayPal",
-  "manual_pay": "手動轉賬",
   "enabled": "已啟用",
   "disabled": "已禁用",
   "setting": "已設置",
@@ -695,7 +711,6 @@
   "year": "年",
   "monthly": "月",
   "month": "月",
-  "version": "版本",
   "expired_time": "到期時間",
   "basic_info": "基礎信息",
   "connected": "已接入",
@@ -714,8 +729,13 @@
   "verification_code": "驗證碼",
   "verification_code_placeholder": "請輸入驗證碼",
   "get_verification_code": "獲取驗證碼",
-  "subscription": "訂閱设置",
-  "subscription_end_at": "服務期至",
+  "subscription": {
+    "title": "訂閱",
+    "end_at": "服務期至",
+    "transfer_title": "訂閱刪除",
+    "transfer_desc": "刪除以下訂閱服務，並將訂閱用戶遷移至新的訂閱服務",
+    "transfer_to": "遷移至"
+  },
   "register_time": "註冊時間",
   "created_time": "創建時間",
   "add_time": "添加時間",
@@ -723,8 +743,6 @@
   "language": "語言",
   "website_domain": "網站域名",
   "website_home": "網站首頁",
-  "agent": "智能體",
-  "user_count": "用戶數",
   "create_time": "創建時間",
   "update_time": "更新時間",
   "service_expired_time": "服務到期",
@@ -745,7 +763,7 @@
   "google_account": "谷歌賬號",
   "not_bound": "未綁定",
   "all_order": "全部訂單",
-  "all_order_payment": "全部支付方式",
+  "all_order_payment": "全部支付",
   "order_id": "訂單ID",
   "order_no": "訂單號",
   "order_subscription": "訂閱服務",
@@ -851,7 +869,7 @@
   "bailian": "阿里百炼",
   "volcengine": "火山引擎",
   "sort": "排序",
-  "official_website": "官網首頁",
+  "official_website": "首頁",
   "apply_open": "申請開通",
   "user_register": "用戶註冊",
   "account_register": "註冊賬號",
@@ -888,8 +906,7 @@
   "yuanqi_agent_get_tip": "前往腾讯元器（{ url }） \n第一步：登录腾讯元器，去到我的创建。\n第二步：选择一个智能体卡片的右下角更多按钮，点击调用API（新建智能体要等审核通过才有）。\n第三步，点击复制智能体ID，粘贴到下面表单。\n第四步：点击复制Token,粘贴到下面表单。",
   "fastgpt_agent_get_tip": "前往 FastGPT（ {url} ） \n第一步：登录FastGPT，点击进入「工作台」,点击选择要接入的应用；\n第二步：进入应用，在「发布渠道」下选择\"API 访问\"；\n第三步：在API密钥管理下，点击新建，新建成功后复制\"API KEY\"填入表单；\n第四步：复制\"API 根地址\",填入表单；",
   "tip": "提示",
-  "coze_cn_not_auth": "扣子未授權，請先前往扣子授權",
-  "app_builder_not_auth": "千帆AppBuilder未授權，請先前往千帆AppBuilder授權",
+  "auth_required": "{provider_name}未授權，請先前往{provider_name}授權",
   "intelligent_agent_platform": "智能體平台",
   "cloud_computing_platform": "雲計算平台",
   "model_platform": "大模型平台",
@@ -934,5 +951,13 @@
     "log_operator": "操作人",
     "log_time": "時間",
     "log_ip": "IP"
+  },
+  "version": {
+    "title": "版本",
+    "scan_consult": "掃碼咨詢",
+    "upgrade_tip": "升級提示",
+    "upgrade": "升級版本",
+    "not_support": "當前版本不支持",
+    "agent_limit": "智能體添加數量達上限，請升級後嘗試添加"
   }
 }

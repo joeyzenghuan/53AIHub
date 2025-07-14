@@ -307,7 +307,9 @@ func (s *UserService) RegisterUserToInternal(eid int64, mappings []UserDepartmen
 }
 
 // GetInternalUsersWithPagination get internal user list, supports pagination, status filtering and keyword search
-func (s *UserService) GetInternalUsersWithPagination(eid int64, keyword string, status, offset, limit int, did int64) (int64, []*model.User, error) {
+func (s *UserService) GetInternalUsersWithPagination(
+	eid int64, keyword string, status,
+	offset, limit int, did int64, from int, notBind int) (int64, []*model.User, error) {
 	// Build base query condition
 	query := model.DB.Model(&model.User{}).Where("users.eid = ? AND users.type = ?", eid, model.UserTypeInternal)
 
@@ -320,16 +322,25 @@ func (s *UserService) GetInternalUsersWithPagination(eid int64, keyword string, 
 	if keyword != "" {
 		// Only query fields in user table, do not join tables
 		query = query.Where(
-			"nickname LIKE ? OR mobile LIKE ? OR email LIKE ?",
+			"users.nickname LIKE ? OR users.mobile LIKE ? OR users.email LIKE ?",
 			"%"+keyword+"%",
 			"%"+keyword+"%",
 			"%"+keyword+"%",
 		)
 	}
 
+	if did > 0 || notBind > 0 {
+		query = query.Joins("Left JOIN member_bindings ON member_bindings.mid = users.user_id and member_bindings.eid = users.eid AND member_bindings.`from` =?", from)
+	}
+
+	if notBind > 0 {
+		query = query.Where("member_bindings.id is null")
+	}
+
 	if did > 0 {
-		query = query.Joins("JOIN member_department_relations ON member_department_relations.bid = users.user_id").
-			Where("member_department_relations.did = ?", did)
+		query = query.Joins(
+			"JOIN member_department_relations ON member_department_relations.bid = member_bindings.id and member_department_relations.eid = member_bindings.eid").
+			Where("member_department_relations.did = ? AND member_department_relations.`from` = ?", did, from)
 	}
 
 	// Get total count
@@ -340,12 +351,12 @@ func (s *UserService) GetInternalUsersWithPagination(eid int64, keyword string, 
 
 	// Get paginated data
 	var users []*model.User
-	if err := query.Offset(offset).Limit(limit).Find(&users).Error; err != nil {
+	if err := query.Debug().Offset(offset).Limit(limit).Find(&users).Error; err != nil {
 		return 0, nil, err
 	}
 
 	for _, user := range users {
-		user.LoadUserInfo()
+		user.LoadUserInfo(from)
 	}
 
 	return count, users, nil

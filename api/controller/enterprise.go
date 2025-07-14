@@ -8,6 +8,7 @@ import (
 	"github.com/53AI/53AIHub/common/utils"
 	"github.com/53AI/53AIHub/config"
 	"github.com/53AI/53AIHub/model"
+	"github.com/53AI/53AIHub/service"
 	"github.com/gin-gonic/gin"
 )
 
@@ -115,6 +116,19 @@ func UpdateEnterprise(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, model.NotFound.ToResponse(nil))
 		return
 	}
+
+	if req.Type != model.EnterpriseTypeIndependent {
+		params := map[string]interface{}{
+			"from": "enterprise",
+			"type": req.Type,
+		}
+		_, err = service.IsFeatureAvailable(c, "internal_user", params)
+		if err != nil {
+			c.JSON(http.StatusForbidden, model.FeatureNotAvailableError.ToResponse(err))
+			return
+		}
+	}
+
 	oldEnterprise := *enterprise
 
 	enterprise.DisplayName = req.DisplayName
@@ -242,6 +256,14 @@ func GetCurrentEnterprise(c *gin.Context) {
 		c.JSON(http.StatusInternalServerError, model.NotFound.ToResponse(nil))
 		return
 	}
+
+	params := map[string]interface{}{
+		"from": "enterprise",
+	}
+	isFeatureAvailable, _ := service.IsFeatureAvailable(c, "wecom", params)
+	if isFeatureAvailable {
+		enterprise.LoadWecomCorpInfo(config.GetWecomSuiteID(), 0)
+	}
 	c.JSON(http.StatusOK, model.Success.ToResponse(EnterpriseResponse{
 		Enterprise: *enterprise,
 	}))
@@ -267,8 +289,10 @@ func GetIsSaas(c *gin.Context) {
 }
 
 type HomePageResponse struct {
-	AgentCount int64 `json:"agent_count"`
-	UserCount  int64 `json:"user_count"`
+	AgentCount  int64 `json:"agent_count"`
+	UserCount   int64 `json:"user_count"`
+	PromptCount int64 `json:"prompt_count"`
+	AILinkCount int64 `json:"ai_link_count"`
 }
 
 // GetHomePage retrieves homepage information
@@ -294,7 +318,20 @@ func GetHomePage(c *gin.Context) {
 	}
 
 	var userCount int64
-	if err := model.DB.Model(&model.User{}).Where("eid = ? AND role = ?", eid, model.RoleCommonUser).Count(&userCount).Error; err != nil {
+	if err := model.DB.Model(&model.User{}).Where("eid = ? AND type = ?", eid, model.UserTypeRegistered).Count(&userCount).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	var promptCount int64
+	statusArray := []int{model.PromptStatusNormal, model.PromptStatusDisable}
+	if err := model.DB.Model(&model.Prompt{}).Where("eid = ? AND status in (?)", eid, statusArray).Count(&promptCount).Error; err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	var aiLinkCount int64
+	if err := model.DB.Model(&model.AILink{}).Where("eid =?", eid).Count(&aiLinkCount).Error; err!= nil {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
 		return
 	}
@@ -302,6 +339,8 @@ func GetHomePage(c *gin.Context) {
 	c.JSON(http.StatusOK, model.Success.ToResponse(HomePageResponse{
 		AgentCount: agentCount,
 		UserCount:  userCount,
+		PromptCount: promptCount,
+		AILinkCount: aiLinkCount,
 	}))
 }
 

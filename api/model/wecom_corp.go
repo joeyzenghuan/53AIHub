@@ -38,6 +38,14 @@ type WecomCorp struct {
 	BaseModel
 }
 
+type AuthCorpInfo struct {
+	CorpID            string `json:"corpid"`
+	CorpName          string `json:"corp_name"`
+	CorpType          string `json:"corp_type"`
+	CorpSquareLogoURL string `json:"corp_square_logo_url"`
+	CorpUserMax       int    `json:"corp_user_max"`
+}
+
 type AuthUserInfo struct {
 	UserID     string `json:"userid"`
 	OpenUserID string `json:"open_userid"`
@@ -55,10 +63,10 @@ type AgentItem struct {
 }
 
 type Privilege struct {
-	AllowParty []string `json:"allow_party"`
+	AllowParty []int    `json:"allow_party"` // 修改为int类型
 	AllowTag   []string `json:"allow_tag"`
 	AllowUser  []string `json:"allow_user"`
-	ExtraParty []string `json:"extra_party"`
+	ExtraParty []int    `json:"extra_party"` // 修改为int类型
 	ExtraTag   []string `json:"extra_tag"`
 	ExtraUser  []string `json:"extra_user"`
 	Level      int      `json:"level"`
@@ -113,4 +121,20 @@ func (w *WecomCorp) GetAgents() []AgentItem {
 		return nil
 	}
 	return agents
+}
+
+func (w *WecomCorp) GetAgentID() int {
+	agents := w.GetAgents()
+	if len(agents) > 0 {
+		return agents[0].AgentID
+	}
+	return 0
+}
+
+func (w *WecomCorp) GetAuthCorpInfo() *AuthCorpInfo {
+	var authCorpInfo AuthCorpInfo
+	if err := json.Unmarshal([]byte(w.CorpInfo), &authCorpInfo); err != nil {
+		return nil
+	}
+	return &authCorpInfo
 }

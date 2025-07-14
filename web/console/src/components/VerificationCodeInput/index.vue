@@ -51,20 +51,20 @@ const onChange = (value: string) => {
   emits('update:modelValue', value)
 }
 
-function isChinaMobile(phone: string): boolean {
-  // 清洗并处理手机号
-  let cleaned = phone.replace(/\D/g, '') // 去除非数字字符
-  if (cleaned.length > 11)
-    cleaned = cleaned.slice(-11) // 处理带国际区号的情况
+// function isChinaMobile(phone: string): boolean {
+//   // 清洗并处理手机号
+//   let cleaned = phone.replace(/\D/g, '') // 去除非数字字符
+//   if (cleaned.length > 11)
+//     cleaned = cleaned.slice(-11) // 处理带国际区号的情况
 
-  // 基础验证
-  if (cleaned.length !== 11 || !cleaned.startsWith('1'))
-    return false
+//   // 基础验证
+//   if (cleaned.length !== 11 || !cleaned.startsWith('1'))
+//     return false
 
-  // 中国移动号段正则（2023年最新版）
-  const mobilePattern = /^1(3[5-9]|34[0-8]|440|4(7|8[0-9])|5[0-27-9]|7[28]|8[2-47-8]|9[58]|20)/
-  return mobilePattern.test(cleaned)
-}
+//   // 中国移动号段正则（2023年最新版）
+//   const mobilePattern = /^1(3[5-9]|34[0-8]|440|4(7|8[0-9])|5[0-27-9]|7[28]|8[2-47-8]|9[58]|20)/
+//   return mobilePattern.test(cleaned)
+// }
 
 let timer: NodeJS.Timeout | null = null
 const onSend = async () => {
@@ -80,7 +80,7 @@ const onSend = async () => {
   await api.qyy.send_code({
     data: {
       mobile: props.account,
-      source: isChinaMobile(props.account) ? 'companyibos' : 'agenthub',
+      source: 'companyibos',
     },
   })
   send_countdown.value = props.countdown
@@ -99,9 +99,9 @@ const reset = () => {
 }
 const validateCode = async () => {
   return commonApi.verifycode({
-		mobile: props.account,
-		verifycode: input_value.value,
-		type: '1',
+    mobile: props.account,
+    verifycode: input_value.value,
+    type: '1',
   }).catch(() => Promise.resolve(false))
 }
 

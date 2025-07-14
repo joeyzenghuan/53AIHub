@@ -55,11 +55,11 @@ export class CacheManager {
     // 处理不同类型的fetcher
     let result: T
     if (typeof fetcher === 'function') {
-      const fetchResult = (fetcher as Function)()
-      if (this.isPromise(fetchResult)) {
-        result = await fetchResult
-      } else {
-        result = fetchResult
+      result = (fetcher as Function)()
+      if (this.isPromise(result)) {
+        result.catch(() => {
+          this.delete(key)
+        })
       }
     } else {
       result = fetcher as T

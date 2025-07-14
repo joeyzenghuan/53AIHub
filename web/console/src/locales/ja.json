@@ -77,7 +77,7 @@
     "website_info_ico": "ico",
     "website_info_ico_tip": "推奨サイズは64×64です",
     "website_info_ico_placeholder": "icoファイルをアップロードしてください",
- 		"website_info_name": "サイト名",
+    "website_info_name": "サイト名",
     "website_info_name_placeholder": "サイト名を入力してください",
     "website_info_language": "デフォルト言語",
     "website_info_keyword": "キーワード",
@@ -116,6 +116,7 @@
     "platform_model_organization_id_placeholder": "組織IDを入力してください",
     "platform_model_base_url": "API Base",
     "platform_model_base_url_placeholder": "API Baseを入力してください、例：https://api.openai.com",
+    "platform_model_base_url_placeholder_53ai": "API Baseを入力してください、例：https://api.53ai.com",
     "platform_model_api_endpoint": "カスタムAPIエンドポイント",
     "platform_model_api_endpoint_placeholder": "カスタムAPIエンドポイントを入力してください、例：https://api.deepseek.com/v1 or https://api.deepseek.com",
     "platform_model_models": "有効なモデル",
@@ -125,7 +126,6 @@
     "platform_model_models_id": "モデルID",
     "platform_model_models_name": "モデル名",
     "platform_model_delete_confirm": "このモデルを削除してもよろしいですか？",
-    "platform_model_delete_confirm_v2": "このモデルを削除してもよろしいですか？最後のモデルを削除すると、すべての設定が削除されます",
     "navigation": "ナビゲーションメニュー",
     "pc_navigation": "PCナビゲーション",
     "mobile_navigation": "モバイルナビゲーション",
@@ -151,24 +151,6 @@
     "nav_seo_setting_keywords_tip": "各キーワードはカンマで区切ってください",
     "nav_seo_setting_description": "SEO説明",
     "payment": "支払い設定",
-    "payment_wechat_app_id": "アプリID",
-    "payment_wechat_app_id_placeholder": "アプリIDを入力してください",
-    "payment_wechat_mch_id": "WeChat決済加盟店番号",
-    "payment_wechat_mch_id_placeholder": "WeChat決済加盟店番号を入力してください",
-    "payment_wechat_api_secret": "APIv3シークレットキー",
-    "payment_wechat_api_secret_placeholder": "APIv3シークレットキーを入力してください",
-    "payment_wechat_app_id_tip": "WeChat決済加盟店プラットフォームにログイン → 「アカウントセンター」をクリック → 「加盟店情報」から「WeChat決済加盟店番号」を取得",
-    "payment_wechat_mch_id_tip": "WeChatパブリックプラットフォームにログイン → 設定 → パブリックアカウント設定 → 基本設定 → 「開発者ID（アプリID）」を確認",
-    "payment_wechat_api_secret_tip": "WeChat決済加盟店プラットフォームにログイン → アカウントセンター → APIセキュリティ → 「APIキー」を設定",
-    "payment_wechat_serial_no": "証明書シリアル番号",
-    "payment_wechat_serial_no_placeholder": "証明書シリアル番号を入力してください",
-    "payment_wechat_cert": "証明書ファイル",
-    "payment_wechat_cert_placeholder": "証明書ファイルをアップロードしてください",
-    "payment_wechat_private_key": "証明書キー",
-    "payment_wechat_private_key_placeholder": "証明書キーをアップロードしてください",
-    "payment_manual_tip": "支付宝やWeChatなどの支払いチャネルを提供できない場合は、QRコードを残すことができます。ユーザーが支払った後、手動で注文を確認します。",
-    "payment_manual_pay_qrcode": "支払いコード",
-    "payment_manual_pay_qrcode_placeholder": "支払いコードをアップロードしてください",
     "subscription": "サブスクリプションサービス",
     "subscription_header_title": "サブスクリプションサービスと価格設定",
     "subscription_free": "無料版",
@@ -284,7 +266,8 @@
     "contact_customer_service": "問題がありますか？カスタマーサービスにお問い合わせください",
     "create_site": "サイトを作成",
     "waiting_audit": "審査中",
-    "create_success": "作成成功"
+    "create_success": "作成成功",
+    "expired_time_forever": "永久有効"
   },
   "service": {
     "title": "即時開通",
@@ -293,9 +276,9 @@
     "desc_2": "開通使用"
   },
   "website_version": {
-    "free": "無料版",
-    "standard": "標準版",
-    "enterprise": "企業版"
+    "free": "スタートアップ版",
+    "standard": "プロフェッショナル版",
+    "enterprise": "エンタープライズ版"
   },
   "language_option_label": {
     "zh-cn": "中文-CN",
@@ -324,13 +307,15 @@
       "not_confirm": "待確認",
       "pending": "待支払い",
       "paid": "支払い済み",
-      "expired": "超时"
+      "expired": "超时",
+      "cancelled": "キャンセル"
     },
     "confirm_tip": "確認すると、注文は確定されます。"
   },
   "payment": {
     "type": {
       "all": "全部支払い方式",
+      "alipay": "Alipay",
       "wechat": "WeChat",
       "manual": "手動送金",
       "paypal": "PayPal"
@@ -340,7 +325,32 @@
       "qrcode_placeholder": "収款コードをアップロードしてください",
       "desc": "備考",
       "desc_placeholder": "例：上記金額を支払うには、微信/アリババ のQRコードを使用してください"
-    }
+    },
+    "wechat_app_id": "アプリID",
+    "wechat_app_id_placeholder": "アプリIDを入力してください",
+    "wechat_mch_id": "WeChat決済加盟店番号",
+    "wechat_mch_id_placeholder": "WeChat決済加盟店番号を入力してください",
+    "wechat_api_secret": "APIv3シークレットキー",
+    "wechat_api_secret_placeholder": "APIv3シークレットキーを入力してください",
+    "wechat_app_id_tip": "WeChat決済加盟店プラットフォームにログイン → 「アカウントセンター」をクリック → 「加盟店情報」から「WeChat決済加盟店番号」を取得",
+    "wechat_mch_id_tip": "WeChatパブリックプラットフォームにログイン → 設定 → パブリックアカウント設定 → 基本設定 → 「開発者ID（アプリID）」を確認",
+    "wechat_api_secret_tip": "WeChat決済加盟店プラットフォームにログイン → アカウントセンター → APIセキュリティ → 「APIキー」を設定",
+    "wechat_serial_no": "証明書シリアル番号",
+    "wechat_serial_no_placeholder": "証明書シリアル番号を入力してください",
+    "wechat_cert": "証明書ファイル",
+    "wechat_cert_placeholder": "証明書ファイルをアップロードしてください",
+    "wechat_private_key": "証明書キー",
+    "wechat_private_key_placeholder": "証明書キーをアップロードしてください",
+    "manual_tip": "支付宝やWeChatなどの支払いチャネルを提供できない場合は、QRコードを残すことができます。ユーザーが支払った後、手動で注文を確認します。",
+    "manual_pay_qrcode": "支払いコード",
+    "manual_pay_qrcode_placeholder": "支払いコードをアップロードしてください",
+    "alipay_app_id": "Alipay AppID",
+    "alipay_app_id_placeholder": "Alipay AppIDを入力してください",
+    "alipay_mch_id": "アプリケーション秘密鍵",
+    "alipay_mch_id_placeholder": "アプリケーション秘密鍵を入力してください",
+    "alipay_api_secret": "Alipay公開鍵",
+    "alipay_api_secret_placeholder": "Alipay公開鍵を入力してください",
+    "alipay_guide_html": "1、Alipay開放プラットフォームにログイン<a class='text-[#5A6D9E]' href='https://open.alipay.com/module/webApp/' target='_blank'>https://open.alipay.com/module/webApp/</a>「Web/モバイルアプリケーション」を作成してAPPIDを取得；\n2、アプリケーションに入り、Alipay公式のガイドに従って「開発設定」「インターフェース署名方式」を設定し、アプリケーション秘密鍵とAlipay公開鍵を取得；\n3、「開発設定」「認証コールバックアドレス」に以下を入力：<span style=\"color: #FA5151;\">{callback_url}</span><span class='copy-hook'></span>\n4、[API管理]で「コンピューターサイト支払い」の機能を導入し、Alipay公式のガイドに従って設定または開通してください。"
   },
   "template_style": {
     "website_style": "ウェブサイトスタイル",
@@ -386,6 +396,12 @@
     "serial_guide": {
       "title": "証書序列号の取得方法",
       "step_1": "1、登錄微信支付商戶平台，進入【賬戶中心 - 賬戶設置 - API安全】，點擊【APIv3密鑰】"
+    }
+  },
+  "alipay_payment": {
+    "app_guide": {
+      "title": "How to get APPID",
+      "step_1": "1、Login to Alipay Open Platform<a class='text-[#5A6D9E]' href='https://open.alipay.com/module/webApp/' target='_blank'>https://open.alipay.com/module/webApp/</a>Create \"Web/Mobile Application\" to get APPID; \n2、Click to enter the application, configure according to the official guide of Alipay in \"Development Settings\" \"Signature Method\" to get application private key and Alipay public key; \n3、In \"Development Settings\" \"Authorization Callback Address\", fill in: <span class=\"text-[#586D9A]\">{callback_url}</span><span class='copy-hook'></span>\n4、In [API Management], access the ability of \"Computer Website Payment\" according to the official guide of Alipay to configure or open;"
     }
   },
   "platform_auth": {
@@ -601,6 +617,7 @@
   "action_edit": "編集",
   "action_save": "保存",
   "action_save_success": "保存しました",
+  "action_save_failed": "保存失敗",
   "action_delete": "削除",
   "action_delete_tip": "削除ヒント",
   "action_delete_confirm": "このデータを削除してもよろしいですか？",
@@ -661,6 +678,8 @@
   "action_unbind": "関連付け解除する",
   "action_bind_success": "関連付けました",
   "action_unbind_success": "関連付け解除しました",
+  "action_confirm_payment": "確認支払い",
+  "action_confirm_payment_success": "確認しました",
   "completion_completed": "深い思考が完了しました",
   "completion_thinking": "深く考えています...",
   "form_input_placeholder": "入力してください",
@@ -678,11 +697,7 @@
   "image_cropper": "画像裁剪",
   "reupload": "再アップロード",
   "wechat": "WeChat",
-  "wechat_pay": "WeChat Pay",
   "alipay": "Alipay",
-  "alipay_pay": "Alipay支払い",
-  "paypal": "PayPal",
-  "manual_pay": "手動送金",
   "enabled": "有効",
   "disabled": "無効",
   "setting": "設定済み",
@@ -692,7 +707,6 @@
   "year": "年",
   "monthly": "月間",
   "month": "月",
-  "version": "バージョン",
   "expired_time": "有効期限",
   "basic_info": "基本情報",
   "connected": "連携済み",
@@ -711,8 +725,13 @@
   "verification_code": "検証コード",
   "verification_code_placeholder": "検証コードを入力してください",
   "get_verification_code": "検証コードを取得",
-  "subscription": "サブスクリプション",
-  "subscription_end_at": "サブスクリプション期限",
+  "subscription": {
+    "title": "サブスクリプション",
+    "end_at": "サブスクリプション期限",
+    "transfer_title": "サブスクリプション削除",
+    "transfer_desc": "以下のサブスクリプションを削除し、ユーザーを新しいサブスクリプションに移行します",
+    "transfer_to": "移行先"
+  },
   "register_time": "登録日時",
   "created_time": "作成日時",
   "add_time": "添加時間",
@@ -720,8 +739,6 @@
   "language": "言語",
   "website_domain": "サイトドメイン",
   "website_home": "サイトホーム",
-  "agent": "インテリジェントエージェント",
-  "user_count": "ユーザー数",
   "create_time": "作成日時",
   "update_time": "更新日時",
   "service_expired_time": "サービス期限",
@@ -848,7 +865,7 @@
   "bailian": "Alibaba Bailian",
   "volcengine": "Volcengine",
   "sort": "ソート",
-  "official_website": "公式サイト",
+  "official_website": "ホーム",
   "apply_open": "申請開通",
   "user_register": "ユーザー登録",
   "account_register": "アカウント登録",
@@ -887,8 +904,7 @@
   "yuanqi_agent_get_tip": "テンセントYuanqi（{ url }）にアクセス \n手順1：テンセントYuanqiにログインし、マイクリエイションに移動。\n手順2：AIエージェントカードの右下にある詳細ボタンをクリックし、API呼び出しをクリック（新規エージェントは審査後に利用可能）。\n手順3：エージェントIDをコピーし、下のフォームに貼り付け。\n手順4：トークンをコピーし、下のフォームに貼り付け。",
   "fastgpt_agent_get_tip": "FastGPT（ {url} ）にアクセス \n手順1：FastGPTにログインし、「ワークスペース」に入り、接続したいアプリケーションを選択。\n手順2：アプリケーションに入り、「配信チャネル」で「APIアクセス」を選択。\n手順3：APIキー管理で新規作成をクリックし、作成後「API KEY」をコピーしてフォームに入力。\n手順4：「APIルートアドレス」をコピーし、フォームに入力。",
   "tip": "ヒント",
-  "coze_cn_not_auth": "ボタンは許可されていません",
-  "app_builder_not_auth": "AppBuilder許可されていません",
+  "auth_required": "{provider_name}未授權，請先前往{provider_name}授權",
   "intelligent_agent_platform": "インテリジェントエージェントプラットフォーム",
   "cloud_computing_platform": "クラウドコンピューティングプラットフォーム",
   "model_platform": "モデルプラットフォーム",
@@ -933,5 +949,13 @@
     "log_operator": "操作人",
     "log_time": "時間",
     "log_ip": "IP"
+  },
+  "version": {
+    "title": "バージョン",
+    "scan_consult": "スキャン相談",
+    "upgrade_tip": "アップグレードヒント",
+    "upgrade": "アップグレードバージョン",
+    "not_support": "現在のバージョンはサポートされていません",
+    "agent_limit": "アジェント追加制限、アップグレードして追加してください"
   }
 }

@@ -1,11 +1,23 @@
+<template>
+  <div>
+    <div
+      ref="vditorRef"
+      v-loading="loading"
+      class="w-full vditor-custom"
+      :class="[props.preview ? 'vditor-preview !border-none !bg-transparent' : '']"
+      :style="{ 'height': props.height, '--panel-background-color': props.bgColor }"
+    />
+  </div>
+</template>
+
 <script setup lang="ts">
-import { onMounted, onUnmounted, ref, watch } from 'vue'
+import { onMounted, onUnmounted, ref, watch } from 'vue';
 // import Vditor from 'vditor'
 // import 'vditor/dist/index.css'
 // import { markdownEditor } from './helper'
 
-import { api_host, lib_host } from '@/utils/config'
-import loadLib from '@/utils/loadLib'
+import { api_host, lib_host } from '@/utils/config';
+import loadLib from '@/utils/loadLib';
 
 const props = withDefaults(
   defineProps<{
@@ -229,24 +241,12 @@ onUnmounted(() => {
 })
 </script>
 
-<template>
-  <div>
-    <div
-      ref="vditorRef"
-      v-loading="loading"
-      class="w-full vditor-custom"
-      :class="[props.preview ? 'vditor-preview !border-none !bg-transparent' : '']"
-      :style="{ 'height': props.height, '--panel-background-color': props.bgColor }"
-    />
-  </div>
-</template>
-
 <style>
 .vditor-custom .vditor-toolbar {
   padding-left: 0 !important;
 }
 .vditor-custom .vditor-reset {
-	padding: 10px 24px !important;
+	padding: 10px 30px !important;
 }
 .vditor-custom .vditor-toolbar--hide{
   display: none;

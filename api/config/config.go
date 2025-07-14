@@ -35,6 +35,9 @@ var CHANNEL_RETRY_TIMES = env.Int64("CHANNEL_RETRY_TIMES", 3)
 var EnforceIncludeUsage = env.Bool("ENFORCE_INCLUDE_USAGE", false)
 
 var PreConsumedQuota int64 = 500
+var WECOM_SUITE_ID = env.String("WECOM_SUITE_ID", "")
+var IS_TEST_WECOM_SUITE = env.Bool("IS_TEST_WECOM_SUITE", false)
+var HUAWEI_CLOUD_ACCESS_KEY = env.String("HUAWEI_CLOUD_ACCESS_KEY", "")
 
 func GetApiHost() string {
 	if !strings.HasSuffix(ApiHost, "/") {
@@ -126,4 +129,16 @@ func GetSMTPAuth() (smtp.Auth, string, error) {
 		env.String("SMTP_HOST", ""),
 	)
 	return auth, from, nil
+}
+
+func GetWecomSuiteID() string {
+	return WECOM_SUITE_ID
+}
+
+func GetUserRole(c *gin.Context) int64 {
+	role, success := c.Get(session.SESSION_USER_ROLE)
+	if success && role != nil {
+		return role.(int64)
+	}
+	return 0 // 默认返回 0，表示无权限或未登录
 }

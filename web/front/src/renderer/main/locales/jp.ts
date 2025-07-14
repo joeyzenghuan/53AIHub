@@ -10,7 +10,7 @@ export default {
     find: '発見',
     library: 'ナレッジベース',
     crop_space: '企業スペース',
-    prompt: 'プロンプト',
+    prompt: 'プロンプト'
   },
 
   // ブラウザ関連
@@ -26,14 +26,14 @@ export default {
     leftWindow: '左側小窓',
     centerWindow: '中央大窓',
     rightWindow: '右側小窓',
-    alwaysOnTop: 'ウィンドウを常に前面に表示',
+    alwaysOnTop: 'ウィンドウを常に前面に表示'
   },
 
   // クリーニング機能
   clean: {
     content: 'コンテンツ抽出',
     knowledge: 'ナレッジ整理',
-    summarize: 'ナレッジ抽出',
+    summarize: 'ナレッジ抽出'
   },
 
   // アップデート関連
@@ -45,7 +45,7 @@ export default {
     completedTitle: '更新通知',
     noUpdate: '現在最新バージョンです',
     currentVersion: '現在のバージョン v{version}',
-    checkUpdate: '更新を確認',
+    checkUpdate: '更新を確認'
   },
 
   // 一般テキスト
@@ -56,6 +56,7 @@ export default {
     screenshot: 'スクリーンショット',
     title: 'タイトル',
     desc: '説明',
+    tip: 'ヒント',
     create_time: '作成日時',
     update_time: '更新日時',
     recently_updated: '最近の更新',
@@ -64,7 +65,7 @@ export default {
     load_new: '新しいメッセージを読み込む',
     no_data: 'データがありません',
     unknown: '不明',
-    usual: "よく使う",
+    usual: 'よく使う',
 
     render: 'レンダリング',
     preview: 'プレビュー',
@@ -78,12 +79,13 @@ export default {
     image_cropper: '画像トリミング',
     back: '戻る',
     go_admin: '管理画面に移動',
-    related_prompt: "関連プロンプト",
-    related_agent: "関連エージェント",
+    related_prompt: '関連プロンプト',
+    related_agent: '関連エージェント',
     view_more: 'もっと見る',
     expand_more: 'もっと見る',
     collapse_more: 'もっと見る',
     or: 'または',
+    later: '後で'
   },
 
   // ステータス通知
@@ -101,7 +103,7 @@ export default {
     approve_success: 'いいねしました',
     approve_cancel: 'いいねを取り消しました',
     register_success: '登録成功',
-    update_success: '更新成功',
+    update_success: '更新成功'
   },
 
   // アクションボタン
@@ -151,7 +153,7 @@ export default {
     stop: '停止',
     pay: '支払いに進む',
     ok_v2: 'OK',
-    view_more: 'もっと見る',
+    view_more: 'もっと見る'
   },
 
   // フォーム関連
@@ -202,7 +204,8 @@ export default {
     password_not_match: '入力されたパスワードが一致しません',
     change: '変更',
     existing_mobile: 'この電話番号は既に登録されています。このアカウントでログインしてください。',
-    existing_email: 'このメールアドレスはすでに登録されています。ご登録済みのアカウントでログインしてください。'
+    existing_email:
+      'このメールアドレスはすでに登録されています。ご登録済みのアカウントでログインしてください。'
   },
 
   // ホーム関連
@@ -214,10 +217,10 @@ export default {
     toolbox_recommend: 'おすすめAIツール',
     toolbox_recommend_desc: 'ワークフローに応じた AI リソースを選択し、AI を生産性ツールに変えます',
     use_history: '{count}人が利用',
-    banner_title: "“{name} 専門家”  効率を倍増する秘密の武器",
-    banner_desc: "ワークフローに応じた AI リソースを選択し、AI を生産性ツールに変えます",
+    banner_title: '“{name} 専門家”  効率を倍増する秘密の武器',
+    banner_desc: 'ワークフローに応じた AI リソースを選択し、AI を生産性ツールに変えます',
     search_placeholder: '検索したいAIリソースを入力してください',
-    hot_search: '人気の検索',
+    hot_search: '人気の検索'
   },
 
   // ログイン関連
@@ -241,6 +244,10 @@ export default {
     login_by_mobile: '携帯電話でログイン',
     bind_mobile: '携帯電話番号をバインド',
     other_login_way: '他のログイン方式',
+    login_by_wecom: 'WeComでログイン',
+    immediate_login: 'すぐにログイン',
+    wecom_login_error:
+      'サイトにバインドされた企業微信は、現在のログインしている企業微信ではありません!\n正しい企業微信を使用してログインしてください。'
   },
 
   // 登録関連
@@ -269,7 +276,8 @@ export default {
     dislike: 'いいねを取り消す',
     input_placeholder: 'メッセージを送信',
     usage_guide: '使用ガイド',
-    completion_empty_desc: 'AI大規模モデルによるインテリジェントコンテンツ生成。要件を入力するだけでワンクリックで文章が作成できます',
+    completion_empty_desc:
+      'AI大規模モデルによるインテリジェントコンテンツ生成。要件を入力するだけでワンクリックで文章が作成できます',
     usage_case: '使用例',
     usage_scene: '使用シーン',
     online_search: 'オンライン検索',
@@ -280,7 +288,7 @@ export default {
     no_available_agent: '利用可能なエージェントがありません',
 
     completion_completed: '深層思考が完了しました',
-    completion_thinking: '深度思考中...',
+    completion_thinking: '深度思考中...'
   },
 
   // ナレッジベース関連
@@ -305,11 +313,11 @@ export default {
     github_import: 'Githubからインポート',
     docs_qq_import: 'テンセントドキュメントからインポート',
     docs_feishu_import: 'DingTalkドキュメントからインポート',
-    docs_dingtalk_import: 'Feishuドキュメントからインポート',
+    docs_dingtalk_import: 'Feishuドキュメントからインポート'
   },
 
   agent: {
-    no_data: '管理者がまだエージェントを公開していません',
+    no_data: '管理者がまだエージェントを公開していません'
   },
 
   prompt: {
@@ -317,7 +325,7 @@ export default {
     likes_sort: 'いいね順',
     views_sort: '閲覧順',
     content: 'プロンプト内容',
-    auth_tip: 'あなたの所属グループにアクセス権がありません',
+    auth_tip: 'あなたの所属グループにアクセス権がありません'
   },
 
   toolbox: {
@@ -325,7 +333,7 @@ export default {
     title: 'AIの世界を拡大しよう',
     input_placeholder: 'AIの世界を拡大しよう',
     max_agent_count: '最大で{count}つのモデルを選択できます',
-    search_placeholder: 'ウェブサイトを検索',
+    search_placeholder: 'ウェブサイトを検索'
   },
 
   // スペース関連
@@ -336,7 +344,7 @@ export default {
     member: 'メンバー管理',
     settings: 'スペース設定',
     space_usage: '使用中 {used} / {total}',
-    expand: '容量拡張',
+    expand: '容量拡張'
   },
 
   // 時間関連
@@ -348,7 +356,7 @@ export default {
     yesterday: '昨日',
     today: '今日',
     week_last: '1週間以内',
-    week_ago: '1週間前',
+    week_ago: '1週間前'
   },
 
   profile: {
@@ -357,6 +365,8 @@ export default {
     change_password: 'パスワード変更',
     login_password: 'ログインパスワード',
     bind_accounts: 'アカウント情報',
+    subscription_info: 'サブスクリプション情報',
+    order_info: '注文情報',
     unbind_account: '未連携',
     bind_mobile: '電話番号',
     bind_email: 'メールアドレス',
@@ -372,74 +382,130 @@ export default {
     unbind_wechat_confirm_title: 'WeChatアカウントのバインドを解除',
     unbind_wechat_confirm_cancel: '暫時解綁しない',
     unbind_wechat_confirm_ok: '確認解綁',
+    renew: '更新',
+    expire_time_desc:
+      '{group_name}は{day}日後({expire_time})に期限切れになります、会員権利を継続するには更新してください',
+    expired_time_desc:
+      '{group_name}は{expire_time}に期限切れになりました、会員権利を継続するには更新してください'
   },
-  "response_status": {
-    "400": 'リクエストパラメータエラー',
-    "401": '認証されていません、ログインしてください',
-    "403": 'アクセス拒否',
-    "404": 'リソースが見つかりません',
-    "500": 'サーバーエラー',
-    "502": 'ゲートウェイエラー',
-    "504": 'ゲートウェイタイムアウト',
-    "503": 'サービス利用不可',
+  response_status: {
+    '400': 'リクエストパラメータエラー',
+    '401': '認証されていません、ログインしてください',
+    '403': 'アクセス拒否',
+    '404': 'リソースが見つかりません',
+    '500': 'サーバーエラー',
+    '502': 'ゲートウェイエラー',
+    '504': 'ゲートウェイタイムアウト',
+    '503': 'サービス利用不可'
   },
-  "response_code": {
-    "success": "成功",
-    "param_error": "パラメータエラー",
-    "database_error": "データベースエラー",
-    "network_error": "ネットワークエラー、再試行してください",
-    "system_error": "システムエラー",
-    "auth_error": "認証エラー",
-    "not_found_error": "見つかりませんエラー",
-    "unauthorized_error": "認証エラー",
-    "file_error": "ファイルエラー",
-    "forbidden_error": "ユーザーが無効になっています、管理者に連絡してください",
-    "agent_error": "エージェントエラー",
-    "token_expired_error": "認証期限切れエラー",
-    "verification_code_error": "認証コードエラー"
+  response_code: {
+    success: '成功',
+    param_error: 'パラメータエラー',
+    database_error: 'データベースエラー',
+    network_error: 'ネットワークエラー、再試行してください',
+    system_error: 'システムエラー',
+    auth_error: '認証エラー',
+    not_found_error: '見つかりませんエラー',
+    unauthorized_error: '認証エラー',
+    file_error: 'ファイルエラー',
+    forbidden_error: 'ユーザーが無効になっています、管理者に連絡してください',
+    agent_error: 'エージェントエラー',
+    token_expired_error: '認証期限切れエラー',
+    verification_code_error: '認証コードエラー'
   },
-  "response_message": {
-    "unknown_error": "不明なエラー",
-    "user_not_found": "ユーザーが存在しません",
-    "username_or_password_is_incorrect": "ユーザー名またはパスワードが間違っています",
-    "username_already_exists": 'ユーザー名が既に存在します',
-    "mobile_already_bind": "携帯電話番号はすでに他のユーザーに登録されています",
-    "email_already_bind": "メールアドレスは他のユーザーに登録済みです",
-    "model_changed": "管理者がモデルを変更しました、新しい会話を作成してください",
-    "wechat_already_bind": "WeChatアカウントはすでに他のユーザーに登録されています",
+  response_message: {
+    unknown_error: '不明なエラー',
+    user_not_found: 'ユーザーが存在しません',
+    username_or_password_is_incorrect: 'ユーザー名またはパスワードが間違っています',
+    username_already_exists: 'ユーザー名が既に存在します',
+    mobile_already_bind: '携帯電話番号はすでに他のユーザーに登録されています',
+    email_already_bind: 'メールアドレスは他のユーザーに登録済みです',
+    model_changed: '管理者がモデルを変更しました、新しい会話を作成してください',
+    wechat_already_bind: 'WeChatアカウントはすでに他のユーザーに登録されています'
   },
-  "subscription": {
-    "free": "無料版",
-    "upgrade": "アップグレード",
-    "version_title": "バージョンを選択",
-    "time_title": "購入期間を選択",
-    "month": "月",
-    "year": "年",
-    "credit_month_amount": "毎月{amount}積分",
-    "agent_bots_title": "使用可能なエージェント",
-    "ai_assistant_title": "クロスプラットフォームの AI アシスタント",
-    "time_unit_month": "1ヶ月",
-    "time_unit_year": "1年",
-    "aside_title": "新しい注文購入詳細",
-    "aside_desc": "以下のユーザーに購入",
-    "payment": "支払方法",
-    "payment_wechat": "WeChat支払い",
-    "payment_manual": "手動支払い",
-    "total": '総計',
-    "order_title": "注文支払い",
-    "pay_amount": "支払金額",
-    "pay_by_wechat": "WeChat支払い",
-    "pay_policy": "支払いは関連する {policy} に同意したことを意味します",
-    "pay_success": "支払い成功",
-    "pay_confirm": "支払いが完了したことを確認してください、クリックしてください",
-    "payed": "支払い済み",
-    "manual_pay_success_title": "注文が生成されました",
-    "manual_pay_success_desc": "支払い情報を確認するか、管理者に連絡してください",
+  subscription: {
+    free: '無料版',
+    upgrade: 'アップグレード',
+    version_title: 'バージョンを選択',
+    time_title: '購入期間を選択',
+    month: '月',
+    year: '年',
+    credit_month_amount: '毎月{amount}積分',
+    agent_bots_title: '使用可能なエージェント',
+    ai_assistant_title: 'クロスプラットフォームの AI アシスタント',
+    time_unit_month: '1ヶ月',
+    time_unit_year: '1年',
+    aside_title: '新しい注文購入詳細',
+    aside_desc: '以下のユーザーに購入',
+    payment: '支払方法',
+    wechat_pay: 'WeChat支払い',
+    alipay: 'Alipay',
+    manual_pay: '手動支払い',
+    paypal: 'PayPal',
+    total: '総計',
+    order_title: '注文支払い',
+    pay_amount: '支払金額',
+    pay_by_wechat: 'WeChat支払い',
+    pay_policy: '支払いは関連する {policy} に同意したことを意味します',
+    pay_success: '支払い成功',
+    pay_confirm: '支払いが完了したことを確認してください、クリックしてください',
+    payed: '支払い済み',
+    manual_pay_success_title: '注文が生成されました',
+    manual_pay_success_desc: '支払い情報を確認するか、管理者に連絡してください',
+    expire_time: '有効期限'
   },
-  "authority": {
-    "group_not_permission": "あなたが所属するグループにはアクセス権限がありません",
-    "payment_not_setting": "サイトが支払い方法を設定していません、管理者に直接連絡してください",
-    "agent_not_permission": "このエージェントを使用する権限がありません、管理者に直接連絡してください",
-    "use_range": "使用范围"
+  authority: {
+    group_not_permission: 'あなたが所属するグループにはアクセス権限がありません',
+    payment_not_setting: 'サイトが支払い方法を設定していません、管理者に直接連絡してください',
+    agent_not_permission:
+      'このエージェントを使用する権限がありません、管理者に直接連絡してください',
+    login_not_permission: 'まずログインしてください',
+    use_range: '使用范围'
+  },
+  upgrade_dialog: {
+    title: 'サイトの登録ユーザー数が上限に達しました、管理者に連絡してください~~',
+    cancel: '登録を閉じる'
+  },
+  order: {
+    id: '注文ID',
+    subscription: 'サブスクリプションサービス',
+    amount: '注文金額',
+    pay_type: '支払方法',
+    create_time: '注文時間',
+    status: '状態',
+    action: '操作',
+    search_placeholder: '注文IDを入力してください',
+
+    payment: '支払い',
+    cancel: 'キャンセル',
+    cancel_confirm: '注文をキャンセルしますか？',
+
+    status_list: {
+      all: 'すべて',
+      not_confirm: '未確定',
+      pending: '待支払い',
+      paid: '支払い済み',
+      expired: '期限切れ',
+      cancel: 'キャンセル'
+    }
+  },
+  filter: {
+    start_time: '開始時間',
+    end_time: '結束時間',
+
+    date_range: {
+      today: '今日',
+      last_7_days: '過去7日',
+      last_4_weeks: '過去4週',
+      last_3_months: '過去3月',
+      last_12_months: '過去12月',
+      this_month: '今月',
+      this_quarter: '今四半期',
+      this_year: '今年',
+      all_time: 'すべての時間'
+    }
+  },
+  table: {
+    footer_text: '合計 {total} 項目'
   }
 }

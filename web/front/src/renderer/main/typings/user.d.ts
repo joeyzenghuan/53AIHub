@@ -9,9 +9,14 @@ declare namespace User {
     eid: number
     role: number
     group_id: number
+    group_ids: number[]
     group_name: string
     group_icon: string
+    group_expire_time: string
+    group_expire_day: number
+    group_isexpired: boolean
     mobile: string
+    openid: string
     is_internal: boolean
   }
 

@@ -32,7 +32,7 @@ onUnmounted(() => {
   </Layout>
 </template>
 
-<style scoped lang="scss">
+<style scoped>
 ::v-deep(.el-tab-pane) {
 	height: 100%;
 }

@@ -1,16 +1,18 @@
-import debounce from './debounce'
-import copy from './copy'
-import router from './router'
+import debounce from './debounce';
+import copy from './copy';
+import router from './router';
+import version from './version';
 
-import overflowTooltip from './overflow-tooltip'
-import truncate from './truncate'
-import tooltip from './tooltip'
+import overflowTooltip from './overflow-tooltip';
+import truncate from './truncate';
+import tooltip from './tooltip';
 
 export function setupDirective(app) {
-  app.directive('debounce', debounce)
-  app.directive('copy', copy)
-  app.directive('router', router)
-  app.directive('overflow-tooltip', overflowTooltip)
-  app.directive('truncate', truncate)
-  app.directive('tooltip', tooltip)
+  app.directive('debounce', debounce);
+  app.directive('copy', copy);
+  app.directive('router', router);
+  app.directive('version', version);
+  app.directive('overflow-tooltip', overflowTooltip);
+  app.directive('truncate', truncate);
+  app.directive('tooltip', tooltip);
 }

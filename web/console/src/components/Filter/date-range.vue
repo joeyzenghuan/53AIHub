@@ -1,3 +1,18 @@
+<template>
+  <el-date-picker
+    v-model="model"
+    type="daterange"
+    :start-placeholder="startPlaceholder"
+    :end-placeholder="endPlaceholder"
+    :size="size"
+    style="--el-date-editor-width: 280px;"
+    :popper-options="{ placement: 'bottom-start' }"
+    :shortcuts="shortcuts"
+    v-bind="{ ...$attrs }"
+    @change="handleChange"
+  />
+</template>
+
 <script setup lang="ts">
 import useVmodel from '@/hooks/useVmodel'
 import { getSimpleDateFormatString } from '@/utils/moment'
@@ -62,20 +77,6 @@ const shortcuts = dateRangeOptions.map((item) => {
   }
 })
 </script>
-
-<template>
-  <el-date-picker
-    v-model="model"
-    type="daterange"
-    :start-placeholder="startPlaceholder"
-    :end-placeholder="endPlaceholder"
-    :size="size"
-    :popper-options="{ placement: 'bottom-start' }"
-    :shortcuts="shortcuts"
-    v-bind="{ ...$attrs }"
-    @change="handleChange"
-  />
-</template>
 
 <style scoped>
 

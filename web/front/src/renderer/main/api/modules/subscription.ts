@@ -1,7 +1,8 @@
 import service from '../config'
 import { handleError } from '../errorHandler'
 import { PAYMENT_TYPE, TIME_UNIT, TimeUnitType } from '@/constants/payment'
-import { CURRENCY_TYPE, getCurrencySymbol } from '@/constants/currency'
+import type { PaymentType } from '@/constants/payment'
+import { CURRENCY_TYPE, getCurrencySymbol, CurrencyType } from '@/constants/currency'
 import md5 from '@/utils/md5'
 
 interface OrderCacheData {
@@ -15,18 +16,21 @@ interface OrderParams {
   nickname: string
   subscription_id: number
   subscription_name: string
-  pay_type: PAYMENT_TYPE
+  pay_type: PaymentType
   amount: number
-  currency: CURRENCY_TYPE
+  currency: CurrencyType
   duration: number
   time_unit: TimeUnitType
 }
 
 export const getOrderCache = ({ key = '' } = {}): OrderCacheData => {
-  let temporary_order_data = JSON.parse(localStorage.getItem('temporary_order_data') || '{}')
-  let order_data = temporary_order_data[key]
+  const temporary_order_data = JSON.parse(localStorage.getItem('temporary_order_data') || '{}')
+  const order_data = temporary_order_data[key]
   if (!order_data) return temporary_order_data
-  if (!Number(order_data.payment_expired_time) || Number(order_data.payment_expired_time) < Date.now()) {
+  if (
+    !Number(order_data.payment_expired_time) ||
+    Number(order_data.payment_expired_time) < Date.now()
+  ) {
     setOrderCache({ key, value: {} })
     return {}
   }
@@ -34,7 +38,7 @@ export const getOrderCache = ({ key = '' } = {}): OrderCacheData => {
 }
 
 export const setOrderCache = ({ key = '', value = {} } = {}) => {
-  let temporary_order_data = getOrderCache()
+  const temporary_order_data = getOrderCache()
   temporary_order_data[key] = value
   localStorage.setItem('temporary_order_data', JSON.stringify(temporary_order_data))
 }
@@ -44,29 +48,40 @@ let subscription_list: any[] = []
 export const subscriptionApi = {
   async list({ reset = false } = {}) {
     if (reset) subscription_list = []
-    if (subscription_list.length) return { count: subscription_list.length, list: subscription_list }
-    const { data: { count = 0, settings = [] } = {} } = await service.get(`/api/subscriptions/settings`).catch(handleError)
+    if (subscription_list.length)
+      return { count: subscription_list.length, list: subscription_list }
+    const { data: { count = 0, settings = [] } = {} } = await service
+      .get(`/api/subscriptions/settings`)
+      .catch(handleError)
     subscription_list = settings.map((item: any = {}, index) => {
       item.group = item.group || {}
       item.setting = item.setting || {}
       item = {
         ...item,
         ...item.group,
-        ...item.setting,
+        ...item.setting
       }
       item.logo = item.logo || item.setting.logo_url || ''
       item.delete = Boolean(item.delete) || false
       item.group_id = item.group_id || 0
       item.setting_id = item.setting_id || 0
-      item.sort = item.sort || (settings.length - index) || 0
+      item.sort = item.sort || settings.length - index || 0
       item.group_name = item.group_name || ''
       item.logo_url = item.logo_url || ''
       item.ai_enabled = Boolean(item.ai_enabled) || false
       item.relations = item.relations || []
 
       // 处理年度信息
-      item.year_info = JSON.parse(JSON.stringify(item.relations.find((row: any = {}) => row.type == 1 && row.time_unit === TIME_UNIT.YEAR) || {}))
-      item.year_info.amount = (Number(item.year_info.amount || 0) / 100).toFixed(2).replace('.00', '')
+      item.year_info = JSON.parse(
+        JSON.stringify(
+          item.relations.find(
+            (row: any = {}) => row.type == 1 && row.time_unit === TIME_UNIT.YEAR
+          ) || {}
+        )
+      )
+      item.year_info.amount = (Number(item.year_info.amount || 0) / 100)
+        .toFixed(2)
+        .replace('.00', '')
       item.year_info.currency = item.year_info.currency || CURRENCY_TYPE.CNY
       item.year_info.currency_symbol = getCurrencySymbol(item.year_info.currency)
       item.year_info.relation_id = item.year_info.relation_id || 0
@@ -74,8 +89,16 @@ export const subscriptionApi = {
       item.year_info.type = item.year_info.type || 1
 
       // 处理月度信息
-      item.month_info = JSON.parse(JSON.stringify(item.relations.find((row: any = {}) => row.type == 1 && row.time_unit === TIME_UNIT.MONTH) || {}))
-      item.month_info.amount = (Number(item.month_info.amount || 0) / 100).toFixed(2).replace('.00', '')
+      item.month_info = JSON.parse(
+        JSON.stringify(
+          item.relations.find(
+            (row: any = {}) => row.type == 1 && row.time_unit === TIME_UNIT.MONTH
+          ) || {}
+        )
+      )
+      item.month_info.amount = (Number(item.month_info.amount || 0) / 100)
+        .toFixed(2)
+        .replace('.00', '')
       item.month_info.currency = item.month_info.currency || CURRENCY_TYPE.CNY
       item.month_info.currency_symbol = getCurrencySymbol(item.month_info.currency)
       item.month_info.relation_id = item.month_info.relation_id || 0
@@ -83,8 +106,12 @@ export const subscriptionApi = {
       item.month_info.type = item.month_info.type || 1
 
       // 处理信用月度信息
-      item.credit_month_info = JSON.parse(JSON.stringify(item.relations.find((row: any = {}) => row.type == 2) || {}))
-      item.credit_month_info.amount = Number(item.credit_month_info.amount || 0).toFixed(2).replace('.00', '')
+      item.credit_month_info = JSON.parse(
+        JSON.stringify(item.relations.find((row: any = {}) => row.type == 2) || {})
+      )
+      item.credit_month_info.amount = Number(item.credit_month_info.amount || 0)
+        .toFixed(2)
+        .replace('.00', '')
       item.credit_month_info.currency = item.credit_month_info.currency || ''
       item.credit_month_info.currency_symbol = getCurrencySymbol(item.credit_month_info.currency)
       item.credit_month_info.relation_id = item.credit_month_info.relation_id || 0
@@ -96,7 +123,7 @@ export const subscriptionApi = {
     })
     return {
       count,
-      list: subscription_list,
+      list: subscription_list
     }
   },
 
@@ -106,7 +133,7 @@ export const subscriptionApi = {
     data = {
       ...data,
       ...data.order,
-      ...data.payment_info,
+      ...data.payment_info
     }
     data.order_id = +data.order.id || 0
     data.payment_expired_time = +data.payment_info.expired_time || 0
@@ -115,7 +142,10 @@ export const subscriptionApi = {
     return data
   },
 
-  async createOrder({ params = {}, cache_disabled = false }: {
+  async createOrder({
+    params = {},
+    cache_disabled = false
+  }: {
     params?: Partial<OrderParams>
     cache_disabled?: boolean
   } = {}) {
@@ -128,10 +158,14 @@ export const subscriptionApi = {
       amount: 0,
       currency: CURRENCY_TYPE.CNY,
       duration: 0,
-      time_unit: TIME_UNIT.MONTH,
+      time_unit: TIME_UNIT.MONTH
     }
 
     const mergedParams = { ...defaultParams, ...params }
+    const isAlipay = mergedParams.pay_type === PAYMENT_TYPE.ALIPAY
+    if (isAlipay) {
+      mergedParams.return_url = window.location.href
+    }
     const storage_key = md5(JSON.stringify(mergedParams))
 
     if (!cache_disabled) {
@@ -140,6 +174,10 @@ export const subscriptionApi = {
     }
 
     let { data = {} } = await service.post(`/api/orders`, mergedParams).catch(handleError)
+    if (isAlipay) {
+      window.location.href = data.payment_info.returnUrl
+      return true
+    }
     data = this.getFormatOrderData(data)
 
     if (!cache_disabled) {
@@ -150,9 +188,11 @@ export const subscriptionApi = {
   },
 
   async getOrderStatus(params: { order_id: string }) {
-    const { data = {} } = await service.get(`/api/orders/status/${params.order_id}`).catch(handleError)
+    const { data = {} } = await service
+      .get(`/api/orders/status/${params.order_id}`)
+      .catch(handleError)
     return data
-  },
+  }
 }
 
 export default subscriptionApi

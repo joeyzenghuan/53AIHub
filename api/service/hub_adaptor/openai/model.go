@@ -143,3 +143,9 @@ type CompletionsStreamResponse struct {
 		FinishReason string `json:"finish_reason"`
 	} `json:"choices"`
 }
+
+type FastGptFileContent struct {
+	Type string `json:"type"`
+	Name string `json:"name"`
+	Url  string `json:"url"`
+}

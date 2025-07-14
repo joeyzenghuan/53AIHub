@@ -147,3 +147,9 @@ func UpdateAgentStatus(eid, agentID int64, enable *bool) error {
 		Where("eid = ? AND agent_id = ?", eid, agentID).
 		Update("enable", enable).Error
 }
+
+func GetAgentCountByEID(eid int64) (int64, error) {
+	var count int64
+	err := DB.Model(&Agent{}).Where("eid =?", eid).Count(&count).Error
+	return count, err
+}

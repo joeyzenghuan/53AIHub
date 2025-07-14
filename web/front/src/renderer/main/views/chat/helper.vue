@@ -1,26 +1,3 @@
-<script setup lang="ts">
-import { reactive, watchEffect } from 'vue'
-
-const props = withDefaults(
-  defineProps<{
-    agent: Agent.State
-  }>(),
-  {
-    agent: () => ({ use_cases: '[]' })
-  }
-)
-const state = reactive({
-  cases: [],
-  scenes: []
-})
-
-watchEffect(() => {
-  const list = JSON.parse(props.agent.use_cases || '[]') || []
-  state.cases = list.filter((item) => item.type === 'case')
-  state.scenes = list.filter((item) => item.type === 'scene')
-})
-</script>
-
 <template>
   <div class="h-full overflow-y-auto bg-white">
     <div class="p-6 bg-white rounded">
@@ -53,8 +30,12 @@ watchEffect(() => {
           </div>
         </template>
       </div>
-      <el-empty v-if="state.cases.length === 0" :image-size="92" :description="$t('common.no_data')"
-        :image="$getPublicPath('/images/chat/completion_empty.png')" />
+      <el-empty
+        v-if="state.cases.length === 0"
+        :image-size="92"
+        :description="$t('common.no_data')"
+        :image="$getPublicPath('/images/chat/completion_empty.png')"
+      />
     </div>
     <div class="p-6 bg-white rounded">
       <h4 class="text-base text-primary">
@@ -63,7 +44,7 @@ watchEffect(() => {
       <div class="flex gap-6 py-5 max-md:flex-col max-md:gap-2">
         <template v-for="(item, index) in state.scenes" :key="index">
           <div class="flex-1 px-4 text-center pt-3 pb-10 relative cursor-pointer group">
-            <img class=" max-w-[200px] mx-auto" :src="item.image"></img>
+            <img class="max-w-[200px] mx-auto" :src="item.image" />
             <h6 class="text-base text-primary mt-5 break-words">
               {{ item.scene }}
             </h6>
@@ -73,10 +54,37 @@ watchEffect(() => {
           </div>
         </template>
       </div>
-      <el-empty v-if="state.scenes.length === 0" :image-size="92" :description="$t('common.no_data')"
-        :image="$getPublicPath('/images/chat/completion_empty.png')" />
+      <el-empty
+        v-if="state.scenes.length === 0"
+        :image-size="92"
+        :description="$t('common.no_data')"
+        :image="$getPublicPath('/images/chat/completion_empty.png')"
+      />
     </div>
   </div>
 </template>
+
+<script setup lang="ts">
+import { reactive, watchEffect } from 'vue'
+
+const props = withDefaults(
+  defineProps<{
+    agent: Agent.State
+  }>(),
+  {
+    agent: () => ({ use_cases: '[]' })
+  }
+)
+const state = reactive({
+  cases: [],
+  scenes: []
+})
+
+watchEffect(() => {
+  const list = JSON.parse(props.agent.use_cases || '[]') || []
+  state.cases = list.filter((item) => item.type === 'case')
+  state.scenes = list.filter((item) => item.type === 'scene')
+})
+</script>
 
 <style scoped></style>

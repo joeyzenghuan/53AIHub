@@ -182,6 +182,23 @@ func (a *Adaptor) HandlerUploadFileMessages(request *model.GeneralOpenAIRequest)
 					continue
 				}
 
+				if a.ChannelType == channeltype.FastGPT {
+					fileType := GetFileFastGptTypeString(uoloadFile.Extension)
+					if fileType == "" {
+						logger.SysErrorf("yuanqi: file type not supported, %+v", contentObj)
+						continue
+					}
+					if fileType == "file" {
+						// fastgpt 支持文件,图片就和之前一样
+						contexts = append(contexts, FastGptFileContent{
+							Type: "file_url",
+							Name: uoloadFile.FileName,
+							Url:  uoloadFile.GetPreviewFullUrl(),
+						})
+						continue
+					}
+				}
+
 				fileContent, err := storage.StorageInstance.Load(uoloadFile.Key)
 				if err != nil {
 					logger.SysError("file content not found")
@@ -212,4 +229,31 @@ func (a *Adaptor) HandlerUploadFileMessages(request *model.GeneralOpenAIRequest)
 	// logger.SysLogf("request: %s", string(jsonBytes))
 
 	// return
+}
+
+func GetFileFastGptTypeString(extension string) string {
+	// 兼容 openAI 目前是支持文件和图片
+	var fileType string
+	switch strings.ToLower(extension) {
+	case ".jpg", ".jpeg", ".png", ".gif", ".webp", ".bmp":
+		fileType = "image"
+	// case ".mp4", ".mov", ".avi", ".wmv", ".flv":
+	// 	fileType = "video"
+	// case ".mp3", ".wav", ".aac", ".flac":
+	// 	fileType = "audio"
+	// case ".pdf", ".txt", ".csv", ".json", ".xml", ".doc", ".docx":
+	// 	fileType = "file"
+	// case ".txt", ".csv", ".json", ".xml":
+	// 	fileType = "text"
+	// case ".doc", ".docx":
+	// 	fileType = "doc"
+	// case ".xls", ".xlsx":
+	// 	fileType = "xls"
+	// case ".ppt", ".pptx":
+	// 	fileType = "ppt"
+	default:
+		fileType = "file"
+	}
+
+	return fileType
 }

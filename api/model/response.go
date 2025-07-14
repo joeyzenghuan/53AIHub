@@ -42,21 +42,23 @@ type ResponseCode int
 // Response code enumeration
 // @enum ResponseCode
 const (
-	Success              ResponseCode = iota // 0 - Success
-	ParamError                               // 1 - Invalid parameters
-	DBError                                  // 2 - Database operation failed
-	NetworkError                             // 3 - Network communication error
-	SystemError                              // 4 - Internal system error
-	AuthFailed                               // 5 - Authentication failure
-	NotFound                                 // 6 - Resource not found
-	UnauthorizedError                        // 7 - Unauthorized access
-	FileError                                // 8 - File operation failed
-	ForbiddenError                           // 9 - Forbidden access
-	AgentAuthError                           // 10 - Agent authentication failed
-	TokenExpiredError                        // 11 - Token expired, need to re-login
-	ChatError                                // 12 - Chat operation failed
-	ProviderNoFoundError                     // 13 - Provider not found
-	OperateTooFast                           // 14 - Operate too fast
+	Success                  ResponseCode = iota // 0 - Success
+	ParamError                                   // 1 - Invalid parameters
+	DBError                                      // 2 - Database operation failed
+	NetworkError                                 // 3 - Network communication error
+	SystemError                                  // 4 - Internal system error
+	AuthFailed                                   // 5 - Authentication failure
+	NotFound                                     // 6 - Resource not found
+	UnauthorizedError                            // 7 - Unauthorized access
+	FileError                                    // 8 - File operation failed
+	ForbiddenError                               // 9 - Forbidden access
+	AgentAuthError                               // 10 - Agent authentication failed
+	TokenExpiredError                            // 11 - Token expired, need to re-login
+	ChatError                                    // 12 - Chat operation failed
+	ProviderNoFoundError                         // 13 - Provider not found
+	OperateTooFast                               // 14 - Operate too fast
+	FeatureNotAvailableError                     // 15 - Feature not available
+	RecordAlreadyExists                          // 16 - Record already exists
 )
 
 // Response code descriptions
@@ -64,30 +66,34 @@ const (
 // @Description This map provides the default message for each response code
 // @Description Used by the Message() method to get the standard message for a code
 var CodeMessage = map[ResponseCode]string{
-	Success:              "ok",
-	ParamError:           "param error",
-	DBError:              "db error",
-	NetworkError:         "network error",
-	SystemError:          "system error",
-	AuthFailed:           "auth failed",
-	NotFound:             "not found",
-	UnauthorizedError:    "unauthorized",
-	FileError:            "file error",
-	ForbiddenError:       "forbidden",
-	AgentAuthError:       "agent auth failed",
-	TokenExpiredError:    "token expired",
-	ChatError:            "chat error",
-	ProviderNoFoundError: "provider not found",
-	OperateTooFast:       "operate too fast",
+	Success:                  "ok",
+	ParamError:               "param error",
+	DBError:                  "db error",
+	NetworkError:             "network error",
+	SystemError:              "system error",
+	AuthFailed:               "auth failed",
+	NotFound:                 "not found",
+	UnauthorizedError:        "unauthorized",
+	FileError:                "file error",
+	ForbiddenError:           "forbidden",
+	AgentAuthError:           "agent auth failed",
+	TokenExpiredError:        "token expired",
+	ChatError:                "chat error",
+	ProviderNoFoundError:     "provider not found",
+	OperateTooFast:           "operate too fast",
+	FeatureNotAvailableError: "feature not available",
+	RecordAlreadyExists:      "record already exists",
 }
 
 const (
 	InvalidEnterpriseID     = "invalid enterprise id"
 	InvalidVerificationCode = "invalid or expired verification code"
 	InvalidMobileOrEmail    = "invalid mobile number or email format"
-	InvalidMobileFormat = "invalid mobile number format"
-	PasswordNotMatch = "password not match"
-	OrderNotFound = "order not found"
+	InvalidMobileFormat     = "invalid mobile number format"
+	PasswordNotMatch        = "password not match"
+	OrderNotFound           = "order not found"
+	FeatureNotAvailable     = "feature not available"
+	FeatureOverLimit        = "feature over limit"
 )
 
 func (c ResponseCode) Message() string {

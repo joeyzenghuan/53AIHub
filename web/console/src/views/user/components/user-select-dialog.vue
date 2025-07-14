@@ -190,7 +190,7 @@ defineExpose({
   </ElDialog>
 </template>
 
-<style scoped lang="scss">
+<style scoped>
 ::v-deep(.el-tabs__content), ::v-deep(.el-tabs__nav-wrap:after) {
 	display: none;
 }

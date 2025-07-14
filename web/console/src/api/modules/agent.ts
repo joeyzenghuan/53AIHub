@@ -1,14 +1,12 @@
 import service from '../config'
 import { handleError } from '../errorHandler'
 import {
-  AGENT_APP_OPTIONS,
   AGENT_TYPE,
   type AgentType,
 } from '@/constants/platform'
 
 export {
   AGENT_TYPE,
-  AGENT_APP_OPTIONS,
   type AgentType,
 }
 

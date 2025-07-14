@@ -4,10 +4,7 @@ import md5 from '@/utils/md5'
 
 export function generateSignParams(params = {}) {
   const authkey = process.env.VITE_GLOB_AUTH_KEY as string
-  params = Object.assign({}, params, {
-    timestamp: Math.floor(Date.now() / 1000),
-    platform: 'web',
-  })
+  params = { ...params, timestamp: Math.floor(Date.now() / 1000), platform: 'web' }
 
   const strForSign = serialize(params)
   const sign = md5(strForSign + authkey)
@@ -15,7 +12,7 @@ export function generateSignParams(params = {}) {
   return {
     sign,
     method: 'md5',
-    ...params,
+    ...params
   }
 }
 
@@ -27,6 +24,6 @@ export function generateIbosSignParams() {
   return {
     token,
     platform,
-    createtime,
+    createtime
   }
 }

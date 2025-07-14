@@ -12,6 +12,7 @@ import {
 import { ENTERPRISE_SYNC_FROM } from '@/constants/enterprise'
 import type { EnterpriseSyncFrom } from '@/constants/enterprise'
 import { wecomApi } from '@/api/modules/wecom'
+import { sleep } from '@/utils'
 
 const props = withDefaults(defineProps<{
   syncFrom: EnterpriseSyncFrom
@@ -171,8 +172,11 @@ const handleNodeClick = (data: any) => {
 }
 const handleSyncDepartment = async () => {
   await departmentApi.sync(props.syncFrom)
+  await sleep(5)
   ElMessage.success(window.$t('action_save_success'))
+
   fetchDepartmentList()
+  emit('nodeClick', { data: treeData.value[0] })
 }
 
 onMounted(() => {
@@ -212,9 +216,11 @@ defineExpose({
               <OpenData type="departmentName" :openid="data.bind_value" :text="data.label" />
             </div>
             <template v-if="isSsoSync ">
-              <ElIcon v-if="data.value === 0" v-tooltip="{ content: $t('sso.sync_corp') }" v-debounce size="16" color="#333333" class="cursor-pointer" @click="handleSyncDepartment">
-                <Refresh />
-              </ElIcon>
+              <El-Button v-if="data.value === 0" v-debounce v-tooltip="{ content: $t('sso.sync_corp') }" link @click="handleSyncDepartment">
+                <ElIcon size="16" color="#333333">
+                  <Refresh />
+                </ElIcon>
+              </El-Button>
             </template>
             <template v-else>
               <ElDropdown v-if="!isSearch" @command="handleCommand($event, data, data.index)">

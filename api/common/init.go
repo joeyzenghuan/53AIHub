@@ -38,4 +38,5 @@ func Init() {
 
 	// Initialize the logger
 	InitRedisClient()
+	InitLocker()
 }

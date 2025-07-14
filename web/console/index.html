@@ -113,7 +113,6 @@
 		const search_params = getSearchParam()
 		if (search_params.api_host) window.api_host = `http://${search_params.api_host.replace(/^https?:\/\//, '').replace(/\/$/, '')}`
 		if (search_params.qyy_host) window.qyy_host = `http://${search_params.qyy_host.replace(/^https?:\/\//, '').replace(/\/$/, '')}`
-		if (search_params.oss_host) window.oss_host = `http://${search_params.oss_host.replace(/^https?:\/\//, '').replace(/\/$/, '')}`
 		const provider_type = location.search.includes('provider_type') ? location.search.split('provider_type=')[1] : ''
 		const provider_id = location.search.includes('provider_id') ? location.search.split('provider_id=')[1] : ''
 		const is_authorized = location.search.includes('is_authorized') ? location.search.split('is_authorized=')[1] : ''
@@ -156,7 +155,7 @@
 	(function() {
 		var hm = document.createElement("script");
 		hm.src = "https://hm.baidu.com/hm.js?c0e32ea294a4fc371fe6ec64187e36e1";
-		var s = document.getElementsByTagName("script")[0]; 
+		var s = document.getElementsByTagName("script")[0];
 		s.parentNode.insertBefore(hm, s);
 	})();
 	</script>

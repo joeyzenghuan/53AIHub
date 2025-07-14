@@ -61,6 +61,9 @@ type BatchSubscriptionItem struct {
 	// @Description Whether to delete this subscription item
 	// @Example false
 	Delete bool `json:"delete" example:"false" description:"Whether to delete this item"`
+	// @Description Target group ID for user migration during deletion
+	// @Example 2
+	TargetGroupId int64 `json:"target_group_id" example:"2" description:"Target group ID for user migration"`
 	// @Description List of subscription relations for this item
 	Relations []BatchSubscriptionRelation `json:"relations" description:"List of subscription relations"`
 }
@@ -108,14 +111,86 @@ func BatchSubscriptionOperation(c *gin.Context) {
 		return
 	}
 
+	// 添加循环依赖检查逻辑
+	dependencyMap := make(map[int64]int64) // 用于记录 GroupId -> TargetGroupId 的映射
+	for _, item := range req.Items {
+		if item.Delete && item.GroupId > 0 && item.TargetGroupId > 0 {
+			dependencyMap[item.GroupId] = item.TargetGroupId
+		}
+	}
+
+	// 检测循环依赖
+	for groupId := range dependencyMap {
+		visited := make(map[int64]bool) // 用于记录访问过的节点
+		current := groupId
+
+		for {
+			if visited[current] {
+				c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(fmt.Errorf("检测到用户迁移循环，group_id=%d 存在循环", groupId)))
+				return
+			}
+
+			visited[current] = true
+
+			// 检查是否有下一个目标
+			next, exists := dependencyMap[current]
+			if !exists {
+				break // 如果没有下一个目标，说明没有循环
+			}
+
+			current = next
+		}
+	}
+
 	eid := config.GetEID(c)
 	userId := config.GetUserId(c)
 
 	var isUpdate bool
 	for _, item := range req.Items {
+		// 检查是否为默认订阅
+		var setting model.SubscriptionSetting
+		if err := tx.Where("setting_id = ?", item.SettingId).First(&setting).Error; err == nil && setting.IsDefault {
+			if item.Delete {
+				tx.Rollback()
+				c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(fmt.Errorf("默认订阅不可删除")))
+				return
+			}
+
+			// 如果是默认订阅，检查是否设置了价格
+			for _, relation := range item.Relations {
+				// 让默认订阅可以设置积分
+				if relation.Amount > 0 && relation.Type != 2 {
+					tx.Rollback()
+					c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(fmt.Errorf("默认订阅不能设置价格")))
+					return
+				}
+			}
+		}
 		// Delete operation
 		if item.Delete {
 			if item.GroupId > 0 {
+				// 检查是否传入目标订阅
+				if item.TargetGroupId == 0 {
+					tx.Rollback()
+					c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(fmt.Errorf("请为 group_id=%d 指定目标订阅", item.GroupId)))
+					return
+				}
+
+				// 检查目标订阅是否存在
+				var targetSetting model.SubscriptionSetting
+				if err := tx.Where("group_id = ?", item.TargetGroupId).First(&targetSetting).Error; err != nil {
+					tx.Rollback()
+					c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(fmt.Errorf("目标订阅 group_id=%d 不存在", item.TargetGroupId)))
+					return
+				}
+
+				// 将用户迁移到目标订阅
+				if err := tx.Model(&model.User{}).Where("group_id = ?", item.GroupId).Update("group_id", item.TargetGroupId).Error; err != nil {
+					tx.Rollback()
+					c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+					return
+				}
+
 				// Delete relations
 				if err := tx.Where("setting_id = ?", item.SettingId).Delete(&model.SubscriptionRelation{}).Error; err != nil {
 					tx.Rollback()
@@ -176,7 +251,7 @@ func BatchSubscriptionOperation(c *gin.Context) {
 		}
 
 		// Create or update subscription settings
-		var setting model.SubscriptionSetting
+
 		if item.SettingId > 0 {
 			// Update existing settings
 			if err := tx.Where("setting_id = ?", item.SettingId).First(&setting).Error; err != nil {

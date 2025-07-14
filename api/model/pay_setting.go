@@ -7,6 +7,7 @@ const (
 	PayTypeWechat = 1 // WeChat Pay
 	PayTypeManual = 2 // Manual Transfer
 	PayTypePaypal = 3 // PayPal
+	PayTypeAlipay = 4 // Alipay
 )
 
 // Payment status constants
@@ -19,7 +20,7 @@ const (
 type PaySetting struct {
 	PaySettingID int64  `json:"pay_setting_id" gorm:"primaryKey;autoIncrement"`
 	Eid          int64  `json:"eid" gorm:"not null;index"`
-	PayType      int    `json:"pay_type" gorm:"not null;comment:'Payment type 1:WeChat Pay 2:Manual Transfer 3:PayPal'"` // 1:WeChat Pay 2:Manual Transfer 3:PayPal
+	PayType      int    `json:"pay_type" gorm:"not null;comment:'Payment type 1:WeChat Pay 2:Manual Transfer 3:PayPal 4:alipay'"` // 1:WeChat Pay 2:Manual Transfer 3:PayPal 4:alipay
 	PayConfig    string `json:"pay_config" gorm:"type:text;not null;comment:'Payment configuration JSON'"`
 	PayStatus    bool   `json:"pay_status" gorm:"not null;default:1;comment:'Status true:Enabled false:Disabled'"` // 1:Enabled false:Disabled
 	ExtraConfig  string `json:"extra_config" gorm:"type:text;comment:'Extra configuration JSON'"`
@@ -40,6 +41,14 @@ type WechatPayConfig struct {
 	PlatformCert       string `json:"platformCert"`       // Encrypted WeChat Pay Platform Certificate content (optional)
 	PlatformSerialNo   string `json:"platformSerialNo"`   // WeChat Pay Platform Certificate Serial Number (optional)
 	UseEncryptedConfig bool   `json:"useEncryptedConfig"` // Whether to use encrypted configuration
+}
+
+type AlipayConfig struct {
+	AppID           string `json:"appId"`
+	PrivateKey      string `json:"privateKey"`
+	AlipayPublicKey string `json:"alipayPublicKey"`
+	ReturnUrl       string `json:"returnUrl"`
+	NotifyUrl       string `json:"notifyUrl"`
 }
 
 // TableName specifies the table name
@@ -100,6 +109,8 @@ func GetPayTypeText(payType int) (string, error) {
 		return "手动转账", nil
 	case PayTypePaypal:
 		return "PayPal", nil
+	case PayTypeAlipay:
+		return "支付宝", nil
 	default:
 		return "", errors.New("unsupported payment type")
 	}

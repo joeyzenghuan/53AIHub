@@ -1,5 +1,5 @@
 package model
 
 const (
-	LockOrganizationKeyPre = "Lock:Enterprise:Organization:Sync:"
+	LockOrganizationKeyPre = "lock_enterprise_organization_sync"
 )

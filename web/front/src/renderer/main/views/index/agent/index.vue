@@ -1,5 +1,5 @@
 <template>
-  <AgentView hideHeader hideFooter />
+  <AgentView hide-header hide-footer />
 </template>
 
 <script setup lang="ts">

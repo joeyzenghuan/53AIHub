@@ -2,23 +2,22 @@ package controller
 
 import (
 	"bytes"
-	"context"
 	"encoding/json"
 	"fmt"
 	"io"
 	"net/http"
 	"strconv"
-	"strings"
 	"sync"
 	"time"
 
 	"github.com/53AI/53AIHub/common"
+	"github.com/53AI/53AIHub/common/utils"
 	"github.com/53AI/53AIHub/config"
 	"github.com/53AI/53AIHub/model"
+	"github.com/53AI/53AIHub/service/payment"
 	"github.com/53AI/53AIHub/tasks"
-	"github.com/53AI/53AIHub/common/utils"
 	"github.com/gin-gonic/gin"
-	"github.com/go-pay/gopay"
+	alipayV2 "github.com/go-pay/gopay/alipay"
 	"github.com/go-pay/gopay/wechat/v3"
 	"github.com/go-pay/xlog"
 )
@@ -31,15 +30,17 @@ type WechatNotifyResponse struct {
 
 // CreateOrderRequest represents the request for creating a new order
 type CreateOrderRequest struct {
-	SubscriptionID   int64  `json:"subscription_id" binding:"required" example:"1"`              // group_id
-	SubscriptionName string `json:"subscription_name" binding:"required" example:"Professional"` // group_name
-	Duration         int    `json:"duration" binding:"required" example:"12"`                    // Duration in months
-	TimeUnit         string `json:"time_unit" binding:"required" example:"month"`                // Time unit for subscription duration
-	Amount           int64  `json:"amount" binding:"required" example:"29900"`                   // Amount in cents
-	Currency         string `json:"currency" binding:"required" example:"CNY"`                   // Currency type
-	PayType          int    `json:"pay_type" binding:"required" example:"1"`                     // 1: WeChat, 2: Manual, 3: PayPal
-	UserID           int64  `json:"user_id" binding:"required" example:"1"`
-	Nickname         string `json:"nickname" binding:"required" example:"nickname"`
+	SubscriptionID   int64  `json:"subscription_id" form:"subscription_id" binding:"required" example:"1"`                // group_id
+	SubscriptionName string `json:"subscription_name" form:"subscription_name" binding:"required" example:"Professional"` // group_name
+	Duration         int    `json:"duration" form:"duration" binding:"required" example:"12"`                             // Duration in months
+	TimeUnit         string `json:"time_unit" form:"time_unit" binding:"required" example:"month"`                        // Time unit for subscription duration
+	Amount           int64  `json:"amount" form:"amount" binding:"required" example:"29900"`                              // Amount in cents
+	Currency         string `json:"currency" form:"currency" binding:"required" example:"CNY"`                            // Currency type
+	PayType          int    `json:"pay_type" form:"pay_type" binding:"required" example:"1"`                              // 1: WeChat, 2: Manual, 3: PayPal, 4: Alipay
+	OrderId          string `json:"order_id" form:"order_id"`                                                             // 订单ID存在则使用旧订单发起支付
+	UserID           int64  `json:"user_id" form:"user_id" binding:"required" example:"1"`                                // User ID
+	Nickname         string `json:"nickname" form:"nickname" binding:"required" example:"nickname"`                       // User nickname
+	ReturnUrl        string `json:"return_url" form:"return_url"`                                                         // Return URL for alipay
 }
 
 // OrderResponse represents the response for order operations
@@ -48,22 +49,17 @@ type OrderResponse struct {
 	PaymentInfo interface{}  `json:"payment_info,omitempty"` // Payment-specific information
 }
 
-// WechatNativePayInfo represents the WeChat Native payment information
-type WechatNativePayInfo struct {
-	CodeURL     string `json:"code_url"`     // QR code URL for payment
-	OrderId     string `json:"order_id"`     // Order ID
-	ExpiredTime int64  `json:"expired_time"` // Expiration timestamp
+// PayOrderRequest represents the request for paying an order
+type PayOrderRequest struct {
+	PayType   int    `json:"pay_type" binding:"required" example:"1"`        // Payment type (1: WeChat, 2: Manual, 3: PayPal)
+	PayMethod string `json:"pay_method" binding:"required" example:"native"` // Payment method (e.g., "native", "jsapi")
+	OpenID    string `json:"openid" example:""`                              // OpenID for JSAPI payment (optional)
 }
 
-// WechatJsapiPayInfo represents the WeChat JSAPI payment information
-type WechatJsapiPayInfo struct {
-	AppId     string `json:"app_id"`
-	TimeStamp string `json:"time_stamp"`
-	NonceStr  string `json:"nonce_str"`
-	Package   string `json:"package"`
-	SignType  string `json:"sign_type"`
-	PaySign   string `json:"pay_sign"`
-	OrderId   string `json:"order_id"`
+// PayOrderResponse represents the response for paying an order
+type PayOrderResponse struct {
+	PaymentInfo interface{}  `json:"payment_info"` // Payment-specific information
+	Order       *model.Order `json:"order"`        // Updated order information
 }
 
 var orderMutex = &sync.Mutex{}
@@ -105,74 +101,33 @@ func CreateOrder(c *gin.Context) {
 		return
 	}
 
-	// Generate order ID
-	orderId := utils.GenerateOrderId()
+	order := getOrder(c, eid, req, paySetting)
 
-	// Create order object (but don't save to database yet)
-	order := &model.Order{
-		OrderId:          orderId,
-		Eid:              eid,
-		UserID:           req.UserID,
-		Nickname:         req.Nickname,
-		ServiceID:        req.SubscriptionID,
-		ServiceType:      model.ServiceTypeSubscription,
-		SubscriptionName: req.SubscriptionName,
-		Duration:         req.Duration,
-		TimeUnit:         req.TimeUnit,
-		Amount:           req.Amount,
-		Currency:         req.Currency,
-		PayType:          req.PayType,
-		Status:           model.OrderStatusPending,
-		ExpiredTime:      time.Now().Add(2 * time.Hour).UnixMilli(),
+	factory := &payment.PaymentFactory{}
+	newPayment, err := factory.NewPayment(req.PayType)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
 	}
-
-	// Process payment based on payment type
-	var paymentInfo interface{}
-	var processErr error
-
-	switch req.PayType {
-	case model.PayTypeWechat:
-		// Get payment method (Native, JSAPI, etc.)
-		payMethod := c.Query("pay_method")
-		if payMethod == "jsapi" {
-			openid := c.Query("openid")
-			if openid == "" {
-				c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("OpenID is required for JSAPI payment"))
-				return
-			}
-
-			// Process JSAPI payment and cache order data
-			paymentInfo, processErr = processWechatJsapiPayment(paySetting, order, openid)
-			// if processErr == nil {
-			// 	// Cache order data
-			// 	cacheOrderData(order)
-			// }
-		} else {
-			// Default use Native payment (scan code payment)
-			// Process Native payment and cache order data
-			paymentInfo, processErr = processWechatNativePayment(paySetting, order)
-			// if processErr == nil {
-			// 	// Cache order data
-			// 	cacheOrderData(order)
-			// }
-		}
-	case model.PayTypeManual:
-		// For manual payment, save the order directly
-		order.Status = model.OrderStatusConfirming
-		paymentInfo = nil
-	case model.PayTypePaypal:
-		// TODO: Implement PayPal payment processing
-		paymentInfo = nil
+	paymentReq := &payment.PaymentRequest{
+		Order:      order,
+		PaySetting: paySetting,
+		OpenID:     c.Query("openid"),
+		ReturnURL:  req.ReturnUrl,
+		PayMethod:  c.Query("pay_method"),
 	}
+	paymentInfo, processErr := newPayment.CreateOrder(paymentReq)
 
 	if processErr != nil {
 		c.JSON(http.StatusInternalServerError, model.SystemError.ToResponse(processErr))
 		return
 	}
 
-	if err := order.Create(); err != nil {
-		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
-		return
+	if req.OrderId == "" {
+		if err := order.Create(); err != nil {
+			c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+			return
+		}
 	}
 
 	if order.Status == model.OrderStatusPending && order.ExpiredTime > 0 {
@@ -185,6 +140,51 @@ func CreateOrder(c *gin.Context) {
 		Order:       order,
 		PaymentInfo: paymentInfo,
 	}))
+}
+
+func getOrder(c *gin.Context, eid int64, req CreateOrderRequest, paySetting *model.PaySetting) *model.Order {
+	order := &model.Order{}
+	if req.PayType == model.PayTypeAlipay && req.OrderId != "" {
+		order, _ = model.GetOrderByOrderId(eid, req.OrderId)
+		if order == nil {
+			c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(model.OrderNotFound))
+			return nil
+		}
+		if order.PayType != model.PayTypeAlipay {
+			c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Order is not an Alipay order"))
+			return nil
+		}
+		if order.Status != model.OrderStatusPending {
+			c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Order is not pending"))
+			return nil
+		}
+	} else {
+		orderId := utils.GenerateOrderId()
+
+		orderStatus := model.OrderStatusPending
+		if req.PayType == model.PayTypeManual {
+			orderStatus = model.OrderStatusConfirming
+		}
+
+		// Create order object (but don't save to database yet)
+		order = &model.Order{
+			OrderId:          orderId,
+			Eid:              eid,
+			UserID:           req.UserID,
+			Nickname:         req.Nickname,
+			ServiceID:        req.SubscriptionID,
+			ServiceType:      model.ServiceTypeSubscription,
+			SubscriptionName: req.SubscriptionName,
+			Duration:         req.Duration,
+			TimeUnit:         req.TimeUnit,
+			Amount:           req.Amount,
+			Currency:         req.Currency,
+			PayType:          req.PayType,
+			Status:           orderStatus,
+			ExpiredTime:      time.Now().Add(2 * time.Hour).UnixMilli(),
+		}
+	}
+	return order
 }
 
 // Cache order data
@@ -212,140 +212,6 @@ func getCachedOrder(orderId string) (*model.Order, bool) {
 // Remove cached order data
 func removeCachedOrder(orderId string) {
 	common.RedisDel(orderId)
-}
-
-// Initialize WeChat client
-func initWechatClient(wechatConfig model.WechatPayConfig) (*wechat.ClientV3, error) {
-	// Decrypt private key if using encrypted configuration
-	var privateKey string
-	var err error
-
-	if wechatConfig.UseEncryptedConfig {
-		privateKey, err = decryptSensitiveData(wechatConfig.PrivateKey)
-		if err != nil {
-			return nil, fmt.Errorf("failed to decrypt private key: %v", err)
-		}
-	} else {
-		// This should not happen with the new implementation
-		return nil, fmt.Errorf("configuration is not encrypted")
-	}
-
-	// Initialize WeChat client
-	client, err := wechat.NewClientV3(wechatConfig.MchID, wechatConfig.SerialNo, wechatConfig.APIv3Key, privateKey)
-	if err != nil {
-		return nil, err
-	}
-
-	// Enable debug mode
-	if config.DebugEnabled {
-		client.DebugSwitch = gopay.DebugOn
-	}
-
-	// Auto verify signature (if platform certificate exists)
-	if wechatConfig.PlatformCert != "" && wechatConfig.PlatformSerialNo != "" {
-		// Decrypt platform certificate
-		platformCert, err := decryptSensitiveData(wechatConfig.PlatformCert)
-		if err != nil {
-			xlog.Error("failed to decrypt platform certificate:", err)
-			// Continue execution, don't return error
-		} else {
-			err = client.AutoVerifySignByPublicKey([]byte(platformCert), wechatConfig.PlatformSerialNo)
-			if err != nil {
-				xlog.Error("auto verify sign error:", err)
-				// Continue execution, don't return error
-			}
-		}
-	}
-
-	return client, nil
-}
-
-// Process WeChat Native payment and return payment information
-func processWechatNativePayment(paySetting *model.PaySetting, order *model.Order) (*WechatNativePayInfo, error) {
-	// Parse WeChat configuration
-	var wechatConfig model.WechatPayConfig
-	if err := json.Unmarshal([]byte(paySetting.PayConfig), &wechatConfig); err != nil {
-		return nil, err
-	}
-
-	// Initialize WeChat client
-	client, err := initWechatClient(wechatConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	bm, err := buildWechatPaymentBodyMap(wechatConfig, order)
-	if err != nil {
-		return nil, err
-	}
-
-	// Create Native payment
-	wxRsp, err := client.V3TransactionNative(context.Background(), bm)
-	if err != nil {
-		return nil, err
-	}
-
-	if wxRsp.Code != wechat.Success {
-		return nil, fmt.Errorf("WeChat payment error: %s", wxRsp.Error)
-	}
-
-	// Return payment information
-	return &WechatNativePayInfo{
-		CodeURL:     wxRsp.Response.CodeUrl,
-		OrderId:     order.OrderId,
-		ExpiredTime: order.ExpiredTime,
-	}, nil
-}
-
-// Process WeChat JSAPI payment and return payment information
-func processWechatJsapiPayment(paySetting *model.PaySetting, order *model.Order, openid string) (*WechatJsapiPayInfo, error) {
-	// Parse WeChat configuration
-	var wechatConfig model.WechatPayConfig
-	if err := json.Unmarshal([]byte(paySetting.PayConfig), &wechatConfig); err != nil {
-		return nil, err
-	}
-
-	// Initialize WeChat client
-	client, err := initWechatClient(wechatConfig)
-	if err != nil {
-		return nil, err
-	}
-
-	bm, err := buildWechatPaymentBodyMap(wechatConfig, order)
-	if err != nil {
-		return nil, err
-	}
-
-	payerBM := make(gopay.BodyMap)
-	payerBM.Set("openid", openid)
-	bm.Set("payer", payerBM)
-
-	// Create JSAPI payment
-	wxRsp, err := client.V3TransactionJsapi(context.Background(), bm)
-	if err != nil {
-		return nil, err
-	}
-
-	if wxRsp.Code != wechat.Success {
-		return nil, fmt.Errorf("WeChat payment error: %s", wxRsp.Error)
-	}
-
-	// Get JSAPI payment parameters
-	jsapiParams, err := client.PaySignOfJSAPI(wechatConfig.AppID, wxRsp.Response.PrepayId)
-	if err != nil {
-		return nil, err
-	}
-
-	// Return payment information
-	return &WechatJsapiPayInfo{
-		AppId:     jsapiParams.AppId,
-		TimeStamp: jsapiParams.TimeStamp,
-		NonceStr:  jsapiParams.NonceStr,
-		Package:   jsapiParams.Package,
-		SignType:  jsapiParams.SignType,
-		PaySign:   jsapiParams.PaySign,
-		OrderId:   order.OrderId,
-	}, nil
 }
 
 // createOrUpdateOrderFromCache creates a new order from cache or updates an existing one
@@ -477,6 +343,106 @@ func createOrUpdateOrderFromCacheWithTime(eid int64, orderId string, status int,
 	return dbOrder, nil
 }
 
+// AlipayNotify handles Alipay payment notification callbacks
+// It processes payment result notifications sent by Alipay after a payment is completed
+// The function verifies the notification, parses the data, and updates the order status accordingly
+// @Summary Process Alipay payment notification
+// @Description Handle payment notification callbacks from Alipay
+// @Tags Payment
+// @Accept json
+// @Produce json
+// @Param id path int true "Enterprise ID"
+// @Success 200 {string} string "success"
+// @Failure 400 {string} string "Bad Request"
+// @Failure 500 {string} string "Internal Server Error"
+// @Router /api/payment/alipay/notify/{id} [post]
+func AlipayNotify(c *gin.Context) {
+	// Log request basic information
+	xlog.Info("Received Alipay payment notification - Time:", time.Now().Format("2006-01-02 15:04:05"))
+	xlog.Info("Request IP:", c.ClientIP())
+
+	// Get enterprise ID
+	notifyID := c.Param("id")
+	eid, err := strconv.ParseInt(notifyID, 10, 64)
+	if err != nil {
+		xlog.Error("Invalid notification ID:", err)
+		c.String(http.StatusBadRequest, "fail")
+		return
+	}
+
+	// Get Alipay payment settings
+	paySetting, err := model.GetPaySettingByType(eid, model.PayTypeAlipay)
+	if err != nil {
+		xlog.Error("Payment setting not found:", err)
+		c.String(http.StatusBadRequest, "fail")
+		return
+	}
+
+	// Parse Alipay configuration
+	var alipayConfig model.AlipayConfig
+	if err = json.Unmarshal([]byte(paySetting.PayConfig), &alipayConfig); err != nil {
+		xlog.Error("Parse payment config error:", err)
+		c.String(http.StatusInternalServerError, "fail")
+		return
+	}
+
+	notifyReq, err := alipayV2.ParseNotifyToBodyMap(c.Request)
+	notifyReqJson, _ := json.Marshal(notifyReq)
+	xlog.Info("Parsed notification:", string(notifyReqJson))
+	if err != nil {
+		xlog.Error("Parse notification error:", err)
+		c.String(http.StatusBadRequest, "fail")
+		return
+	}
+
+	var ok bool
+	ok, err = alipayV2.VerifySign(alipayConfig.AlipayPublicKey, notifyReq)
+
+	if err != nil || !ok {
+		xlog.Error("Signature verification failed:", err)
+		c.String(http.StatusBadRequest, "fail")
+		return
+	}
+
+	// Check trade status
+	tradeStatus := notifyReq.Get("trade_status")
+	if tradeStatus != "TRADE_SUCCESS" {
+		xlog.Errorf("Trade state not success: %s", tradeStatus)
+		c.String(http.StatusOK, "success")
+		return
+	}
+
+	// Get order information
+	orderId := notifyReq.Get("out_trade_no")
+	transactionId := notifyReq.Get("trade_no")
+	successTime := notifyReq.Get("gmt_payment")
+
+	// Parse payment time
+	var payTime int64
+	if successTime != "" {
+		layout := "2006-01-02 15:04:05"
+		t, err := time.Parse(layout, successTime)
+		if err != nil {
+			xlog.Error("Failed to parse success time:", err)
+			payTime = time.Now().UTC().UnixMilli()
+		} else {
+			payTime = t.UnixMilli()
+		}
+	} else {
+		payTime = time.Now().UTC().UnixMilli()
+	}
+
+	_, err = createOrUpdateOrderFromCacheWithTime(eid, orderId, model.OrderStatusPaid, transactionId, payTime)
+	if err != nil {
+		xlog.Error("Update order status error:", err)
+		c.String(http.StatusInternalServerError, "fail")
+		return
+	}
+
+	// Return success response as required by Alipay
+	c.String(http.StatusOK, "success")
+}
+
 // WechatPayNotify handles WeChat payment notification callbacks
 // It processes payment result notifications sent by WeChat Pay after a payment is completed
 // The function verifies the notification, decrypts the data, and updates the order status accordingly
@@ -547,7 +513,7 @@ func WechatPayNotify(c *gin.Context) {
 	}
 
 	// Initialize WeChat client
-	_, err = initWechatClient(wechatConfig)
+	_, err = payment.InitWechatClient(wechatConfig)
 	if err != nil {
 		xlog.Error("Initialize WeChat client error:", err)
 		c.String(http.StatusInternalServerError, "Failed to initialize payment client")
@@ -797,26 +763,26 @@ func queryWechatOrderStatusWithOriginal(eid int64, orderId string) (int, string,
 		return 0, "", "", 0, err
 	}
 
-	// Parse WeChat configuration
-	var wechatConfig model.WechatPayConfig
-	if err = json.Unmarshal([]byte(paySetting.PayConfig), &wechatConfig); err != nil {
+	order, err := model.GetOrderByOrderId(eid, orderId)
+	if err != nil {
 		return 0, "", "", 0, err
 	}
 
-	// Initialize WeChat client
-	client, err := initWechatClient(wechatConfig)
+	factory := &payment.PaymentFactory{}
+	newPayment, err := factory.NewPayment(order.PayType)
 	if err != nil {
 		return 0, "", "", 0, err
 	}
 
 	// Query order status
-	wxRsp, err := client.V3TransactionQueryOrder(context.Background(), wechat.OutTradeNo, orderId)
+	rsp, err := newPayment.QueryPaymentStatus(order, paySetting)
 	if err != nil {
 		return 0, "", "", 0, err
 	}
 
-	if wxRsp.Code != wechat.Success {
-		return 0, "", "", 0, fmt.Errorf("WeChat query error: %s", wxRsp.Error)
+	wxRsp, ok := rsp.(*wechat.QueryOrderRsp)
+	if !ok {
+		return 0, "", "", 0, fmt.Errorf("invalid response type")
 	}
 
 	var payTime int64
@@ -843,49 +809,6 @@ func queryWechatOrderStatusWithOriginal(eid int64, orderId string) (int, string,
 	}
 
 	return model.OrderStatusPending, "", wxRsp.Response.TradeState, 0, nil
-}
-
-func formatNotifyURL(configURL string, apiHost string, eid int64) string {
-	if configURL == "" {
-		if !strings.HasSuffix(apiHost, "/") {
-			apiHost = apiHost + "/"
-		}
-		return fmt.Sprintf("%sapi/payment/wechat/notify/%d", apiHost, eid)
-	} else if !strings.HasPrefix(configURL, "http://") && !strings.HasPrefix(configURL, "https://") {
-		if !strings.HasSuffix(apiHost, "/") {
-			apiHost = apiHost + "/"
-		}
-		if strings.HasPrefix(configURL, "/") {
-			configURL = configURL[1:]
-		}
-		return apiHost + configURL
-	}
-	return configURL
-}
-
-func buildWechatPaymentBodyMap(wechatConfig model.WechatPayConfig, order *model.Order) (gopay.BodyMap, error) {
-	bm := make(gopay.BodyMap)
-	bm.Set("appid", wechatConfig.AppID)
-	bm.Set("mchid", wechatConfig.MchID)
-
-	siteName, err := model.GetEnterpriseName(order.Eid)
-	if err != nil || siteName == "" {
-		siteName = "53AIHub"
-	}
-	bm.Set("description", fmt.Sprintf("%s - %s %d%s", siteName, order.SubscriptionName, order.Duration, order.TimeUnit))
-	bm.Set("out_trade_no", order.OrderId)
-
-	notifyURL := formatNotifyURL(wechatConfig.NotifyURL, config.ApiHost, order.Eid)
-	bm.Set("notify_url", notifyURL)
-
-	amountBM := make(gopay.BodyMap)
-	amountBM.Set("total", int64(order.Amount))
-
-	amountBM.Set("currency", order.Currency)
-
-	bm.Set("amount", amountBM)
-
-	return bm, nil
 }
 
 // PayTypeStatus represents the status information of a payment type
@@ -921,6 +844,7 @@ func GetAvailablePayTypes(c *gin.Context) {
 		model.PayTypeWechat, // WeChat Pay
 		model.PayTypeManual, // Manual Transfer
 		model.PayTypePaypal, // PayPal
+		model.PayTypeAlipay, // Alipay
 	}
 
 	// Create payment type mapping for quick lookup

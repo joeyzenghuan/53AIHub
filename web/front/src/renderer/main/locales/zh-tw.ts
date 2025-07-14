@@ -10,7 +10,7 @@ export default {
     find: '發現',
     library: '知識庫',
     crop_space: '企業空間',
-    prompt: '提示詞',
+    prompt: '提示詞'
   },
 
   // 瀏覽器相關
@@ -26,14 +26,14 @@ export default {
     leftWindow: '左側小窗',
     centerWindow: '居中大窗',
     rightWindow: '右側小窗',
-    alwaysOnTop: '視窗置頂',
+    alwaysOnTop: '視窗置頂'
   },
 
   // 清洗功能
   clean: {
     content: '內容抽取',
     knowledge: '知識整理',
-    summarize: '知識萃取',
+    summarize: '知識萃取'
   },
 
   // 更新相關
@@ -45,7 +45,7 @@ export default {
     completedTitle: '更新提示',
     noUpdate: '當前已是最新版本',
     currentVersion: '當前版本 v{version}',
-    checkUpdate: '檢查更新',
+    checkUpdate: '檢查更新'
   },
 
   // 通用文本
@@ -56,6 +56,7 @@ export default {
     screenshot: '截圖',
     title: '標題',
     desc: '描述',
+    tip: '提示',
     create_time: '創建時間',
     update_time: '更新時間',
     recently_updated: '最近更新',
@@ -65,7 +66,7 @@ export default {
     load_new: '載入新訊息',
     no_data: '暫無數據',
     unknown: '未知',
-    usual: "常用",
+    usual: '常用',
 
     render: '渲染',
     preview: '預覽',
@@ -79,12 +80,13 @@ export default {
     image_cropper: '圖片裁剪',
     back: '返回',
     go_admin: '去後台',
-    related_prompt: "相關提示詞",
-    related_agent: "相關智能體",
+    related_prompt: '相關提示詞',
+    related_agent: '相關智能體',
     view_more: '查看更多',
     expand_more: '展開更多',
     collapse_more: '收起更多',
     or: '或',
+    later: '稍後再說'
   },
 
   // 狀態提示
@@ -102,7 +104,7 @@ export default {
     approve_success: '已點讚',
     approve_cancel: '已取消',
     register_success: '註冊成功',
-    update_success: '更改成功',
+    update_success: '更改成功'
   },
 
   // 操作按鈕
@@ -152,7 +154,7 @@ export default {
     stop: '停止',
     pay: '去支付',
     ok_v2: '好的',
-    view_more: '查看更多',
+    view_more: '查看更多'
   },
 
   // 表單相關
@@ -214,10 +216,10 @@ export default {
     toolbox_recommend: '精選AI工具',
     toolbox_recommend_desc: '用好 AI 工具才能始終領先一步',
     use_history: '{count}人聊過',
-    banner_title: "“{name} 專家”  效率倍增的秘密武器",
-    banner_desc: "精選工作場景 AI 資源，讓 AI 成為你的生產力助手",
+    banner_title: '“{name} 專家”  效率倍增的秘密武器',
+    banner_desc: '精選工作場景 AI 資源，讓 AI 成為你的生產力助手',
     search_placeholder: '輸入您想查找的AI資源',
-    hot_search: '熱門搜索',
+    hot_search: '熱門搜索'
   },
 
   // 登入相關
@@ -236,19 +238,22 @@ export default {
     unregistered_account_desc: '未註冊的賬號，請先註冊後再自動登入',
     unregistered_account_confirm: '未註冊手機號驗證後自動登錄',
     quit: '退出',
-    login_by_wechat: '使用微信登入',
+    login_by_wechat: '請使用微信登入',
     login_by_password: '使用密碼登入',
     login_by_mobile: '使用手機登入',
     bind_mobile: '綁定手機號',
     other_login_way: '其他登入方式',
+    login_by_wecom: '請使用企業微信登入',
+    immediate_login: '立即登入',
+    wecom_login_error: '站點綁定的企業微信並非當前登錄的企業微信!\n請用正確的企微登入。'
   },
 
-  //註冊相關
+  // 註冊相關
   register: {
     agree: '註冊即視您同意',
     terms_of_service: '條款和條件',
     privacy_policy: '隱私政策',
-    unregistered: '未註冊',
+    unregistered: '未註冊'
   },
 
   // 聊天相關
@@ -279,7 +284,7 @@ export default {
     // 暫無可用的智能體
     no_available_agent: '暫無可用的智能體',
     completion_completed: '已完成深度思考',
-    completion_thinking: '深度思考中...',
+    completion_thinking: '深度思考中...'
   },
 
   // 知識庫相關
@@ -304,11 +309,11 @@ export default {
     github_import: '從Github導入',
     docs_qq_import: '從騰訊文檔導入',
     docs_feishu_import: '從釘釘文檔導入',
-    docs_dingtalk_import: '從飛書文檔導入',
+    docs_dingtalk_import: '從飛書文檔導入'
   },
 
   agent: {
-    no_data: '管理員還未發布智能體',
+    no_data: '管理員還未發布智能體'
   },
 
   prompt: {
@@ -316,7 +321,7 @@ export default {
     likes_sort: '按最多點讚排序',
     views_sort: '按最多瀏覽排序',
     content: '提示詞內容',
-    auth_tip: '您所在的分组无权限',
+    auth_tip: '您所在的分组无权限'
   },
 
   toolbox: {
@@ -325,7 +330,7 @@ export default {
     title: '準備好了嗎？開始體驗百寶箱吧！',
     input_placeholder: '百寶箱可以讓你快速找到你需要的答案，Shift+Enter换行，Enter发送',
     max_agent_count: '最多只能选择{count}个模型',
-    search_placeholder: '搜索網站',
+    search_placeholder: '搜索網站'
   },
 
   // 空間相關
@@ -336,7 +341,7 @@ export default {
     member: '成員管理',
     settings: '空間設置',
     space_usage: '已用 {used} / {total}',
-    expand: '擴容',
+    expand: '擴容'
   },
 
   // 時間相關
@@ -348,7 +353,7 @@ export default {
     yesterday: '昨天',
     today: '今天',
     week_last: '一週內',
-    week_ago: '一週前',
+    week_ago: '一週前'
   },
 
   profile: {
@@ -357,6 +362,8 @@ export default {
     change_password: '修改密碼',
     login_password: '登入密碼',
     bind_accounts: '賬戶信息',
+    subscription_info: '訂閱信息',
+    order_info: '訂單記錄',
     unbind_account: '未綁定',
     bind_mobile: '手機號',
     bind_email: '電子郵箱',
@@ -372,74 +379,127 @@ export default {
     unbind_wechat_confirm_title: '解綁微信賬號綁定',
     unbind_wechat_confirm_cancel: '暫不解綁',
     unbind_wechat_confirm_ok: '確認解綁',
+    renew: '續費',
+    expire_time_desc: '{group_name}將於{day}天後({expire_time})到期，馬上續費延續會員權益',
+    expired_time_desc: '{group_name}已於{expire_time}到期，馬上續費延續會員權益'
   },
-  "response_status": {
-    "400": '請求參數錯誤',
-    "401": '未授權，請登入',
-    "403": '拒絕訪問',
-    "404": '請求資源不存在',
-    "500": '伺服器錯誤',
-    "502": '網關錯誤',
-    "504": '網關超時',
-    "503": '服務不可用',
+  response_status: {
+    '400': '請求參數錯誤',
+    '401': '未授權，請登入',
+    '403': '拒絕訪問',
+    '404': '請求資源不存在',
+    '500': '伺服器錯誤',
+    '502': '網關錯誤',
+    '504': '網關超時',
+    '503': '服務不可用'
   },
-  "response_code": {
-    "success": "成功",
-    "param_error": "參數錯誤",
-    "database_error": "數據庫錯誤",
-    "network_error": "網絡錯誤，請重新嘗試",
-    "system_error": "系統錯誤",
-    "auth_error": "認證錯誤",
-    "not_found_error": "未找到錯誤",
-    "unauthorized_error": "身份認證錯誤",
-    "file_error": "文件錯誤",
-    "forbidden_error": "用戶已禁用，請聯繫管理員",
-    "agent_error": "智能體錯誤",
-    "token_expired_error": "身份過期錯誤",
-    "verification_code_error": "驗證碼錯誤"
+  response_code: {
+    success: '成功',
+    param_error: '參數錯誤',
+    database_error: '數據庫錯誤',
+    network_error: '網絡錯誤，請重新嘗試',
+    system_error: '系統錯誤',
+    auth_error: '認證錯誤',
+    not_found_error: '未找到錯誤',
+    unauthorized_error: '身份認證錯誤',
+    file_error: '文件錯誤',
+    forbidden_error: '用戶已禁用，請聯繫管理員',
+    agent_error: '智能體錯誤',
+    token_expired_error: '身份過期錯誤',
+    verification_code_error: '驗證碼錯誤'
   },
-  "response_message": {
-    "unknown_error": "未知錯誤",
-    "user_not_found": "用戶不存在",
-    "username_or_password_is_incorrect": "用戶名或密碼錯誤",
-    "username_already_exists": '用戶名已存在',
-    "mobile_already_bind": "手機號已被其他用戶綁定",
-    "email_already_bind": "郵箱已被其他用戶綁定",
-    "model_changed": "管理員已修改模型，請新建對話",
-    "wechat_already_bind": "微信號已被其他用戶綁定",
+  response_message: {
+    unknown_error: '未知錯誤',
+    user_not_found: '用戶不存在',
+    username_or_password_is_incorrect: '用戶名或密碼錯誤',
+    username_already_exists: '用戶名已存在',
+    mobile_already_bind: '手機號已被其他用戶綁定',
+    email_already_bind: '郵箱已被其他用戶綁定',
+    model_changed: '管理員已修改模型，請新建對話',
+    wechat_already_bind: '微信號已被其他用戶綁定'
   },
-  "subscription": {
-    "free": "免費版",
-    "upgrade": "升級",
-    "version_title": "選擇版本",
-    "time_title": "選擇購買時長",
-    "month": "月",
-    "year": "年",
-    "credit_month_amount": "每月{amount}積分",
-    "agent_bots_title": "可使用智能體",
-    "ai_assistant_title": "跨平台的 AI 助手",
-    "time_unit_month": "1個月",
-    "time_unit_year": "1年",
-    "aside_title": "新訂單購買詳情",
-    "aside_desc": "為以下用戶購買",
-    "payment": "支付方式",
-    "payment_wechat": "微信",
-    "payment_manual": "手動轉賬",
-    "total": '總計',
-    "order_title": "訂單支付",
-    "pay_amount": "支付金額",
-    "pay_by_wechat": "使用 微信掃碼 支付",
-    "pay_policy": "支付即視為你同意相關 {policy}",
-    "pay_success": "支付成功",
-    "pay_confirm": "確認支付完成，請點擊",
-    "payed": "已支付",
-    "manual_pay_success_title": "訂單已生成",
-    "manual_pay_success_desc": "請等待或聯繫管理員確認支付信息",
+  subscription: {
+    free: '免費版',
+    upgrade: '升級',
+    version_title: '選擇版本',
+    time_title: '選擇購買時長',
+    month: '月',
+    year: '年',
+    credit_month_amount: '每月{amount}積分',
+    agent_bots_title: '可使用智能體',
+    ai_assistant_title: '跨平台的 AI 助手',
+    time_unit_month: '1個月',
+    time_unit_year: '1年',
+    aside_title: '新訂單購買詳情',
+    aside_desc: '為以下用戶購買',
+    payment: '支付方式',
+    wechat_pay: '微信',
+    alipay: '支付寶',
+    manual_pay: '手動轉賬',
+    paypal: 'PayPal',
+    total: '總計',
+    order_title: '訂單支付',
+    pay_amount: '支付金額',
+    pay_by_wechat: '使用 微信掃碼 支付',
+    pay_policy: '支付即視為你同意相關 {policy}',
+    pay_success: '支付成功',
+    pay_confirm: '確認支付完成，請點擊',
+    payed: '已支付',
+    manual_pay_success_title: '訂單已生成',
+    manual_pay_success_desc: '請等待或聯繫管理員確認支付信息',
+    expire_time: '到期時間'
   },
-  "authority": {
-    "group_not_permission": "您所在的分組無權限",
-    "payment_not_setting": "站點未配置收費方式，請直接聯繫管理員",
-    "agent_not_permission": "無權限使用此智能體，請聯繫管理員",
-    "use_range": "使用范围"
+  authority: {
+    group_not_permission: '您所在的分組無權限',
+    payment_not_setting: '站點未配置收費方式，請直接聯繫管理員',
+    agent_not_permission: '無權限使用此智能體，請聯繫管理員',
+    login_not_permission: '請先登入',
+    use_range: '使用范围'
+  },
+  upgrade_dialog: {
+    title: '站點註冊用戶已達上限，請聯繫管理員~~',
+    cancel: '關閉註冊'
+  },
+  order: {
+    id: '訂單ID',
+    subscription: '訂閱服務',
+    amount: '訂單金額',
+    pay_type: '支付方式',
+    create_time: '下單時間',
+    status: '狀態',
+    action: '操作',
+    search_placeholder: '請輸入訂單ID',
+
+    payment: '支付',
+    cancel: '取消訂單',
+    cancel_confirm: '確認取消該訂單？',
+
+    status_list: {
+      all: '全部',
+      not_confirm: '待確定',
+      pending: '待支付',
+      paid: '已支付',
+      expired: '已超時',
+      cancel: '已取消'
+    }
+  },
+  filter: {
+    start_time: '開始時間',
+    end_time: '結束時間',
+
+    date_range: {
+      today: '今天',
+      last_7_days: '過去7天',
+      last_4_weeks: '過去4周',
+      last_3_months: '過去3月',
+      last_12_months: '過去12月',
+      this_month: '本月至今',
+      this_quarter: '本季度至今',
+      this_year: '本年至今',
+      all_time: '所有時間'
+    }
+  },
+  table: {
+    footer_text: '共有 {total} 條'
   }
 }

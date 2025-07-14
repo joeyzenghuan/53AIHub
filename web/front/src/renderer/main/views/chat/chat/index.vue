@@ -3,26 +3,20 @@
     <div class="flex-1 flex flex-col">
       <MainHeader v-if="!hideMenuHeader">
         <template #before_suffix>
-          <div
-            class="text-base text-primary line-clamp-1 max-md:flex-1 max-md:text-center"
-            :title="currentConv.title || currentAgent.name || ''"
-          >
+          <div class="text-base text-primary line-clamp-1 max-md:flex-1 max-md:text-center" :title="currentConv.title || currentAgent.name || ''">
             {{ currentConv.title || currentAgent.name || '' }}
           </div>
         </template>
         <template #after_prefix>
-          <span
-            class="flex items-center gap-1 text-sm cursor-pointer md:hidden"
-            @click="$router.back()"
-          >
+          <span class="flex items-center gap-1 text-sm cursor-pointer md:hidden" @click="$router.back()">
             <svg-icon name="return" size="18" stroke></svg-icon>
           </span>
         </template>
         <template #after_suffix>
           <div
+            v-tooltip="{ content: $t('chat.usage_guide') }"
             class="h-[26px] px-2 rounded-full flex-center gap-1.5 text-sm text-primary cursor-pointer hover:bg-[#E1E2E3]"
             @click="handleToggleGuide"
-            v-tooltip="{ content: $t('chat.usage_guide') }"
           >
             <div class="size-4">
               <svg-icon name="layout-split" size="18"></svg-icon>
@@ -34,13 +28,13 @@
       <!-- 消息列表区域 -->
       <x-bubble-list
         class="flex-1"
-        :autoScroll="true"
+        :auto-scroll="true"
         :messages="state.messageList"
-        :mainClass="[showRecommend ? 'w-[95%]' : 'w-11/12 md:w-4/5 max-w-[800px] mx-auto mt-5']"
-        enablePullUp
+        :main-class="[showRecommend ? 'w-[95%]' : 'w-11/12 md:w-4/5 max-w-[800px] mx-auto mt-5']"
+        enable-pull-up
         @pull-up="handleLoadListMore"
       >
-        <template #header v-if="currentAgent.settings_obj">
+        <template v-if="currentAgent.settings_obj && !state.messageList.length" #header>
           <div
             class="w-full mt-2 flex items-center gap-3 box-border p-6 rounded-xl overflow-hidden"
             :style="{
@@ -56,7 +50,7 @@
             </div>
           </div>
           <div class="mt-2 mb-10">
-            <AuthTagGroup labelPosition="top" :modelValue="currentAgent.user_group_ids" />
+            <AuthTagGroup label-position="top" :model-value="currentAgent.user_group_ids" />
           </div>
           <x-bubble-assistant
             v-if="showWelcome"
@@ -64,21 +58,16 @@
             :content="currentAgent.settings_obj.opening_statement"
             :suggestions="currentAgent.settings_obj.suggested_questions"
             @suggestion="handleSuggestion"
-          >
-          </x-bubble-assistant>
+          ></x-bubble-assistant>
         </template>
         <template #item="{ message, index }">
           <!-- 用户消息气泡 -->
-          <x-bubble-user
-            :key="message.id + '_user'"
-            :content="message.query"
-            :files="message.user_files"
-          >
+          <x-bubble-user :key="message.id + '_user'" :content="message.query" :files="message.user_files">
             <template #menu>
               <div
-                class="h-6 px-1 rounded flex-center cursor-pointer hover:bg-[#E1E2E3]"
                 v-tooltip="{ content: $t('action.copy') }"
                 v-copy="message.query"
+                class="h-6 px-1 rounded flex-center cursor-pointer hover:bg-[#E1E2E3]"
               >
                 <el-icon color="#9B9B9B">
                   <CopyDocument />
@@ -94,9 +83,9 @@
             :reasoning="message.reasoning_content"
             :reasoning-expanded="message.reasoning_expanded"
             :streaming="message.loading"
-            :alwaysShowMenu="index === state.messageList.length - 1"
+            :always-show-menu="index === state.messageList.length - 1"
           >
-            <template #menu v-if="!message.loading">
+            <template v-if="!message.loading" #menu>
               <div
                 v-tooltip="{ content: $t('action.copy') }"
                 v-copy="message.answer"
@@ -107,26 +96,18 @@
                 </el-icon>
               </div>
               <div
-                class="h-6 px-1 rounded flex-center cursor-pointer hover:bg-[#E1E2E3]"
                 v-tooltip="{ content: $t('chat.regenerate') }"
+                class="h-6 px-1 rounded flex-center cursor-pointer hover:bg-[#E1E2E3]"
                 @click="handleRegenerate(message)"
               >
                 <el-icon color="#9B9B9B">
                   <Refresh />
                 </el-icon>
               </div>
-              <div
-                v-if="false"
-                class="h-6 px-1 rounded flex-center cursor-pointer hover:bg-[#E1E2E3]"
-                v-tooltip="{ content: $t('chat.like') }"
-              >
+              <div v-if="false" v-tooltip="{ content: $t('chat.like') }" class="h-6 px-1 rounded flex-center cursor-pointer hover:bg-[#E1E2E3]">
                 <svg-icon size="18" name="like" color="#9B9B9B"></svg-icon>
               </div>
-              <div
-                v-if="false"
-                class="h-6 px-1 rounded flex-center cursor-pointer hover:bg-[#E1E2E3]"
-                v-tooltip="{ content: $t('chat.like') }"
-              >
+              <div v-if="false" v-tooltip="{ content: $t('chat.like') }" class="h-6 px-1 rounded flex-center cursor-pointer hover:bg-[#E1E2E3]">
                 <svg-icon size="18" name="dislike" color="#9B9B9B"></svg-icon>
               </div>
             </template>
@@ -135,15 +116,10 @@
       </x-bubble-list>
 
       <!-- 底部输入区域 -->
-      <div
-        class="py-5"
-        :class="[showRecommend ? 'w-full box-border' : 'w-11/12 md:w-4/5 max-w-[800px] mx-auto']"
-      >
+      <div class="py-5" :class="[showRecommend ? 'w-full box-border' : 'w-11/12 md:w-4/5 max-w-[800px] mx-auto']">
         <div class="flex gap-2 mb-2.5">
           <AgentTooltip @select="onSelectAgent">
-            <div
-              class="h-8 px-2 rounded-full flex-center gap-1.5 bg-[#F1F2F3] cursor-pointer hover:bg-[#E1E2E3]"
-            >
+            <div class="h-8 px-2 rounded-full flex-center gap-1.5 bg-[#F1F2F3] cursor-pointer hover:bg-[#E1E2E3]">
               <img class="size-4 rounded-full" :src="currentAgent.logo" alt="" />
               <span class="text-sm text-primary">{{ currentAgent.name }}</span>
               <div class="size-4 flex-center">
@@ -154,10 +130,7 @@
             </div>
           </AgentTooltip>
 
-          <div
-            v-if="false"
-            class="h-8 px-2 rounded-full flex-center gap-1.5 bg-[#F1F2F3] cursor-pointer hover:bg-[#E1E2E3]"
-          >
+          <div v-if="false" class="h-8 px-2 rounded-full flex-center gap-1.5 bg-[#F1F2F3] cursor-pointer hover:bg-[#E1E2E3]">
             <div class="size-4">
               <svg-icon name="network"></svg-icon>
             </div>
@@ -166,8 +139,9 @@
           <div class="flex-1"></div>
           <div
             v-if="showHistory"
+            v-permission
             class="h-8 px-2 rounded-full flex-center gap-1.5 bg-[#F1F2F3] text-sm text-primary cursor-pointer hover:bg-[#E1E2E3]"
-            @click="historyRef.open"
+            @click="handleHistory"
           >
             <div class="size-4">
               <svg-icon name="history"></svg-icon>
@@ -189,28 +163,32 @@
           :enable-upload="enable_upload"
           :accept-types="upload_accept"
           :loading="state.isStreaming"
+          allow-multiple
+          enable-drag-upload
+          :allow-send-with-files="allowSendWithFiles"
           @send="handleSend"
           @stop="handleStop"
-        >
-        </x-sender>
+        ></x-sender>
         <div v-if="!hideFooter" class="flex justify-center items-center my-2">
           <img src="/images/chat/footer.png" class="h-[12px]" />
         </div>
       </div>
     </div>
-    <div class="flex-none w-2/6 box-border relative" v-if="showRecommend">
-      <h2 class="text-xl font-semibold text-primary">{{ $t('common.related_agent') }}</h2>
-      <ListView
-        v-if="currentAgent.agent_id"
-        class="!w-full max-w-full !mt-4 !mb-0"
-        hideFilter
-        singleRow
-        hideHeader
-        hideFooter
-        :showLimit="6"
-        :excludeIds="[currentAgent.agent_id]"
-        :transition="false"
-      />
+    <div v-if="showRecommend" class="flex-none w-2/6 box-border relative flex flex-col gap-4 pb-5">
+      <h2 class="flex-none text-base font-semibold text-regular">{{ $t('common.related_agent') }}</h2>
+      <div v-if="currentAgent.agent_id" class="flex-1 overflow-y-auto flex flex-col gap-2.5">
+        <template v-for="item in relatedAgentList" :key="item.agent_id">
+          <div class="flex-none h-24 border rounded p-4 cursor-pointer hover:bg-[#F1F2F3]" @click="onSelectAgent(item)">
+            <div class="flex items-center gap-2">
+              <img class="size-6 rounded-full" :src="item.logo" />
+              <span class="text-sm text-primary">{{ item.name }}</span>
+            </div>
+            <div class="text-sm text-regular line-clamp-2 mt-1.5" :title="item.description">
+              {{ item.description || '--' }}
+            </div>
+          </div>
+        </template>
+      </div>
     </div>
 
     <!-- 右侧帮助面板 -->
@@ -240,31 +218,32 @@
 </template>
 
 <script setup lang="ts">
-import { defineAsyncComponent, reactive, computed, onMounted, ref, nextTick } from 'vue'
-import { Close, ArrowDown, CopyDocument, Refresh } from '@element-plus/icons-vue'
+import { ArrowDown, Close, CopyDocument, Refresh } from '@element-plus/icons-vue'
+import { computed, defineAsyncComponent, onMounted, reactive, ref } from 'vue'
 import AuthTagGroup from '@/components/AuthTagGroup/index.vue'
 import MainHeader from '@/layout/header.vue'
 import AgentTooltip from './agent-tooltip.vue'
-import ListView from '@/views/agent/index.vue'
 import HistoryDrawer from './history.vue'
 
+import { useAgentStore } from '@/stores/modules/agent'
 import { useConversationStore } from '@/stores/modules/conversation'
 
 import { API_HOST } from '@/api/host'
 import chatApi from '@/api/modules/chat'
-import uploadApi from '@/api/modules/upload'
 import conversationApi from '@/api/modules/conversation'
-import { checkPermission } from '@/directive/permission'
+import uploadApi from '@/api/modules/upload'
+
+import { checkPermission } from '@/utils/permission'
 
 const Helper = defineAsyncComponent(() => import('../helper.vue'))
 // 扩展消息类型，添加动效相关属性
 interface ExtendedMessage extends Conversation.Message {
   isNew?: boolean
 }
-
+const agentStore = useAgentStore()
 const convStore = useConversationStore()
 
-const props = withDefaults(
+withDefaults(
   defineProps<{
     hideMenuHeader?: boolean
     hideFooter?: boolean
@@ -287,17 +266,19 @@ const historyRef = ref<InstanceType<typeof HistoryDrawer> | null>(null)
 const currentAgent = computed(() => convStore.currentAgent)
 const currentConv = computed(() => convStore.currentConversation)
 const custom_config_obj = computed(() => convStore.currentAgent.custom_config_obj)
-const enable_upload = computed(() =>
-  Boolean(
-    custom_config_obj.value?.file_parse?.enable || custom_config_obj.value?.image_parse?.enable
-  )
-)
+const enable_upload = computed(() => Boolean(custom_config_obj.value?.file_parse?.enable || custom_config_obj.value?.image_parse?.enable))
 const upload_accept = computed(() => {
   let accept = ''
-  if (custom_config_obj.value?.file_parse?.enable)
-    accept += '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.html,.json,.xml,.md'
+  if (custom_config_obj.value?.file_parse?.enable) accept += '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.html,.json,.xml,.md'
   if (custom_config_obj.value?.image_parse?.enable) accept += ',image/*'
   return accept
+})
+const allowSendWithFiles = computed(() => {
+  return ['53ai_agent', 'fastgpt_agent'].includes(custom_config_obj.value?.agent_type)
+})
+
+const relatedAgentList = computed(() => {
+  return agentStore.agentList.filter((item) => item.agent_id !== currentAgent.value.agent_id).slice(0, 4)
 })
 
 const showWelcome = computed(() => {
@@ -335,19 +316,29 @@ const handleNewConversation = () => {
   convStore.setCurrentState(currentAgent.value.agent_id, 0)
 }
 
-const httpRequest = async (dataFile: File) => {
-  try {
-    const res = await uploadApi.upload(dataFile)
-    return {
-      id: res.data.id,
-      url: `${API_HOST}/api/preview/${res.data.preview_key || ''}`,
-      size: res.data.size,
-      name: res.data.file_name,
-      mime_type: res.data.mime_type
+const httpRequest = (dataFile: File) => {
+  return new Promise((resolve, reject) => {
+    const isPermission = checkPermission({
+      groupIds: currentAgent.value.user_group_ids,
+      onClick: async () => {
+        try {
+          const res = await uploadApi.upload(dataFile)
+          resolve({
+            id: res.data.id,
+            url: `${API_HOST}/api/preview/${res.data.preview_key || ''}`,
+            size: res.data.size,
+            name: res.data.file_name,
+            mime_type: res.data.mime_type
+          })
+        } catch (error) {
+          reject(error)
+        }
+      }
+    })
+    if (!isPermission) {
+      reject(new Error(window.$t('authority.login_not_permission')))
     }
-  } catch (error) {
-    return {}
-  }
+  })
 }
 
 // 处理流式数据的函数
@@ -362,9 +353,7 @@ const processStreamData = (e: any, processedLength: number): number => {
 
   try {
     // 处理SSE格式的数据
-    const lines = newChunk
-      .split('\n')
-      .filter((line) => line.trim() !== '' && line.trim() !== 'data: [DONE]')
+    const lines = newChunk.split('\n').filter((line) => line.trim() !== '' && line.trim() !== 'data: [DONE]')
 
     for (const line of lines) {
       if (line.startsWith('data: ')) {
@@ -400,7 +389,7 @@ const messageUtils = {
       ...item,
       query: ''
     }
-    const content = JSON.parse(item.message)[0].content
+    const { content } = JSON.parse(item.message)[0]
     try {
       const arr = JSON.parse(content)
       const query = arr.find((item) => item.type === 'text')?.content
@@ -424,12 +413,7 @@ const messageUtils = {
     })) || [],
 
   // 创建新消息
-  createNewMessage: (
-    query: string,
-    agent_id: number,
-    conversation_id: number,
-    user_files: Conversation.UserFile[]
-  ): ExtendedMessage => ({
+  createNewMessage: (query: string, agent_id: number, conversation_id: number, user_files: Conversation.UserFile[]): ExtendedMessage => ({
     id: Date.now(),
     query,
     answer: '',
@@ -457,11 +441,11 @@ const loadMessages = async (conversation_id: number, offset: number, limit: numb
   }
 }
 
-const handleLoadListMore = async (done) => {
+const handleLoadListMore = async (done: () => void): Promise<void> => {
   if (state.isLoadingMore || !state.hasMore) return done()
 
-  const conversation_id = currentConv.value.conversation_id
-  if (!conversation_id) return
+  const { conversation_id } = currentConv.value
+  if (!conversation_id) return done()
 
   state.isLoadingMore = true
   state.offset += state.limit
@@ -474,14 +458,12 @@ const handleLoadListMore = async (done) => {
     state.offset = Math.max(0, state.offset - state.limit)
   } finally {
     state.isLoadingMore = false
-    nextTick(() => {
-      done()
-    })
   }
+  return done()
 }
 
 const loadList = async () => {
-  const conversation_id = currentConv.value.conversation_id
+  const { conversation_id } = currentConv.value
   if (!conversation_id) return
 
   state.isLoadingMore = true
@@ -500,8 +482,8 @@ const loadList = async () => {
 const sendMessage = async (query: string, user_files: any[]) => {
   if (state.isStreaming) return
 
-  const agent_id = currentAgent.value.agent_id
-  const conversation_id = currentConv.value.conversation_id
+  const { agent_id } = currentAgent.value
+  const { conversation_id } = currentConv.value
 
   // 创建新消息
   const newMessage = messageUtils.createNewMessage(query, agent_id, conversation_id, user_files)
@@ -522,7 +504,7 @@ const sendMessage = async (query: string, user_files: any[]) => {
     await chatApi.completions(
       {
         conversation_id,
-        model: 'agent-' + agent_id,
+        model: `agent-${agent_id}`,
         messages: [{ content, role: 'user' }],
         frequency_penalty: 0,
         presence_penalty: 0,
@@ -560,9 +542,9 @@ const sendMessage = async (query: string, user_files: any[]) => {
 
 const handleSend = (question: string, user_files: any[]) => {
   checkPermission({
-    group_ids: currentAgent.value.user_group_ids,
-    onclick: async () => {
-      const agent_id = currentAgent.value.agent_id
+    groupIds: currentAgent.value.user_group_ids,
+    onClick: async () => {
+      const { agent_id } = currentAgent.value
       if (!agent_id) return ElMessage.warning(window.$t('chat.no_available_agent'))
       if (!currentConv.value.conversation_id) {
         try {
@@ -571,12 +553,16 @@ const handleSend = (question: string, user_files: any[]) => {
           convStore.setCurrentState(conversation.agent_id, conversation.conversation_id)
         } catch (err) {
           console.error('创建对话失败:', err)
-          return
         }
       }
       await sendMessage(question, messageUtils.formatFiles(user_files))
+      return true
     }
   })
+}
+
+const handleHistory = () => {
+  historyRef.value?.open()
 }
 
 const handleStop = () => {

@@ -1,43 +1,52 @@
 <template>
-  <div v-if="!globalStore.siderVisible && !globalStore.siderCollapsed && !globalStore.isMdScreen"
+  <div
+    v-if="!globalStore.siderVisible && !globalStore.siderCollapsed && !globalStore.isMdScreen"
     class="w-4 h-full absolute left-0 top-0 z-[3] hover:bg-gray-100/50 transition-colors"
-    @mouseenter="globalStore.hoverSider(true)" />
-  <div v-if="globalStore.isMdScreen && globalStore.siderCollapsed"
-    class="absolute top-0 left-0 w-full h-full z-[10] bg-black/60"></div>
-  <div ref="siderRef"
-    class="w-[280px] border-r flex flex-col bg-[#fff] transition-all duration-300 ease-linear md:bg-[#FAFAFA]" :class="[
+    @mouseenter="globalStore.hoverSider(true)"
+  />
+  <div v-if="globalStore.isMdScreen && globalStore.siderCollapsed" class="absolute top-0 left-0 w-full h-full z-[10] bg-black/60"></div>
+  <div
+    ref="siderRef"
+    class="w-[280px] border-r flex flex-col bg-[#fff] transition-all duration-300 ease-linear md:bg-[#FAFAFA]"
+    :class="[
       {
         'absolute z-[11] left-0 -translate-x-full shadow-xl rounded-r': !globalStore.siderVisible,
         'translate-x-0': !globalStore.siderVisible && globalStore.siderCollapsed,
         'top-0 bottom-0': globalStore.isMdScreen
       },
       globalStore.isMdScreen ? 'top-0 bottom-0' : 'top-20 bottom-5'
-    ]" @mouseleave="globalStore.hoverSider(false)">
+    ]"
+    @mouseleave="globalStore.hoverSider(false)"
+  >
     <div class="px-3 h-[70px] flex items-center gap-2">
       <router-link :to="{ name: 'Home' }">
         <img class="size-8 rounded" :src="enterpriseStore.logo" alt="企业Logo" />
       </router-link>
-      <router-link :to="{ name: 'Home' }" class="flex-1 text-base text-primary truncate">{{
-        enterpriseStore.display_name
-      }}</router-link>
+      <router-link :to="{ name: 'Home' }" class="flex-1 text-base text-primary truncate">{{ enterpriseStore.display_name }}</router-link>
 
-      <div v-tooltip="{
-        content: globalStore.siderVisible
-          ? $t('chat.collapse_side_bar')
-          : $t('chat.expand_side_bar')
-      }" class="flex-none size-7 rounded-md flex-center cursor-pointer hover:bg-[#ECEDEE]"
-        @click="globalStore.toggleSider">
+      <div
+        v-tooltip="{
+          content: globalStore.siderVisible ? $t('chat.collapse_side_bar') : $t('chat.expand_side_bar')
+        }"
+        class="flex-none size-7 rounded-md flex-center cursor-pointer hover:bg-[#ECEDEE]"
+        @click="globalStore.toggleSider"
+      >
         <svg-icon name="layout-left" size="20" color="#9A9A9A"></svg-icon>
       </div>
     </div>
     <div class="border-b mx-2"></div>
     <div class="flex-1 py-3 overflow-y-auto">
       <div class="px-5 pb-2">
-        <el-input v-model="state.keyword" class="el-input--main" :placeholder="$t('action.search')"
-          :prefix-icon="Search" style="--el-input-inner-height: 36px; --el-input-border-color: none"
-          clearable></el-input>
+        <el-input
+          v-model="state.keyword"
+          class="el-input--main"
+          :placeholder="$t('action.search')"
+          :prefix-icon="Search"
+          style="--el-input-inner-height: 36px; --el-input-border-color: none"
+          clearable
+        ></el-input>
       </div>
-      <div class="px-5" v-if="state.keyword">
+      <div v-if="state.keyword" class="px-5">
         <template v-if="searchUsualAgents.length">
           <div class="h-9 flex items-center gap-2">
             <div class="text-sm text-[#939499]">
@@ -48,8 +57,10 @@
 
           <div class="flex flex-col gap-1">
             <template v-for="item in searchUsualAgents" :key="item.agent_id">
-              <div class="h-9 px-6 flex items-center gap-2 rounded cursor-pointer text-[#4F5052] hover:bg-[#ECEDEE]"
-                @click="convStore.setCurrentState(item.agent_id, 0)">
+              <div
+                class="h-9 px-6 flex items-center gap-2 rounded cursor-pointer text-[#4F5052] hover:bg-[#ECEDEE]"
+                @click="convStore.setCurrentState(item.agent_id, 0)"
+              >
                 <el-image class="flex-none size-6 rounded-full" :src="item.logo"></el-image>
                 <div class="flex-1 text-sm truncate" v-html="item.formt_name"></div>
               </div>
@@ -66,12 +77,14 @@
 
           <div class="flex flex-col gap-1">
             <template v-for="item in searchAgents" :key="item.agent_id">
-              <div class="h-9 px-6 flex items-center gap-2 rounded cursor-pointer text-[#4F5052] hover:bg-[#ECEDEE]"
+              <div
+                class="h-9 px-6 flex items-center gap-2 rounded cursor-pointer text-[#4F5052] hover:bg-[#ECEDEE]"
                 @click="
                   () => {
                     convStore.pushUsualAgent(item), convStore.setCurrentState(item.agent_id, 0)
                   }
-                ">
+                "
+              >
                 <el-image class="flex-none size-6 rounded-full" :src="item.logo"></el-image>
                 <div class="flex-1 text-sm truncate" v-html="item.formt_name"></div>
               </div>
@@ -88,8 +101,7 @@
 
           <div class="flex flex-col gap-1">
             <template v-for="item in searchToolBox" :key="item.agent_id">
-              <a :href="item.url" target="_blank"
-                class="h-9 px-6 flex items-center gap-2 rounded cursor-pointer text-[#4F5052] hover:bg-[#ECEDEE]">
+              <a :href="item.url" target="_blank" class="h-9 px-6 flex items-center gap-2 rounded cursor-pointer text-[#4F5052] hover:bg-[#ECEDEE]">
                 <el-image class="flex-none size-6 rounded-full" :src="item.logo"></el-image>
                 <div class="flex-1 text-sm truncate" v-html="item.name"></div>
               </a>
@@ -108,7 +120,8 @@
             <template v-for="item in searchHistory" :key="item.agent_id">
               <div
                 class="h-9 px-3 rounded-md flex items-center gap-2 mt-0.5 group cursor-pointer hover:bg-[#ECEDEE] overflow-hidden"
-                @click="convStore.setCurrentState(item.agent_id, item.conversation_id)">
+                @click="convStore.setCurrentState(item.agent_id, item.conversation_id)"
+              >
                 <span class="flex-1 text-sm text-[#1D1E1F] truncate">{{ item.title }}</span>
               </div>
             </template>
@@ -117,9 +130,11 @@
       </div>
 
       <div v-show="!state.keyword">
-        <div class="px-2" v-if="userStore.is_login">
-          <div class="h-9 px-2 rounded-md flex items-center gap-0.5 cursor-pointer text-primary hover:bg-[#ECEDEE]"
-            @click="state.showUsualAgents = !state.showUsualAgents">
+        <div v-if="userStore.is_login" class="px-2">
+          <div
+            class="h-9 px-2 rounded-md flex items-center gap-0.5 cursor-pointer text-primary hover:bg-[#ECEDEE]"
+            @click="state.showUsualAgents = !state.showUsualAgents"
+          >
             <div class="size-7 flex-center">
               <svg-icon size="18" name="chat"></svg-icon>
             </div>
@@ -131,35 +146,37 @@
             </el-icon>
           </div>
         </div>
-        <div class="px-3" v-show="state.showUsualAgents && userStore.is_login">
+        <div v-show="state.showUsualAgents && userStore.is_login" class="px-3">
           <transition-group name="list" tag="div" class="flex flex-col gap-1 mt-2">
             <template v-for="item in usualAgents" :key="item.agent_id">
               <div
                 class="h-9 pl-6 pr-2 rounded-md flex items-center gap-2 cursor-pointer hover:bg-[#ECEDEE] group text-[#4F5052]"
-                :class="[
-                  currentAgent.agent_id === item.agent_id && !currentConv.conversation_id
-                    ? 'bg-[#ECEDEE] '
-                    : ''
-                ]" @click="convStore.setCurrentState(item.agent_id, 0)">
+                :class="[currentAgent.agent_id === item.agent_id && !currentConv.conversation_id ? 'bg-[#ECEDEE] ' : '']"
+                @click="convStore.setCurrentState(item.agent_id, 0)"
+              >
                 <el-image class="flex-none size-6 rounded" :src="item.logo"></el-image>
                 <div class="flex-1 text-sm truncate">
                   {{ item.name }}
                 </div>
 
-                <div v-tooltip="{ content: item.is_fixed ? $t('action.unfixed') : $t('action.fixed') }"
-                  class="size-7 flex-center" v-show="!state.sidebarCollapsed"
-                  @click.stop="convStore.toggleUsualAgentFixed(item)">
+                <div
+                  v-show="!state.sidebarCollapsed"
+                  v-tooltip="{ content: item.is_fixed ? $t('action.unfixed') : $t('action.fixed') }"
+                  class="size-7 flex-center"
+                  @click.stop="convStore.toggleUsualAgentFixed(item)"
+                >
                   <svg-icon v-if="item.is_fixed" name="top" color="#2563EB"></svg-icon>
                   <svg-icon v-else name="top" color="#4F5052" class="invisible group-hover:visible"></svg-icon>
                 </div>
               </div>
             </template>
           </transition-group>
-          <div v-if="convStore.usual_agents.length > SHOW_USUAL_AGENT_LEN"
-            class="flex items-center gap-1 mt-3.5 ml-5 cursor-pointer text-[#9A9A9A]" @click="toggleAgent">
-            <span class="text-sm" v-show="!state.sidebarCollapsed">{{
-              state.agentCollapsed ? $t('action.collapse') : $t('action.expand')
-            }}</span>
+          <div
+            v-if="convStore.usual_agents.length > SHOW_USUAL_AGENT_LEN"
+            class="flex items-center gap-1 mt-3.5 ml-5 cursor-pointer text-[#9A9A9A]"
+            @click="toggleAgent"
+          >
+            <span v-show="!state.sidebarCollapsed" class="text-sm">{{ state.agentCollapsed ? $t('action.collapse') : $t('action.expand') }}</span>
             <el-icon>
               <ArrowUp v-if="state.agentCollapsed" />
               <ArrowDown v-else />
@@ -167,9 +184,11 @@
           </div>
         </div>
         <div class="flex flex-col px-2 max-md:hidden">
-          <router-link :to="{ name: 'Agent' }"
+          <router-link
+            :to="{ name: 'Agent' }"
             class="h-9 px-2 rounded-md flex items-center gap-0.5 mt-1.5 cursor-pointer text-[#4F5052] hover:bg-[#ECEDEE]"
-            :class="[route.name === 'Agent' ? 'bg-[#ECEDEE]' : '']">
+            :class="[route.name === 'Agent' ? 'bg-[#ECEDEE]' : '']"
+          >
             <div class="size-7 flex-center">
               <svg-icon size="18" name="app" stroke></svg-icon>
             </div>
@@ -177,9 +196,11 @@
               {{ navigationStore.agentNavigation.name || $t('module.agent') }}
             </p>
           </router-link>
-          <router-link :to="{ name: 'Prompt' }"
+          <router-link
+            :to="{ name: 'Prompt' }"
             class="h-9 px-2 rounded-md flex items-center gap-0.5 mt-1.5 cursor-pointer text-[#4F5052] hover:bg-[#ECEDEE]"
-            :class="[route.name === 'Prompt' ? 'bg-[#ECEDEE]' : '']">
+            :class="[route.name === 'Prompt' ? 'bg-[#ECEDEE]' : '']"
+          >
             <div class="size-7 flex-center">
               <svg-icon size="18" name="prompt" stroke></svg-icon>
             </div>
@@ -187,9 +208,11 @@
               {{ navigationStore.promptNavigation.name || $t('module.prompt') }}
             </p>
           </router-link>
-          <router-link :to="{ name: 'Toolkit' }"
+          <router-link
+            :to="{ name: 'Toolkit' }"
             class="h-9 px-2 rounded-md flex items-center gap-0.5 mt-1.5 cursor-pointer text-primary hover:bg-[#ECEDEE]"
-            :class="[route.name === 'Toolkit' ? 'bg-[#ECEDEE]' : '']">
+            :class="[route.name === 'Toolkit' ? 'bg-[#ECEDEE]' : '']"
+          >
             <div class="size-7 flex-center">
               <svg-icon size="18" name="toolkit" stroke></svg-icon>
             </div>
@@ -197,8 +220,13 @@
               {{ navigationStore.toolkitNavigation.name || $t('module.toolbox') }}
             </p>
           </router-link>
-          <div @click="handleJumpToLibrary" href="http://ziroom.hub.53ai.com/space" v-if="$isElectron" target="_blank"
-            class="h-9 px-2 rounded-md flex items-center gap-0.5 cursor-pointer text-[#4F5052] hover:bg-[#ECEDEE]">
+          <div
+            v-if="$isElectron"
+            href="http://ziroom.hub.53ai.com/space"
+            target="_blank"
+            class="h-9 px-2 rounded-md flex items-center gap-0.5 cursor-pointer text-[#4F5052] hover:bg-[#ECEDEE]"
+            @click="handleJumpToLibrary"
+          >
             <div class="size-7 flex-center">
               <svg-icon size="18" name="tips"></svg-icon>
             </div>
@@ -209,8 +237,10 @@
           <div class="mx-2 border-t mt-1.5"></div>
           <!-- 历史对话 -->
           <div class="px-2 mt-1.5">
-            <div class="h-9 px-2 rounded-md flex items-center gap-0.5 cursor-pointer text-primary hover:bg-[#ECEDEE]"
-              @click="state.showHistory = !state.showHistory">
+            <div
+              class="h-9 px-2 rounded-md flex items-center gap-0.5 cursor-pointer text-primary hover:bg-[#ECEDEE]"
+              @click="state.showHistory = !state.showHistory"
+            >
               <div class="size-7 flex-center">
                 <svg-icon size="18" name="history"></svg-icon>
               </div>
@@ -222,7 +252,7 @@
             </div>
           </div>
         </template>
-        <div class="px-3" v-show="state.showHistory">
+        <div v-show="state.showHistory" class="px-3">
           <template v-for="conv in groupedConversations" :key="conv.key">
             <template v-if="conv.list.length">
               <div class="h-[30px] pl-6 pr-2 flex items-center text-xs text-[#9A9A9A] mb-1">
@@ -231,13 +261,12 @@
               <template v-for="item in conv.list" :key="item.conversation_id">
                 <div
                   class="h-9 pl-6 pr-2 rounded-md flex items-center gap-2 mt-0.5 group cursor-pointer hover:bg-[#ECEDEE] overflow-hidden"
-                  :class="[
-                    currentConv.conversation_id === item.conversation_id ? 'bg-[#F1F2F3]' : ''
-                  ]" @click="convStore.setCurrentState(item.agent_id, item.conversation_id)">
+                  :class="[currentConv.conversation_id === item.conversation_id ? 'bg-[#F1F2F3]' : '']"
+                  @click="convStore.setCurrentState(item.agent_id, item.conversation_id)"
+                >
                   <span class="flex-1 text-sm text-[#1D1E1F] truncate">{{ item.title }}</span>
                   <el-dropdown @command="handleCommandConv($event, item)">
-                    <div class="size-7 flex-center cursor-pointer invisible group-hover:visible max-md:visible"
-                      @click.stop>
+                    <div class="size-7 flex-center cursor-pointer invisible group-hover:visible max-md:visible" @click.stop>
                       <el-icon size="14">
                         <MoreFilled />
                       </el-icon>
@@ -262,25 +291,34 @@
             </template>
           </template>
 
-          <div v-if="convStore.conversations.length > 5 && !state.expandHistory"
+          <div
+            v-if="convStore.conversations.length > 5 && !state.expandHistory"
             class="h-9 pl-6 pr-2 flex items-center text-sm text-[#9A9A9A] mb-1 cursor-pointer"
-            @click="state.expandHistory = !state.expandHistory">
+            @click="state.expandHistory = !state.expandHistory"
+          >
             {{ $t('action.view_more') }}
           </div>
         </div>
       </div>
     </div>
-    <div v-if="userStore.is_login" @click="handleJumpToProfile" class="h-14 px-4 flex items-center gap-2 border-t border-b md:hidden">
+    <div v-if="userStore.is_login" class="h-14 px-4 flex items-center gap-2 border-t border-b md:hidden" @click="handleJumpToProfile">
       <el-image class="flex-none size-6" :src="userStore.info.avatar" alt="用户头像"></el-image>
       <div class="flex-1 flex items-center overflow-hidden">
         <p class="text-sm text-primary font-medium truncate">{{ userStore.info.nickname }}</p>
         <div
+          v-if="!userStore.info.is_internal"
           class="flex-none h-6 flex-center gap-1 bg-[#F7F7F7] rounded-full px-2 text-xs text-placeholder whitespace-nowrap"
-          :title="userStore.info.group_name">
-          <img :src="!/\.png$/.test(userStore.info.group_icon)
-            ? $getPublicPath(`/images/subscription/${userStore.info.group_icon}.png`)
-            : userStore.info.group_icon
-            " class="w-4 h-4 object-cover" alt="用户组图标" />
+          :title="userStore.info.group_name"
+        >
+          <img
+            :src="
+              !/\.png$/.test(userStore.info.group_icon)
+                ? $getPublicPath(`/images/subscription/${userStore.info.group_icon}.png`)
+                : userStore.info.group_icon
+            "
+            class="w-4 h-4 object-cover"
+            alt="用户组图标"
+          />
           <p class="max-w-[5em] truncate">{{ userStore.info.group_name }}</p>
         </div>
       </div>
@@ -291,12 +329,11 @@
   </div>
 
   <el-dialog v-model="state.editVisible" :title="$t('chat.edit_conversation')" width="480">
-    <el-input size="large" v-model="convForm.title" v-trim :placeholder="$t('form.input_placeholder')"></el-input>
+    <el-input v-model="convForm.title" v-trim size="large" :placeholder="$t('form.input_placeholder')"></el-input>
 
     <template #footer>
       <el-button @click="state.editVisible = false">{{ $t('action.cancel') }}</el-button>
-      <el-button v-debounce type="primary" :disabled="!convForm.title.trim()" @click="handleEditConv">{{
-        $t('action.confirm') }}</el-button>
+      <el-button v-debounce type="primary" :disabled="!convForm.title.trim()" @click="handleEditConv">{{ $t('action.confirm') }}</el-button>
     </template>
   </el-dialog>
 </template>
@@ -315,6 +352,9 @@ import { useConversationStore } from '@/stores/modules/conversation'
 import { useEnterpriseStore } from '@/stores/modules/enterprise'
 import { useLinksStore } from '@/stores/modules/links'
 import { useNavigationStore } from '@/stores/modules/navigation'
+
+import { EVENT_NAMES } from '@/constants/events'
+import eventBus from '@/utils/event-bus'
 
 const route = useRoute()
 
@@ -346,9 +386,7 @@ const convForm = reactive({
 })
 
 const usualAgents = computed(() => {
-  const agents = state.agentCollapsed
-    ? convStore.usual_agents
-    : convStore.usual_agents.slice(0, SHOW_USUAL_AGENT_LEN)
+  const agents = state.agentCollapsed ? convStore.usual_agents : convStore.usual_agents.slice(0, SHOW_USUAL_AGENT_LEN)
   return agents
 })
 const currentAgent = computed(() => convStore.currentAgent)
@@ -360,10 +398,7 @@ const searchUsualAgents = computed(() => {
     .map((item) => {
       return {
         ...item,
-        formt_name: item.name.replace(
-          new RegExp(state.keyword, 'g'),
-          `<span class="text-theme">${state.keyword}</span>`
-        )
+        formt_name: item.name.replace(new RegExp(state.keyword, 'g'), `<span class="text-theme">${state.keyword}</span>`)
       }
     })
 })
@@ -374,10 +409,7 @@ const searchAgents = computed(() => {
     .map((item) => {
       return {
         ...item,
-        formt_name: item.name.replace(
-          new RegExp(state.keyword, 'g'),
-          `<span class="text-theme">${state.keyword}</span>`
-        )
+        formt_name: item.name.replace(new RegExp(state.keyword, 'g'), `<span class="text-theme">${state.keyword}</span>`)
       }
     })
 })
@@ -388,10 +420,7 @@ const searchToolBox = computed(() => {
     .map((item) => {
       return {
         ...item,
-        name: item.name.replace(
-          new RegExp(state.keyword, 'g'),
-          `<span class="text-theme">${state.keyword}</span>`
-        )
+        name: item.name.replace(new RegExp(state.keyword, 'g'), `<span class="text-theme">${state.keyword}</span>`)
       }
     })
 })
@@ -402,10 +431,7 @@ const searchHistory = computed(() => {
     .map((item) => {
       return {
         ...item,
-        name: item.title.replace(
-          new RegExp(state.keyword, 'g'),
-          `<span class="text-theme">${state.keyword}</span>`
-        )
+        name: item.title.replace(new RegExp(state.keyword, 'g'), `<span class="text-theme">${state.keyword}</span>`)
       }
     })
 })
@@ -420,9 +446,7 @@ const groupedConversations = computed(() => {
   const lastWeekStart = new Date(today)
   lastWeekStart.setDate(lastWeekStart.getDate() - 7)
 
-  const historyList = state.expandHistory
-    ? convStore.conversations
-    : convStore.conversations.slice(0, 5)
+  const historyList = state.expandHistory ? convStore.conversations : convStore.conversations.slice(0, 5)
 
   return [
     {
@@ -475,15 +499,11 @@ const handleEditConv = () => {
   })
 }
 const delConversation = async (conv: Conversation.Info) => {
-  await ElMessageBox.confirm(
-    window.$t('chat.conversation_confirm_delete'),
-    window.$t('action.del'),
-    {
-      confirmButtonText: window.$t('action.del'),
-      cancelButtonText: window.$t('action.cancel'),
-      type: 'warning'
-    }
-  )
+  await ElMessageBox.confirm(window.$t('chat.conversation_confirm_delete'), window.$t('action.del'), {
+    confirmButtonText: window.$t('action.del'),
+    cancelButtonText: window.$t('action.cancel'),
+    type: 'warning'
+  })
   convStore.delConversation(conv)
 }
 const handleCommandConv = (event: string, conv: Conversation.Info) => {
@@ -522,7 +542,11 @@ onMounted(async () => {
   navigationStore.fetchNavigations()
 
   await agentStore.loadAgentList()
-  if (userStore.is_login) await convStore.loadConversations()
+
+  convStore.loadConversations()
+  eventBus.on(EVENT_NAMES.LOGIN_SUCCESS, () => {
+    convStore.loadConversations()
+  })
   convStore.updateAgents(agentStore.agentList)
   nextTick(() => {
     linksStore.loadLinks()

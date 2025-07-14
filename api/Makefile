@@ -45,7 +45,7 @@ swagger-init:
 	swag init -g router/main.go --output docs/
 
 static-build: swagger-init
-	GOMAXPROCS=1 CGO_ENABLED=0 $(GOBUILD) -trimpath -trimpath $(BUILD_FLAGS) -o $(BIN_DIR)/$(BINARY_NAME) -a -ldflags '-X "github.com/53AI/53AIHub/config.VersionTime=$(shell date +%Y%m%d%H%M%S)" -extldflags "-static"' ./main.go
+	CGO_ENABLED=0 $(GOBUILD) -trimpath $(BUILD_FLAGS) -o $(BIN_DIR)/$(BINARY_NAME) -a -ldflags '-X "github.com/53AI/53AIHub/config.VersionTime=$(shell date +%Y%m%d%H%M%S)" -extldflags "-static"' ./main.go
 
 # 交叉编译 Windows 版本 (启用 CGO 支持 go-sqlite3)
 WIN_OS := windows
@@ -59,7 +59,7 @@ LINUX_DATE := $(shell date +%Y%m%d%H%M)
 LINUX_OUTPUT := $(BIN_DIR)/$(BINARY_NAME)_$(LINUX_OS)_$(LINUX_BITS)_$(LINUX_DATE)
 
 static-build-with-info: swagger-init
-	GOMAXPROCS=1 CGO_ENABLED=0 $(GOBUILD) -trimpath -trimpath $(BUILD_FLAGS) -o $(LINUX_OUTPUT) -a -ldflags '-X "github.com/53AI/53AIHub/config.VersionTime=$(LINUX_DATE)" -extldflags "-static"' ./main.go
+	GOMAXPROCS=1 CGO_ENABLED=0 $(GOBUILD) -trimpath $(BUILD_FLAGS) -o $(LINUX_OUTPUT) -a -ldflags '-X "github.com/53AI/53AIHub/config.VersionTime=$(LINUX_DATE)" -extldflags "-static"' ./main.go
 
 build-windows-cgo:
 	@echo "开始交叉编译 Windows 可执行文件 (启用 CGO)..."

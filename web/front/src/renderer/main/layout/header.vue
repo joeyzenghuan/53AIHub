@@ -1,19 +1,27 @@
 <template>
   <!--  v-if="needLogin ? userStore.is_login : true" -->
-  <header class="flex-none h-[70px] border-b"
-    :class="[type === 'homepage' ? 'nav-bg' : 'bg-white', sticky ? 'sticky left-0 top-0 z-[9]' : '']">
+  <header class="flex-none h-[70px] border-b" :class="[type === 'homepage' ? 'nav-bg' : 'bg-white', sticky ? 'sticky left-0 top-0 z-[9]' : '']">
     <div class="mx-auto px-4 flex items-center justify-between h-full" :class="mainClass">
       <div class="flex-1 flex items-center gap-2 overflow-hidden">
         <slot name="before_prefix"></slot>
-        <div v-if="siderButton && !globalStore.siderVisible" v-tooltip="{
-          content: $t('chat.expand_side_bar')
-        }" class="flex-none size-7 rounded-md flex-center cursor-pointer hover:bg-[#ECEDEE]"
-          @click="globalStore.toggleSider">
+        <div
+          v-if="siderButton && !globalStore.siderVisible"
+          v-tooltip="{
+            content: $t('chat.expand_side_bar')
+          }"
+          class="flex-none size-7 rounded-md flex-center cursor-pointer hover:bg-[#ECEDEE]"
+          @click="globalStore.toggleSider"
+        >
           <svg-icon name="layout-left" size="20" color="#9A9A9A"></svg-icon>
         </div>
-        <div v-if="back" v-tooltip="{
-          content: $t('common.back')
-        }" class="flex-none size-7 rounded-md flex-center cursor-pointer max-md:hidden hover:bg-[#ECEDEE]" @click="$router.back()">
+        <div
+          v-if="back"
+          v-tooltip="{
+            content: $t('common.back')
+          }"
+          class="flex-none size-7 rounded-md flex-center cursor-pointer max-md:hidden hover:bg-[#ECEDEE]"
+          @click="$router.back()"
+        >
           <ElIcon class="text-regular cursor-pointer" size="14">
             <ArrowLeft />
           </ElIcon>
@@ -34,16 +42,25 @@
                       {{ userStore.info.nickname }}
                     </p>
                     <div
+                      v-if="!userStore.info.is_internal"
                       class="h-6 flex-center gap-1 bg-[#F7F7F7] rounded-full px-2 text-xs text-placeholder whitespace-nowrap"
-                      :title="userStore.info.group_name">
+                      :title="userStore.info.group_name"
+                    >
                       <img
-                        :src="!/\.png$/.test(userStore.info.group_icon) ? $getPublicPath(`/images/subscription/${userStore.info.group_icon}.png`) : userStore.info.group_icon"
-                        class="w-4 h-4 object-cover" />
+                        :src="
+                          !/\.png$/.test(userStore.info.group_icon)
+                            ? $getPublicPath(`/images/subscription/${userStore.info.group_icon}.png`)
+                            : userStore.info.group_icon
+                        "
+                        class="w-4 h-4 object-cover"
+                      />
                       <p class="max-w-[5em] truncate">{{ userStore.info.group_name }}</p>
                     </div>
-                    <div v-if="upgrade_visible"
+                    <div
+                      v-if="upgrade_visible && !userStore.info.is_internal"
                       class="flex items-center gap-1 ml-auto cursor-pointer hover:opacity-70 bg-[#F4F0FF] rounded-2xl h-6 px-2 box-border text-xs text-[#8E5EFF] whitespace-nowrap"
-                      @click.stop="upgrade_ref.open">
+                      @click.stop="upgrade_ref.open"
+                    >
                       <img :src="$getPublicPath(`/images/subscription/upgrade.png`)" class="w-4 h-4 object-cover" />
                       {{ $t('subscription.upgrade') }}
                     </div>
@@ -52,27 +69,40 @@
                 </div>
               </div>
               <div class="flex flex-col gap-1.5 px-3 py-1.5 border-t">
-                <router-link :to="{ name: 'Profile' }" class="h-8 px-3 flex items-center gap-2 rounded cursor-pointer hover:bg-[#ECEDEE] text-primary">
+                <router-link
+                  :to="{ name: 'Profile' }"
+                  class="h-8 px-3 flex items-center gap-2 rounded cursor-pointer hover:bg-[#ECEDEE] text-primary"
+                >
                   <div class="flex-center size-6">
                     <svg-icon name="setting" size="16"></svg-icon>
                   </div>
                   <span class="text-sm">{{ $t('action.setting') }}</span>
                 </router-link>
-                <div v-if="userStore.info.role > 1"
+                <div
+                  v-if="userStore.info.role > 1"
                   class="h-8 px-3 flex items-center gap-2 rounded cursor-pointer hover:bg-[#ECEDEE] text-primary"
-                  @click="handleJumpToAdmin">
+                  @click="handleJumpToAdmin"
+                >
                   <div class="flex-center size-6">
                     <svg-icon name="jump" size="16"></svg-icon>
                   </div>
                   <span class="text-sm">{{ $t('common.go_admin') }}</span>
                 </div>
-                <a href="https://doc.53ai.com/%E5%85%A5%E9%97%A8/%E6%AC%A2%E8%BF%8E%E4%BD%BF%E7%94%A8.html" target="_blank" class="h-8 px-3 flex items-center gap-2 rounded cursor-pointer text-primary hover:bg-[#ECEDEE]">
+                <a
+                  href="https://doc.53ai.com/%E5%85%A5%E9%97%A8/%E6%AC%A2%E8%BF%8E%E4%BD%BF%E7%94%A8.html"
+                  target="_blank"
+                  class="h-8 px-3 flex items-center gap-2 rounded cursor-pointer text-primary hover:bg-[#ECEDEE]"
+                >
                   <div class="flex-center size-6">
                     <svg-icon name="toolkit" size="16" stroke></svg-icon>
                   </div>
                   <span class="text-sm">{{ $t('common.new_friend') }}</span>
                 </a>
-                <a href="https://doc.53ai.com/%E7%A4%BE%E5%8C%BA/%E9%9C%80%E6%B1%82%E6%94%AF%E6%8C%81.html" target="_blank" class="h-8 px-3 flex items-center gap-2 rounded cursor-pointer text-primary hover:bg-[#ECEDEE]">
+                <a
+                  href="https://doc.53ai.com/%E7%A4%BE%E5%8C%BA/%E9%9C%80%E6%B1%82%E6%94%AF%E6%8C%81.html"
+                  target="_blank"
+                  class="h-8 px-3 flex items-center gap-2 rounded cursor-pointer text-primary hover:bg-[#ECEDEE]"
+                >
                   <div class="flex-center size-6">
                     <svg-icon name="help" size="16"></svg-icon>
                   </div>
@@ -80,8 +110,7 @@
                 </a>
               </div>
               <div class="flex flex-col gap-1.5 px-3 py-1.5 border-t">
-                <div class="h-8 px-3 flex items-center gap-2 rounded cursor-pointer hover:bg-[#ECEDEE] text-primary"
-                  v-debounce @click="handleLogout">
+                <div v-debounce class="h-8 px-3 flex items-center gap-2 rounded cursor-pointer hover:bg-[#ECEDEE] text-primary" @click="handleLogout">
                   <div class="flex-center size-6">
                     <svg-icon name="quit" size="14"></svg-icon>
                   </div>
@@ -115,7 +144,6 @@ import HubUiX from 'hub-ui-x'
 import { ArrowDown, ArrowLeft } from '@element-plus/icons-vue'
 
 import Upgrade from '@/components/Upgrade/index.vue'
-import LoginModal from '@/components/LoginModal/setup.ts'
 
 import { useUserStore } from '@/stores/modules/user'
 import { useEnterpriseStore } from '@/stores/modules/enterprise'
@@ -126,6 +154,8 @@ import eventBus from '@/utils/event-bus'
 import { EVENT_NAMES } from '@/constants/events'
 
 import { ADMIN_URL } from '@/api/host'
+
+import { checkPermission } from '@/utils/permission'
 
 withDefaults(
   defineProps<{
@@ -153,23 +183,12 @@ const enterpriseStore = useEnterpriseStore()
 const upgrade_ref = ref(null)
 const upgrade_visible = ref(false)
 
-const handleLogin = () => {
-  LoginModal().open()
+const handleLogin = async () => {
+  await checkPermission()
 }
 
 const handleJumpToAdmin = () => {
-  const currentHost = window.location.host
-  const isTestEnv = currentHost.includes('hub.53ai.com')
-  const isLocalEnv = !currentHost.includes('53ai.com')
-
-  let adminUrl = ADMIN_URL || ''
-  if (!adminUrl) {
-    adminUrl =
-      isTestEnv || isLocalEnv ? 'http://hubtest.53ai.com/console' : 'http://hub.53ai.com/console'
-  }
-
-  const url = `${adminUrl}?access_token=${userStore.info.access_token}&eid=${userStore.info.eid
-    }&from_origin=${encodeURIComponent(location.origin)}`
+  const url = `${ADMIN_URL}?access_token=${userStore.info.access_token}&eid=${userStore.info.eid}&from_origin=${encodeURIComponent(window.location.origin)}`
   console.info('adminUrl: ', url)
   window.open(url, '_blank')
 }
@@ -180,9 +199,10 @@ const handleLogout = () => {
 }
 
 const validateUpgrade = async () => {
-  if (!userStore.info.access_token) return Promise.resolve()
-  await nextTick()
-  if (upgrade_ref.value) upgrade_visible.value = await upgrade_ref.value.validateUpgrade()
+  if (userStore.info.access_token) {
+    await nextTick()
+    if (upgrade_ref.value) upgrade_visible.value = await upgrade_ref.value.validateUpgrade()
+  }
 }
 
 const updateLocal = (language) => {

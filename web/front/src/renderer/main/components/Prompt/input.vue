@@ -3,33 +3,44 @@ import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { Codemirror } from 'vue-codemirror'
 // import { get_encoding } from 'tiktoken'
 import type { DecorationSet, Tooltip } from '@codemirror/view'
-import { Decoration, EditorView, MatchDecorator, ViewPlugin, WidgetType, keymap, showTooltip } from '@codemirror/view'
+import {
+  Decoration,
+  EditorView,
+  MatchDecorator,
+  ViewPlugin,
+  WidgetType,
+  keymap,
+  showTooltip
+} from '@codemirror/view'
 import { StateEffect, StateField } from '@codemirror/state'
 
-const props = withDefaults(defineProps<{
-  modelValue: string
-  placeholder?: string
-  disabled?: boolean
-  // 左边显示的行号
-  showLine?: boolean
-  showToken?: boolean
-  variables?: {
-    label: string
-    children: {
+const props = withDefaults(
+  defineProps<{
+    modelValue: string
+    placeholder?: string
+    disabled?: boolean
+    // 左边显示的行号
+    showLine?: boolean
+    showToken?: boolean
+    variables?: {
       label: string
-      value: string
+      children: {
+        label: string
+        value: string
+      }[]
     }[]
-  }[]
-  wordWrap?: boolean
-}>(), {
-  modelValue: '',
-  disabled: false,
-  placeholder: '',
-  showLine: false,
-  showToken: false,
-  variables: () => [],
-  wordWrap: true,
-})
+    wordWrap?: boolean
+  }>(),
+  {
+    modelValue: '',
+    disabled: false,
+    placeholder: '',
+    showLine: false,
+    showToken: false,
+    variables: () => [],
+    wordWrap: true
+  }
+)
 
 const emits = defineEmits<{
   (e: 'change', data: any): void
@@ -50,28 +61,30 @@ const selectedIndex = ref(-1)
 // 添加 tooltip 状态管理
 const addTooltip = StateEffect.define<{ pos: number }>()
 const tooltipField = StateField.define<readonly Tooltip[]>({
-  create() { return null },
+  create() {
+    return null
+  },
   update(tooltips, tr) {
     for (const e of tr.effects) {
-      if (e.is(addTooltip))
-        return e.value
+      if (e.is(addTooltip)) return e.value
     }
     return tooltips
   },
-  provide: f => showTooltip.from(f),
+  provide: (f) => showTooltip.from(f)
 })
 
 const findVariableByValue = (value: string) => {
   for (const group of props.variables) {
-    const found = group.children.find(item => item.value === value)
-    if (found)
-      return { ...found, group: group.label }
+    const found = group.children.find((item) => item.value === value)
+    if (found) return { ...found, group: group.label }
   }
   return null
 }
 class VariableWidget extends WidgetType {
   name: string
+
   value: string
+
   constructor(name: string, value: string) {
     super()
     this.name = name
@@ -101,35 +114,38 @@ const variableMatcher = new MatchDecorator({
     const variable = findVariableByValue(match[0])
     if (variable) {
       return Decoration.replace({
-        widget: new VariableWidget(variable?.label, match[1]),
+        widget: new VariableWidget(variable?.label, match[1])
       })
     }
-    else {
-      return ''
+
+    return ''
+  }
+})
+
+const variablePlugin = ViewPlugin.fromClass(
+  class {
+    variablePlugin: DecorationSet
+
+    constructor(view: any) {
+      this.variablePlugin = variableMatcher.createDeco(view)
+    }
+
+    update(update) {
+      this.variablePlugin = variableMatcher.updateDeco(update, this.variablePlugin)
     }
   },
-})
-
-const variablePlugin = ViewPlugin.fromClass(class {
-  variablePlugin: DecorationSet
-  constructor(view: any) {
-    this.variablePlugin = variableMatcher.createDeco(view)
+  {
+    decorations: (instance) => instance.variablePlugin,
+    provide: (plugin) =>
+      EditorView.atomicRanges.of((view) => {
+        return view.plugin(plugin)?.variablePlugin || Decoration.none
+      })
   }
-
-  update(update) {
-    this.variablePlugin = variableMatcher.updateDeco(update, this.variablePlugin)
-  }
-}, {
-  decorations: instance => instance.variablePlugin,
-  provide: plugin => EditorView.atomicRanges.of((view) => {
-    return view.plugin(plugin)?.variablePlugin || Decoration.none
-  }),
-})
+)
 
 let _tokenTimer: any
 const calcToken = () => {
-  if (!props.showToken)
-    return
+  if (!props.showToken) return
 
   clearTimeout(_tokenTimer)
   _tokenTimer = setTimeout(() => {
@@ -155,8 +171,8 @@ const insertContent = (from: number, to: number, content: string) => {
     changes: {
       from, // 保留已输入的 /
       to,
-      insert: content,
-    },
+      insert: content
+    }
   })
 }
 
@@ -166,8 +182,7 @@ const updateSelectedItem = () => {
     if (index === selectedIndex.value) {
       item.classList.add('selected')
       item.scrollIntoView({ block: 'nearest' })
-    }
-    else {
+    } else {
       item.classList.remove('selected')
     }
   })
@@ -175,14 +190,13 @@ const updateSelectedItem = () => {
 const hideTooltip = () => {
   if (editorView.value) {
     editorView.value.dispatch({
-      effects: addTooltip.of(null),
+      effects: addTooltip.of(null)
     })
   }
   document.removeEventListener('keydown', handleKeyDown, true)
 }
 const handleKeyDown = (event: KeyboardEvent) => {
-  if (!tooltipRef.value)
-    return
+  if (!tooltipRef.value) return
 
   const items = tooltipRef.value.querySelectorAll('.tooltip-item')
   switch (event.key) {
@@ -236,8 +250,8 @@ const showVarTooltip = (pos: number, to: number) => {
     effects: addTooltip.of({
       pos,
       above: true,
-      create: () => ({ dom }),
-    }),
+      create: () => ({ dom })
+    })
   })
 
   nextTick(() => {
@@ -256,33 +270,37 @@ const extensions = computed(() => {
       // 在输入其他内容时关闭 tooltip
       if (update.docChanged) {
         update.view.dispatch({
-          effects: addTooltip.of(null),
+          effects: addTooltip.of(null)
         })
       }
-    }),
+    })
   ]
-  if (props.wordWrap)
-    options.push(EditorView.lineWrapping)
+  if (props.wordWrap) options.push(EditorView.lineWrapping)
 
   if (props.variables && props.variables.length) {
-    options.push(...[
-      variablePlugin,
-      tooltipField,
-      keymap.of([{
-        key: '/',
-        run(view) {
-          const pos = view.state.selection.main.head
+    options.push(
+      ...[
+        variablePlugin,
+        tooltipField,
+        keymap.of([
+          {
+            key: '/',
+            run(view) {
+              const pos = view.state.selection.main.head
 
-          // 延迟显示 tooltip
-          setTimeout(() => {
-            if (view.state.selection.main.head === pos + 1) { // 确保用户没有继续输入
-              showVarTooltip(pos, pos + 1)
+              // 延迟显示 tooltip
+              setTimeout(() => {
+                if (view.state.selection.main.head === pos + 1) {
+                  // 确保用户没有继续输入
+                  showVarTooltip(pos, pos + 1)
+                }
+              }, 200) // 200ms 延迟
+              return false
             }
-          }, 200) // 200ms 延迟
-          return false
-        },
-      }]),
-    ])
+          }
+        ])
+      ]
+    )
   }
   return options
 })
@@ -294,31 +312,38 @@ const scrollToBottom = () => {
       const lastLineEnd = editorView.value.state.doc.line(lastLine).to
       editorView.value.dispatch({
         selection: { anchor: lastLineEnd, head: lastLineEnd },
-        scrollIntoView: true,
+        scrollIntoView: true
       })
     }
   })
 }
 
-watch(() => props.modelValue, () => {
-  prompt.value = props.modelValue
-  calcToken()
-}, { immediate: true })
+watch(
+  () => props.modelValue,
+  () => {
+    prompt.value = props.modelValue
+    calcToken()
+  },
+  { immediate: true }
+)
 
-watch(() => props.variables, () => {
-  if (codemirrorRef.value) {
-    setTimeout(async () => {
-      const oldPrompt = prompt.value
-      prompt.value = ''
-      await nextTick()
-      prompt.value = oldPrompt
-    }, 200)
-  }
-}, { deep: true })
+watch(
+  () => props.variables,
+  () => {
+    if (codemirrorRef.value) {
+      setTimeout(async () => {
+        const oldPrompt = prompt.value
+        prompt.value = ''
+        await nextTick()
+        prompt.value = oldPrompt
+      }, 200)
+    }
+  },
+  { deep: true }
+)
 // 新增：处理全局点击的方法
 const handleGlobalClick = (event: MouseEvent) => {
-  if (tooltipRef.value && !tooltipRef.value.contains(event.target as Node))
-    hideTooltip()
+  if (tooltipRef.value && !tooltipRef.value.contains(event.target as Node)) hideTooltip()
 }
 
 // 设置和清理全局点击事件监听器
@@ -342,15 +367,26 @@ defineExpose({
   forceUpdate(text = '') {
     prompt.value = text
   },
-  scrollToBottom,
+  scrollToBottom
 })
 </script>
 
 <template>
-  <Codemirror ref="codemirrorRef" v-model="prompt" :disabled="disabled" class="w-full prompt-code"
-    :class="[showLine ? '' : 'prompt-line--hidden']" :placeholder="$t(placeholder)" :indent-with-tab="false"
-    :tab-size="2" :extensions="extensions" :style="$attrs.style" @change="onChange" @focus="emits('focus')"
-    @blur="emits('blur')" />
+  <Codemirror
+    ref="codemirrorRef"
+    v-model="prompt"
+    :disabled="disabled"
+    class="w-full prompt-code"
+    :class="[showLine ? '' : 'prompt-line--hidden']"
+    :placeholder="$t(placeholder)"
+    :indent-with-tab="false"
+    :tab-size="2"
+    :extensions="extensions"
+    :style="$attrs.style"
+    @change="onChange"
+    @focus="emits('focus')"
+    @blur="emits('blur')"
+  />
   <!-- v-bind="{ ...$attrs }" -->
 
   <div v-if="showToken" class="px-2 py-px text-right text-[#182B50] text-opacity-60 text-xs">
@@ -367,12 +403,13 @@ defineExpose({
   display: none !important;
 }
 
-.ͼ1 .cm-placeholder {}
+.ͼ1 .cm-placeholder {
+}
 
 .ͼ1 .cm-scroller {
   font-family: Arial, Helvetica, sans-serif;
   font-size: 14px;
-  color: #182B50;
+  color: #182b50;
 }
 
 .ͼ2 .cm-activeLine {
@@ -385,9 +422,9 @@ defineExpose({
   overflow-y: auto;
   border: none !important;
   background-color: white !important;
-  padding: 4px 4px;
+  padding: 4px;
   border-radius: 4px !important;
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+  box-shadow: 0 2px 8px rgb(0 0 0 / 15%);
   z-index: 1000;
 }
 
@@ -395,20 +432,20 @@ defineExpose({
   height: 24px;
   line-height: 24px;
   font-size: 12px;
-  color: #182B50;
+  color: #182b50;
   opacity: 0.6;
   cursor: default;
-  padding: 0px 8px;
+  padding: 0 8px;
   margin-top: 4px;
 }
 
 .tooltip-item {
-  padding: 0px 8px;
+  padding: 0 8px;
   height: 24px;
   line-height: 24px;
   cursor: pointer;
   font-size: 12px;
-  color: #2563EB;
+  color: #2563eb;
   border-radius: 4px;
   transition: background-color 0.2s;
 }

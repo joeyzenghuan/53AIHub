@@ -20,6 +20,7 @@ type ChannelRequest struct {
 	Weight       *uint   `json:"weight"`
 	Priority     *int64  `json:"priority"`
 	BaseURL      *string `json:"base_url"`
+	Other        *string `json:"other"`
 }
 
 // @Summary Create channel
@@ -49,6 +50,7 @@ func CreateChannel(c *gin.Context) {
 		Weight:       req.Weight,
 		Priority:     req.Priority,
 		BaseURL:      req.BaseURL,
+		Other:        req.Other,
 	}
 
 	channel.Models = model.ProcessModelNames(req.Models, channel.Type)
@@ -127,6 +129,7 @@ func UpdateChannel(c *gin.Context) {
 	channel.Weight = req.Weight
 	channel.Priority = req.Priority
 	channel.BaseURL = req.BaseURL
+	channel.Other = req.Other
 
 	if err := model.UpdateChannel(channel); err != nil {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))

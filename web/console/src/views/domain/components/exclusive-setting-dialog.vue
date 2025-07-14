@@ -1,7 +1,35 @@
+<template>
+	<ElDialog v-model="visible" :title="$t('module.domain_exclusive')" :close-on-click-modal="false" width="700px"
+		destroy-on-close append-to-body @close="close">
+		<ElForm ref="form_ref" :model="form" label-position="top" @submit.prevent="() => {}">
+			<ElFormItem prop="domain" :rules="[{
+	validator: (rule, value, callback) => domainValidator({ rule, value, callback }),
+				trigger: 'blur'
+			}]">
+				<ElInput v-model="form.domain" size="large" show-word-limit maxlength="20" :placeholder="$t('module.domain_exclusive')">
+					<template #prepend>
+						https://
+					</template>
+					<template #append>
+						{{ isDevEnv ? '.hub' : '' }}.53ai.com
+					</template>
+				</ElInput>
+			</ElFormItem>
+		</ElForm>
+		<template #footer>
+			<div class="py-4 flex items-center justify-center">
+				<ElButton class="w-[96px] h-[36px]" type="primary" @click="handleConfirm">{{ $t('action_save') }}</ElButton>
+				<ElButton class="w-[96px] h-[36px] text-[#1D1E1F]" type="info" plain @click.stop="close">{{ $t('action_cancel')
+					}}</ElButton>
+			</div>
+		</template>
+	</ElDialog>
+</template>
+
 <script setup lang="ts">
-import { ref, reactive } from 'vue'
-import { useEnv } from '@/hooks/useEnv'
-import { domainApi } from '@/api/modules/domain'
+import { ref, reactive } from 'vue';
+import { useEnv } from '@/hooks/useEnv';
+import { domainApi } from '@/api/modules/domain';
 
 const emits = defineEmits<{
 	(e: 'success'): void
@@ -54,34 +82,6 @@ defineExpose({
 	reset
 })
 </script>
-
-<template>
-	<ElDialog :title="$t('module.domain_exclusive')" :close-on-click-modal="false" width="700px" destroy-on-close
-		append-to-body v-model="visible" @close="close">
-		<ElForm ref="form_ref" :model="form" label-position="top" @submit.prevent="() => {}">
-			<ElFormItem prop="domain" :rules="[{
-	validator: (rule, value, callback) => domainValidator({ rule, value, callback }),
-				trigger: 'blur'
-			}]">
-				<ElInput v-model="form.domain" size="large" show-word-limit maxlength="20" :placeholder="$t('module.domain_exclusive')">
-					<template #prepend>
-						http://
-					</template>
-					<template #append>
-						{{ isDevEnv ? '.hub' : '' }}.53ai.com
-					</template>
-				</ElInput>
-			</ElFormItem>
-		</ElForm>
-		<template #footer>
-			<div class="py-4 flex items-center justify-center">
-				<ElButton class="w-[96px] h-[36px]" type="primary" @click="handleConfirm">{{ $t('action_save') }}</ElButton>
-				<ElButton class="w-[96px] h-[36px] text-[#1D1E1F]" type="info" plain @click.stop="close">{{ $t('action_cancel')
-					}}</ElButton>
-			</div>
-		</template>
-	</ElDialog>
-</template>
 
 <style scoped lang="scss">
 </style>
