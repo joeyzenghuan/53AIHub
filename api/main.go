@@ -15,7 +15,7 @@ import (
 	"github.com/songquanpeng/one-api/relay/adaptor/openai"
 )
 
-//go:embed static/front static/console static/images static/libs
+//go:embed all:static/front all:static/console static/images all:static/libs
 var buildFS embed.FS
 
 func main() {
