@@ -64,10 +64,10 @@ AIエージェント、プロンプト、ツールの公開、管理、分類、
 
 ### クイックインストール
 
-[docker-compose.yml](api/docker/docker-compose.yaml) を使用すると簡単にインストールできます。事前に [Docker](https://docs.docker.com/get-docker/) と [Docker Compose](https://docs.docker.com/compose/install/) をインストールしてください。さらに、フロントエンドのビルドが必要です。フロントエンドのビルド方法については、web ディレクトリ内の README ファイルを参照してください ：
+[docker-compose.yml](docker/docker-compose.yaml) を使用すると簡単にインストールできます。事前に [Docker](https://docs.docker.com/get-docker/) と [Docker Compose](https://docs.docker.com/compose/install/) をインストールしてください。：
 
 ```bash
-cd api/docker
+cd docker
 docker compose up -d
 ```
 
