@@ -255,6 +255,7 @@ func InitializeSystem() error {
 		GroupId:   defaultGroup.GroupId,
 		LogoUrl:   "//img.ibos.cn/common/agenthub/subscription/vip-1.png", // 默认为空
 		AiEnabled: false,
+		IsDefault: true,
 	}
 
 	if err := tx.Create(subscriptionSetting).Error; err != nil {

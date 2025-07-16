@@ -33,7 +33,9 @@ func GetNavigations(c *gin.Context) {
 		return
 	}
 	for _, nav := range navigations {
-		nav.LoadContent()
+		if nav.Type == 3 { // 添加类型判断
+			nav.LoadContent()
+		}
 	}
 	c.JSON(http.StatusOK, model.Success.ToResponse(navigations))
 }
@@ -102,7 +104,9 @@ func GetNavigation(c *gin.Context) {
 		c.JSON(http.StatusNotFound, model.NotFound.ToResponse(nil))
 		return
 	}
-	nav.LoadContent()
+	if nav.Type == 3 { // 添加类型判断
+		nav.LoadContent()
+	}
 	c.JSON(http.StatusOK, model.Success.ToResponse(nav))
 }
 
@@ -422,7 +426,9 @@ func CreateNavigationContent(c *gin.Context) {
 	}()
 
 	var content *model.NavigationContent
-	nav.LoadContent()
+	if nav.Type == 3 { // 添加类型判断
+		nav.LoadContent()
+	}
 	if nav.Content != nil {
 		content = nav.Content
 		content.HtmlContent = req.HtmlContent
