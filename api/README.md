@@ -81,26 +81,16 @@ go build -o bin/53aihub main.go
 
 访问 [GitHub Releases](https://github.com/53AI/53AIHub/releases) 下载适合您操作系统的预编译文件。
 
-2. 解压下载的文件
-
-```bash
-# Linux/MacOS
-tar -xzvf 53aihub-[版本号]-[系统].tar.gz
-
-# Windows
-# 使用解压软件解压 53aihub-[版本号]-windows.zip
-```
-
-3. 启动 53AIHub
+2. 启动 53AIHub
 
 - Linux/MacOS:
   
   ```bash
-  chmod +x 53aihub
-  ./53aihub
+  chmod +x 53AIHub_linux
+  ./53AIHub_linux
   ```
 - Windows:
-  双击 `53aihub.exe` 文件启动
+  双击 `53AIHub_install.exe` 文件安装运行启动
 
 服务将在默认端口上`3000`运行。
 
