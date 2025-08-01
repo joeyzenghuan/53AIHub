@@ -32,7 +32,9 @@
 			iframe_el.src = `//${location.host}/console${location.search}#/login`
 			document.body.appendChild(iframe_el)
 			window.addEventListener('message', (event) => {
-				if (event.data.action === 'saas-login-success') location.reload()
+				if (event.data.action === 'saas-login-success') {
+          window.location.href = `//${location.host}/console${location.search}#/`
+        }
 			}, false)
 		}
 	</script>

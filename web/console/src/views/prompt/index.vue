@@ -1,19 +1,103 @@
+<template>
+  <Layout class="px-[60px] py-8">
+    <Header :title="$t('module.prompt')">
+      <template #right>
+        <el-button type="primary" size="large" @click="handleMoreCommand('add')">
+          + {{ $t('action_add') }}
+        </el-button>
+      </template>
+    </Header>
+    <div class="flex-1 overflow-y-auto bg-white rounded-lg px-10 py-6 mt-4">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex-1 w-0">
+          <GroupTabs
+            ref="groupTabsRef" v-model="filter_form.group_id" type="dropdown" :group-type="GROUP_TYPE.PROMPT"
+            @change="refresh" @get-options="refresh"
+          />
+        </div>
+        <div class="flex-none flex-center gap-3 ml-8">
+          <ElInput
+            v-model="filter_form.keyword" size="large" clearable :placeholder="$t('prompt.search_placeholder')"
+            :suffix-icon="Search" @change="refresh"
+          />
+          <!-- <Search v-model="filter_form.keyword" placeholder="prompt.search_placeholder" @change="refresh" /> -->
+          <!-- <div class="flex items-center gap-1 whitespace-nowrap cursor-pointer text-[#576D9C]"
+						@click="groupTabsRef.open">
+						<svg-icon name="cate-manage" width="14px" height="14px" />
+						<div class="text-sm ">
+							{{ $t('group') }}
+						</div>
+					</div> -->
+        </div>
+      </div>
+      <TablePlus
+        header-row-class-name="rounded overflow-hidden"
+        header-cell-class-name="!bg-[#F6F7F8] !h-[60px] !border-none" :data="table_data" :total="table_total"
+        :loading="table_loading" :page="filter_form.page" :limit="filter_form.page_size"
+        @page-size-change="onTableSizeChange" @page-current-change="onTableCurrentChange"
+      >
+        <ElTableColumn :label="$t('title')" min-width="140" prop="name" show-overflow-tooltip />
+        <ElTableColumn :label="$t('description')" min-width="180" show-overflow-tooltip>
+          <template #default="{ row }">
+            <span :class="!row.description ? 'text-[#999]' : ''">
+              {{ row.description || '--' }}
+            </span>
+          </template>
+        </ElTableColumn>
+        <ElTableColumn :label="$t('group')" min-width="180" show-overflow-tooltip>
+          <template #default="{ row }">
+            <span :class="!row.group_names || !row.group_names.length ? 'text-[#999]' : ''">
+              {{ row.group_names.join('、') || '--' }}
+            </span>
+          </template>
+        </ElTableColumn>
+        <ElTableColumn :label="$t('sort')" width="80" show-overflow-tooltip>
+          <template #default="{ row = {} }">
+            {{ row.sort }}
+          </template>
+        </ElTableColumn>
+        <ElTableColumn :label="$t('action_enable')" width="80">
+          <template #default="{ row }">
+            <ElSwitch
+              v-model="row.status" :active-value="1" :inactive-value="0"
+              @change="handleMoreCommand('update_status', row)"
+            />
+          </template>
+        </ElTableColumn>
+        <ElTableColumn :label="$t('operation')" width="120" align="right" fixed="right">
+          <template #default="{ row }">
+            <el-button type="primary" link @click="handleMoreCommand('edit', row)">
+              {{ $t('action_edit') }}
+            </el-button>
+            <el-button type="primary" link @click="handleMoreCommand('delete', row)">
+              {{ $t('action_delete') }}
+            </el-button>
+          </template>
+        </ElTableColumn>
+      </TablePlus>
+    </div>
+  </Layout>
+
+  <CreateDrawer ref="createRef" />
+</template>
+
 <script setup lang="ts">
 import { Search } from '@element-plus/icons-vue'
 import { nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
-import { useRoute, useRouter } from 'vue-router'
-import CreateDrawer from './create/create-drawer.vue'
+import { useRouter } from 'vue-router'
+import CreateDrawer from './components/create-drawer.vue'
 
 import eventBus from '@/utils/event-bus'
-import { GROUP_TYPE_PROMPT } from '@/api/modules/group'
 import { promptApi } from '@/api/modules/prompt'
+
+import { GROUP_TYPE } from '@/constants/group'
+
 
 defineOptions({
   name: 'Prompt',
 })
 
 const router = useRouter()
-const route = useRoute()
 
 const groupTabsRef = ref()
 const createRef = ref()
@@ -103,89 +187,6 @@ onUnmounted(() => {
   eventBus.off('prompt-update', fetchPromptData)
 })
 </script>
-
-<template>
-  <Layout class="px-[60px] py-8">
-    <Header :title="$t('module.prompt')">
-      <template #right>
-        <el-button type="primary" size="large" @click="handleMoreCommand('add')">
-          + {{ $t('action_add') }}
-        </el-button>
-      </template>
-    </Header>
-    <div class="flex-1 overflow-y-auto bg-white rounded-lg px-10 py-6 mt-4">
-      <div class="flex items-center justify-between mb-4">
-        <div class="flex-1 w-0">
-          <GroupTabs
-            ref="groupTabsRef" v-model="filter_form.group_id" type="dropdown" :group-type="GROUP_TYPE_PROMPT"
-            @change="refresh" @get-options="refresh"
-          />
-        </div>
-        <div class="flex-none flex-center gap-3 ml-8">
-          <ElInput
-            v-model="filter_form.keyword" size="large" clearable :placeholder="$t('prompt.search_placeholder')"
-            :suffix-icon="Search" @change="refresh"
-          />
-          <!-- <Search v-model="filter_form.keyword" placeholder="prompt.search_placeholder" @change="refresh" /> -->
-          <!-- <div class="flex items-center gap-1 whitespace-nowrap cursor-pointer text-[#576D9C]"
-						@click="groupTabsRef.open">
-						<svg-icon name="cate-manage" width="14px" height="14px" />
-						<div class="text-sm ">
-							{{ $t('group') }}
-						</div>
-					</div> -->
-        </div>
-      </div>
-      <TablePlus
-        header-row-class-name="rounded overflow-hidden"
-        header-cell-class-name="!bg-[#F6F7F8] !h-[60px] !border-none" :data="table_data" :total="table_total"
-        :loading="table_loading" :page="filter_form.page" :limit="filter_form.page_size"
-        @page-size-change="onTableSizeChange" @page-current-change="onTableCurrentChange"
-      >
-        <ElTableColumn :label="$t('title')" min-width="140" prop="name" show-overflow-tooltip />
-        <ElTableColumn :label="$t('description')" min-width="180" show-overflow-tooltip>
-          <template #default="{ row }">
-            <span :class="!row.description ? 'text-[#999]' : ''">
-              {{ row.description || '--' }}
-            </span>
-          </template>
-        </ElTableColumn>
-        <ElTableColumn :label="$t('group')" min-width="180" show-overflow-tooltip>
-          <template #default="{ row }">
-            <span :class="!row.group_names || !row.group_names.length ? 'text-[#999]' : ''">
-              {{ row.group_names.join('、') || '--' }}
-            </span>
-          </template>
-        </ElTableColumn>
-        <ElTableColumn :label="$t('sort')" width="80" show-overflow-tooltip>
-          <template #default="{ row = {} }">
-            {{ row.sort }}
-          </template>
-        </ElTableColumn>
-        <ElTableColumn :label="$t('action_enable')" width="80">
-          <template #default="{ row }">
-            <ElSwitch
-              v-model="row.status" :active-value="1" :inactive-value="0"
-              @change="handleMoreCommand('update_status', row)"
-            />
-          </template>
-        </ElTableColumn>
-        <ElTableColumn :label="$t('operation')" width="120" align="right" fixed="right">
-          <template #default="{ row }">
-            <el-button type="primary" link @click="handleMoreCommand('edit', row)">
-              {{ $t('action_edit') }}
-            </el-button>
-            <el-button type="primary" link @click="handleMoreCommand('delete', row)">
-              {{ $t('action_delete') }}
-            </el-button>
-          </template>
-        </ElTableColumn>
-      </TablePlus>
-    </div>
-  </Layout>
-
-  <CreateDrawer ref="createRef" />
-</template>
 
 <style scoped>
 </style>

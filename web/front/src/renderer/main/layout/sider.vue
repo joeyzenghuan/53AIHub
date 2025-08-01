@@ -309,6 +309,7 @@
           v-if="!userStore.info.is_internal"
           class="flex-none h-6 flex-center gap-1 bg-[#F7F7F7] rounded-full px-2 text-xs text-placeholder whitespace-nowrap"
           :title="userStore.info.group_name"
+          @click.stop="upgradeRef.open"
         >
           <img
             :src="
@@ -336,6 +337,8 @@
       <el-button v-debounce type="primary" :disabled="!convForm.title.trim()" @click="handleEditConv">{{ $t('action.confirm') }}</el-button>
     </template>
   </el-dialog>
+
+  <Upgrade ref="upgradeRef" />
 </template>
 
 <script setup lang="ts">
@@ -344,6 +347,8 @@ import { ArrowUp, ArrowDown, Search, ArrowRight, MoreFilled } from '@element-plu
 import { useRoute } from 'vue-router'
 import { onClickOutside } from '@vueuse/core'
 import { router } from '@/router'
+
+import Upgrade from '@/components/Upgrade/index.vue'
 
 import { useUserStore } from '@/stores/modules/user'
 import { useAgentStore } from '@/stores/modules/agent'
@@ -368,6 +373,7 @@ const navigationStore = useNavigationStore()
 const SHOW_USUAL_AGENT_LEN = 4
 
 const siderRef = ref()
+const upgradeRef = ref()
 
 const state = reactive({
   keyword: '',

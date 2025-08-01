@@ -94,76 +94,24 @@
             </div>
 
             <template v-if="(detailData.group_ids || []).some((id) => (userStore.info.group_ids || []).includes(id))">
-              <el-divider>
-                <span class="text-sm text-regular">去使用这个提示词</span>
+              <el-divider v-if="detailData.ai_links_data && detailData.ai_links_data.length">
+                <span class="text-sm text-regular">{{ $t('prompt.let_use_prompt') }}</span>
               </el-divider>
-              <div class="flex items-center justify-center gap-4 max-md:flex-wrap">
-                <a
-                  v-copy="detailData.content"
-                  class="w-20 h-16 flex flex-col items-center justify-center gap-2 cursor-pointer"
-                  href="https://www.deepseek.com/"
-                  target="_blank"
-                >
-                  <div class="size-8 rounded-full border overflow-hidden flex items-center justify-center">
-                    <img src="https://hubapi.53ai.com/api/preview/b351a53c6f65b72728ec428b85e1c1df.png" class="size-6 rounded-full" />
-                  </div>
-                  <p class="text-primary text-sm">DeepSeek</p>
-                </a>
-                <a
-                  v-copy="detailData.content"
-                  class="w-20 h-16 flex flex-col items-center justify-center gap-2 cursor-pointer"
-                  href="https://www.doubao.com/"
-                  target="_blank"
-                >
-                  <div class="size-8 rounded-full border overflow-hidden flex items-center justify-center">
-                    <img src="https://hubapi.53ai.com/api/preview/d98b75d99fba38975312841a3c85aa72.png" class="size-6 rounded-full" />
-                  </div>
-                  <p class="text-primary text-sm">豆包</p>
-                </a>
-                <a
-                  v-copy="detailData.content"
-                  class="w-20 h-16 flex flex-col items-center justify-center gap-2 cursor-pointer"
-                  href="https://yuanbao.tencent.com/"
-                  target="_blank"
-                >
-                  <div class="size-8 rounded-full border overflow-hidden flex items-center justify-center">
-                    <img src="https://hubapi.53ai.com/api/preview/433b8834406d66420558b6f093f0fed1.png" class="size-6 rounded-full" />
-                  </div>
-                  <p class="text-primary text-sm">元宝</p>
-                </a>
-                <a
-                  v-copy="detailData.content"
-                  class="w-20 h-16 flex flex-col items-center justify-center gap-2 cursor-pointer"
-                  href="https://kimi.moonshot.cn/"
-                  target="_blank"
-                >
-                  <div class="size-8 rounded-full border overflow-hidden flex items-center justify-center">
-                    <img src="https://hubapi.53ai.com/api/preview/5e6d9e9c76c4d092cd3576404d7705e0.png" class="size-6 rounded-full" />
-                  </div>
-                  <p class="text-primary text-sm">Kimi</p>
-                </a>
-                <a
-                  v-copy="detailData.content"
-                  class="w-20 h-16 flex flex-col items-center justify-center gap-2 cursor-pointer"
-                  href="https://chat.baidu.com"
-                  target="_blank"
-                >
-                  <div class="size-8 rounded-full border overflow-hidden flex items-center justify-center">
-                    <img src="https://hubapi.53ai.com/api/preview/b5970a3697479df6b00d73ab827dabb2.png" class="size-6 rounded-full" />
-                  </div>
-                  <p class="text-primary text-sm">百度AI+</p>
-                </a>
-                <a
-                  v-copy="detailData.content"
-                  class="w-20 h-16 flex flex-col items-center justify-center gap-2 cursor-pointer"
-                  href="https://chatgpt.com/"
-                  target="_blank"
-                >
-                  <div class="size-8 rounded-full border overflow-hidden flex items-center justify-center">
-                    <img src="https://hubapi.53ai.com/api/preview/bcade7d1cebca9273da445ffc8671711.png" class="size-6 rounded-full" />
-                  </div>
-                  <p class="text-primary text-sm">ChatGPT</p>
-                </a>
+              <div v-if="detailData.ai_links_data && detailData.ai_links_data.length" class="flex items-center justify-center gap-4 flex-wrap">
+                <template v-for="item in detailData.ai_links_data" :key="item.url">
+                  <a
+                    v-copy="detailData.content"
+                    class="w-20 h-16 flex flex-col items-center justify-center gap-2 cursor-pointer"
+                    :href="item.url"
+                    target="_blank"
+                    @click.prevent="handleClick"
+                  >
+                    <div class="size-8 rounded-full border overflow-hidden flex items-center justify-center">
+                      <img :src="item.logo" class="size-6 rounded-full" />
+                    </div>
+                    <p class="text-primary text-sm whitespace-nowrap">{{ item.name }}</p>
+                  </a>
+                </template>
               </div>
             </template>
           </div>
@@ -290,6 +238,7 @@
 </template>
 
 <script setup lang="ts">
+import { ElMessageBox } from 'element-plus'
 import { Close } from '@element-plus/icons-vue'
 import { onMounted, ref, computed } from 'vue'
 import { useRoute } from 'vue-router'
@@ -368,6 +317,23 @@ const virtualPrompt = ref(`
 现在，请告诉我您需要什么帮助？
 `)
 const isUseCase = ref(false)
+
+const handleClick = (e) => {
+  const { href } = e.currentTarget
+  const { target } = e.currentTarget
+  const siteName = e.currentTarget.querySelector('p').textContent
+  ElMessageBox.confirm(window.$t('common.allow_to', { name: siteName }), {
+    confirmButtonText: window.$t('action.allow', { name: siteName }),
+    cancelButtonText: window.$t('action.cancel'),
+    center: true,
+    showClose: false,
+    customStyle: 'width: 350px'
+  })
+    .then(() => {
+      window.open(href, target)
+    })
+    .catch(() => {})
+}
 
 const useCaseList = computed(() => {
   const use_cases = detailData.value.custom_config.use_cases || []

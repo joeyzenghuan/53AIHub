@@ -4,13 +4,28 @@ import { img_host } from '@/utils/config'
 const AGENT_TYPE = {
   PROMPT: 'prompt',
   COZE_AGENT_CN: 'coze_agent_cn',
+  COZE_WORKFLOW_CN: 'coze_workflow_cn',
   APP_BUILDER: 'app_builder',
   '53AI_AGENT': '53ai_agent',
+  '53AI_WORKFLOW': '53ai_workflow',
   DIFY_AGENT: 'dify_agent',
+  DIFY_WORKFLOW: 'dify_workflow',
   BAILIAN: 'bailian',
   VOLCENGINE: 'volcengine',
   YUANQI: 'yuanqi',
-  FASTGPT_AGENT: 'fastgpt_agent'
+  FASTGPT_AGENT: 'fastgpt_agent',
+  FASTGPT_WORKFLOW: 'fastgpt_workflow',
+  MAXKB_AGENT: 'maxkb_agent',
+} as const
+
+const BACKEND_AGENT_TYPE = {
+  AGENT: 0,
+  WORKFLOW: 1,
+}
+
+const AGENT_MODES = {
+  CHAT: 'chat',
+  COMPLETION: 'completion',
 } as const
 
 // 统一的平台配置
@@ -28,9 +43,9 @@ const PLATFORM_CONFIG = {
     agents: [
       {
         id: AGENT_TYPE.PROMPT,
-        name: AGENT_TYPE.PROMPT
-      }
-    ]
+        name: AGENT_TYPE.PROMPT,
+      },
+    ],
   },
   coze_cn: {
     providerValue: 1,
@@ -40,9 +55,15 @@ const PLATFORM_CONFIG = {
     agents: [
       {
         id: AGENT_TYPE.COZE_AGENT_CN,
-        name: AGENT_TYPE.COZE_AGENT_CN
-      }
-    ]
+        name: AGENT_TYPE.COZE_AGENT_CN,
+      },
+      {
+        id: AGENT_TYPE.COZE_WORKFLOW_CN,
+        name: AGENT_TYPE.COZE_WORKFLOW_CN,
+        mode: AGENT_MODES.COMPLETION,
+        visible: false,
+      },
+    ],
   },
   app_builder: {
     providerValue: 3,
@@ -52,9 +73,9 @@ const PLATFORM_CONFIG = {
     agents: [
       {
         id: AGENT_TYPE.APP_BUILDER,
-        name: AGENT_TYPE.APP_BUILDER
-      }
-    ]
+        name: AGENT_TYPE.APP_BUILDER,
+      },
+    ],
   },
   '53ai': {
     providerValue: 4,
@@ -64,9 +85,15 @@ const PLATFORM_CONFIG = {
     agents: [
       {
         id: AGENT_TYPE['53AI_AGENT'],
-        name: AGENT_TYPE['53AI_AGENT']
-      }
-    ]
+        name: AGENT_TYPE['53AI_AGENT'],
+      },
+      {
+        id: AGENT_TYPE['53AI_WORKFLOW'],
+        name: AGENT_TYPE['53AI_WORKFLOW'],
+        mode: AGENT_MODES.COMPLETION,
+        visible: false,
+      },
+    ],
   },
   dify: {
     channelValue: 1001,
@@ -76,9 +103,15 @@ const PLATFORM_CONFIG = {
     agents: [
       {
         id: AGENT_TYPE.DIFY_AGENT,
-        name: AGENT_TYPE.DIFY_AGENT
-      }
-    ]
+        name: AGENT_TYPE.DIFY_AGENT,
+      },
+      {
+        id: AGENT_TYPE.DIFY_WORKFLOW,
+        name: AGENT_TYPE.DIFY_WORKFLOW,
+        mode: AGENT_MODES.COMPLETION,
+        visible: false,
+      },
+    ],
   },
   bailian: {
     channelValue: 1003,
@@ -88,9 +121,9 @@ const PLATFORM_CONFIG = {
     agents: [
       {
         id: AGENT_TYPE.BAILIAN,
-        name: AGENT_TYPE.BAILIAN
-      }
-    ]
+        name: AGENT_TYPE.BAILIAN,
+      },
+    ],
   },
   volcengine: {
     channelValue: 1004,
@@ -100,9 +133,9 @@ const PLATFORM_CONFIG = {
     agents: [
       {
         id: AGENT_TYPE.VOLCENGINE,
-        name: AGENT_TYPE.VOLCENGINE
-      }
-    ]
+        name: AGENT_TYPE.VOLCENGINE,
+      },
+    ],
   },
   yuanqi: {
     channelValue: 1006,
@@ -112,9 +145,9 @@ const PLATFORM_CONFIG = {
     agents: [
       {
         id: AGENT_TYPE.YUANQI,
-        name: AGENT_TYPE.YUANQI
-      }
-    ]
+        name: AGENT_TYPE.YUANQI,
+      },
+    ],
   },
   fastgpt: {
     channelValue: 22,
@@ -124,10 +157,28 @@ const PLATFORM_CONFIG = {
     agents: [
       {
         id: AGENT_TYPE.FASTGPT_AGENT,
-        name: AGENT_TYPE.FASTGPT_AGENT
-      }
-    ]
-  }
+        name: AGENT_TYPE.FASTGPT_AGENT,
+      },
+      {
+        id: AGENT_TYPE.FASTGPT_WORKFLOW,
+        name: AGENT_TYPE.FASTGPT_WORKFLOW,
+        mode: AGENT_MODES.COMPLETION,
+        visible: false,
+      },
+    ],
+  },
+  maxkb: {
+    channelValue: 1008,
+    providerValue: 1008,
+    category: 'intelligent_agent_platform',
+    auth: false,
+    agents: [
+      {
+        id: AGENT_TYPE.MAXKB_AGENT,
+        name: AGENT_TYPE.MAXKB_AGENT,
+      },
+    ],
+  },
 } as const
 
 // 统一的大模型配置
@@ -136,42 +187,39 @@ const MODEL_CONFIG = {
     name: 'siliconflow',
     owner: 'siliconflow',
     channelType: 44,
-    multiple: false
+    multiple: false,
   },
   deepseek: {
     name: 'deepseek',
     owner: 'deepseek',
     channelType: 36,
-    multiple: false
+    multiple: false,
   },
   openai: {
     name: 'openai',
     owner: 'openai',
     channelType: 1,
-    multiple: false
+    multiple: false,
   },
   azure: {
     name: 'azure',
     owner: 'openai',
     channelType: 3,
-    multiple: true
-  }
+    multiple: true,
+  },
 } as const
 
-export const AGENT_MODES = {
-  CHAT: 'chat',
-  COMPLETION: 'completion'
-} as const
+export { AGENT_MODES, BACKEND_AGENT_TYPE }
 
 export const AGENT_CATEGORIES = {
   INTELLIGENT_AGENT_PLATFORM: 'intelligent_agent_platform',
   CLOUD_COMPUTING_PLATFORM: 'cloud_computing_platform',
-  MODEL_PLATFORM: 'model_platform'
+  MODEL_PLATFORM: 'model_platform',
 } as const
 
 export const PROVIDER_CATEGORIES = {
   INTELLIGENT_AGENT_PLATFORM: 'intelligent_agent_platform',
-  CLOUD_COMPUTING_PLATFORM: 'cloud_computing_platform'
+  CLOUD_COMPUTING_PLATFORM: 'cloud_computing_platform',
 } as const
 
 // 类型定义
@@ -260,6 +308,7 @@ interface AgentConfig {
   providerId: ProviderValue
   mode: AgentMode
   category: AgentCategory
+  visible: boolean
 }
 
 export interface ModelConfig {
@@ -281,7 +330,7 @@ export const providers: Record<ProviderId, ProviderConfig> = Object.fromEntries(
     .filter(([key, config]) => config.providerValue > 0)
     .map(([key, config]) => [
       config.providerValue,
-      createConfig(key, (type) => ({
+      createConfig(key, type => ({
         id: config.providerValue,
         name: type,
         icon: type,
@@ -289,54 +338,60 @@ export const providers: Record<ProviderId, ProviderConfig> = Object.fromEntries(
         channelId: type as ChannelType,
         agentId: config.agents[0].name as AgentType,
         auth: config.auth,
-        category: config.category as ProviderCategory
-      }))
+        category: config.category as ProviderCategory,
+      })),
     ])
 ) as Record<ProviderId, ProviderConfig>
 
 export const channels: Record<ChannelType, ChannelConfig> = Object.fromEntries(
   Object.entries(PLATFORM_CONFIG).map(([key, config]) => [
     key,
-    createConfig(key, (type) => ({
+    createConfig(key, type => ({
       id: type as ChannelType,
       name: type,
       label: `provider_platform.${type}`,
       icon: type,
-      channelType: config.channelValue
-    }))
+      channelType: config.channelValue,
+    })),
   ])
 ) as Record<ChannelType, ChannelConfig>
 
 export const agents: Record<AgentType, AgentConfig> = Object.fromEntries(
-  Object.entries(PLATFORM_CONFIG).map(([key, config]) => [
-    config.agents[0].name,
-    createConfig(config.agents[0].name, (type) => ({
-      id: type as AgentType,
-      name: type as AgentType,
-      label: `agent_app.${type}`,
-      icon: `${img_host}/agent/${type.toLowerCase()}.png`,
-      channelName: key as ChannelType,
-      channelType: config.channelValue as ChannelValue,
-      providerId: config.providerValue as ProviderValue,
-      mode: 'chat' as AgentMode,
-      category: config.category as AgentCategory
-    }))
-  ])
+  Object.entries(PLATFORM_CONFIG)
+    .map(([key, config]) => {
+      return config.agents.map(agent => {
+        return [
+          agent.name,
+          createConfig(agent.name, type => ({
+            id: type as AgentType,
+            name: type as AgentType,
+            label: `agent_app.${type}`,
+            icon: `${img_host}/agent/${type.toLowerCase()}.png`,
+            channelName: key as ChannelType,
+            channelType: config.channelValue as ChannelValue,
+            providerId: config.providerValue as ProviderValue,
+            mode: agent.mode || AGENT_MODES.CHAT,
+            category: config.category as AgentCategory,
+            visible: 'visible' in agent ? agent.visible : true,
+          })),
+        ]
+      })
+    })
+    .flat()
 ) as Record<AgentType, AgentConfig>
-
 // 模型配置
 export const models = Object.fromEntries(
   Object.entries(MODEL_CONFIG).map(([key, config]) => [
     key,
-    createConfig(key, (type) => ({
+    createConfig(key, type => ({
       id: type as ModelType,
       name: type,
       label: `provider_platform.${type}`,
       icon: type,
       owner: config.owner,
       channelType: config.channelType,
-      multiple: config.multiple
-    }))
+      multiple: config.multiple,
+    })),
   ])
 ) as Record<ModelType, ModelConfig>
 
@@ -395,13 +450,13 @@ const CHANNEL_MAPPINGS = [
   ['Replicate', 46],
   ['Dummy', 47],
   ['dify', 1001],
-  ['53ai', 1002]
+  ['53ai', 1002],
 ] as const
 
 export const CHANNEL_TYPE_VALUE_MAP = new Map([
   ...CHANNEL_MAPPINGS,
   ...Object.entries(models).map(([key, value]) => [key, value.channelType] as const),
-  ...Object.entries(agents).map(([key, value]) => [key, value.channelType] as const)
+  ...Object.entries(agents).map(([key, value]) => [key, value.channelType] as const),
 ])
 
 // 工具函数
@@ -409,27 +464,27 @@ export const getProviderByAgentId = (agentId: AgentType) =>
   agents[agentId]?.providerId && providers[agents[agentId].providerId]
 
 export const getAgentsByCategory = (category: AgentConfig['category']) =>
-  Object.values(agents).filter((agent) => agent.category === category)
+  Object.values(agents).filter(agent => agent.category === category)
 
 export const getAgentsByProvider = (providerId: ProviderId) =>
-  Object.values(agents).filter((agent) => agent.providerId === providerId)
+  Object.values(agents).filter(agent => agent.providerId === providerId)
 
 export const getAgentByAgentType = (agentType: AgentType): AgentConfig =>
   agents[agentType] || ({} as AgentConfig)
 
 export const getAgentByChannelType = (channelType: ChannelValue): AgentConfig => {
   return (
-    Object.values(agents).find((agent) => agent.channelType === channelType) || ({} as AgentConfig)
+    Object.values(agents).find(agent => agent.channelType === channelType) || ({} as AgentConfig)
   )
 }
 
 export const getProvidersByAuth = (auth: boolean): ProviderConfig[] =>
-  Object.values(providers).filter((provider) => provider.auth === auth)
+  Object.values(providers).filter(provider => provider.auth === auth)
 
 // 获取所有 models 中的channleType
 export const getModelChannelTypes = () => {
-  return Object.values(models).map((model) => model.channelType)
+  return Object.values(models).map(model => model.channelType)
 }
 
 export const getModelByChannelType = (channelType: ModelValue): ModelConfig =>
-  Object.values(models).find((model) => model.channelType === channelType) || ({} as ModelConfig)
+  Object.values(models).find(model => model.channelType === channelType) || ({} as ModelConfig)

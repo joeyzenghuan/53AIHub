@@ -1,11 +1,7 @@
 // import type { AxiosProgressEvent, GenericAbortSignal } from 'axios'
 // import cache from '@/utils/cache'
 import user from './modules/user'
-import agent from './modules/agent'
 import group from './modules/group'
-import channel from './modules/channel'
-import subscription from './modules/subscription'
-import provider from './modules/provider'
 import conversation from './modules/conversation'
 import enterprise from './modules/enterprise'
 import setting from './modules/setting'
@@ -16,20 +12,12 @@ import { del, get, patch, post, put } from '@/utils/request'
 
 const api_config = {
   user,
-  agent,
   group,
-  channel,
-  subscription,
-  provider,
   conversation,
   enterprise,
   setting,
   qyy,
-  domain,
-  upload: {
-    url: '/upload',
-    method: 'POST',
-  },
+  domain
 }
 
 const REQUEST_MAP = new Map([
@@ -37,7 +25,7 @@ const REQUEST_MAP = new Map([
   ['POST', post],
   ['PATCH', patch],
   ['PUT', put],
-  ['DELETE', del],
+  ['DELETE', del]
 ])
 
 // export function fetchChatAPIProcess<T = any>(
@@ -111,18 +99,16 @@ const findEach = (source: any = {}, url = '') => {
       })
       source[key] = (config: any = {}) => {
         method = (config.method || method).toUpperCase()
-        if (['DELETE', 'DEL'].includes(method))
-          method = 'DELETE'
+        if (['DELETE', 'DEL'].includes(method)) method = 'DELETE'
         const _request = REQUEST_MAP.get(method) || REQUEST_MAP.get('GET')
         return _request({
           ...data,
           method,
           url: data.url || `${url}/${key}`,
-          ...config,
+          ...config
         })
       }
-    }
-    else {
+    } else {
       findEach(data, `${url}/${key}`)
     }
   })
@@ -130,5 +116,5 @@ const findEach = (source: any = {}, url = '') => {
 findEach(api_config)
 
 export default {
-  ...api_config,
+  ...api_config
 }

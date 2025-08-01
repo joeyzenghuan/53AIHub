@@ -12,7 +12,9 @@ const routes: RouteRecordRaw[] = [
     redirect: () => {
       return window.innerWidth < 768 || window.electron ? '/agent' : '/index-redirect?from_home=1'
     },
+    // redirect: '/index',
     component: () => import('@/layout/index.vue'),
+    // component: () => import('@/views/index/agent/index.vue'),
     children: [
       {
         path: '/chat',
@@ -125,8 +127,8 @@ const routes: RouteRecordRaw[] = [
   }
 ]
 
-export const isHashRouter = !!window.electron
-export const isHistoryRouter = !window.electron
+export const isHashRouter = true
+export const isHistoryRouter = false
 
 export const router = createRouter({
   // electron环境 需要使用hash跳转

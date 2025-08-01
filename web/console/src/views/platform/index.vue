@@ -3,6 +3,7 @@
     <Header :title="$t('module.platform')" />
     <div class="flex-1 flex flex-col bg-white p-6 mt-3 box-border max-h-[calc(100vh-100px)] overflow-auto">
       <!-- 平台列表 -->
+      <!-- #ifndef KM -->
       <template v-for="group in provider_group_list" :key="group.label">
         <h2 class="font-semibold text-[#1D1E1F] mb-6">
           {{ $t(group.label) }}
@@ -10,12 +11,15 @@
         <ul v-loading="provider_loading" class="flex flex-wrap gap-4 mb-8">
           <li
             v-for="opt in group.children"
-            :key="opt.value"
+            :key="opt.id"
             v-loading="opt.channel_loading"
             class="flex-none min-w-[246px] w-[24%] h-[178px] flex flex-col border rounded box-border overflow-hidden"
           >
             <div class="flex items-center gap-4 p-5 box-border">
-              <img class="flex-none size-10 overflow-hidden" :src="$getRealPath({ url: `/images/platform/${opt.icon}.png` })" />
+              <img
+                class="flex-none size-10 overflow-hidden"
+                :src="$getRealPath({ url: `/images/platform/${opt.icon}.png` })"
+              />
               <div class="text-[#1B2B51] font-semibold">
                 {{ $t(opt.label) }}
               </div>
@@ -89,6 +93,7 @@
           </li>
         </ul>
       </template>
+      <!-- #endif -->
 
       <!-- 大模型列表 -->
       <h2 class="w-full flex items-center font-semibold text-[#1D1E1F] mb-6">
@@ -112,7 +117,13 @@
                 <ElButton class="flex-none !px-5" type="default" size="large" @click.stop="handleModelEdit(group.data)">
                   {{ $t('action_setting') }}
                 </ElButton>
-                <ElButton v-debounce class="flex-none !ml-0 !px-3" type="default" size="large" @click.stop="handleModelDelete(group.data)">
+                <ElButton
+                  v-debounce
+                  class="flex-none !ml-0 !px-3"
+                  type="default"
+                  size="large"
+                  @click.stop="handleModelDelete(group.data)"
+                >
                   <ElIcon size="14">
                     <Delete />
                   </ElIcon>
@@ -127,13 +138,17 @@
                       <span class="text-[#4F5052] text-sm">
                         {{
                           $t('module.platform_model_models_total', {
-                            total: group.data.model_options.length
+                            total: group.data.model_options.length,
                           })
                         }}
                       </span>
                     </template>
                     <ul class="w-full flex flex-col gap-y-5 box-border overflow-auto">
-                      <li v-for="model in group.data.model_options" :key="model.value" class="w-full box-border flex items-center gap-2">
+                      <li
+                        v-for="model in group.data.model_options"
+                        :key="model.value"
+                        class="w-full box-border flex items-center gap-2"
+                      >
                         <img
                           v-if="model.icon"
                           class="flex-none w-[20px] h-[20px] object-contain"
@@ -169,25 +184,38 @@
                       <span class="text-[#4F5052] text-sm">
                         {{
                           $t('module.platform_model_models_total', {
-                            total: group.children.length
+                            total: group.children.length,
                           })
                         }}
                       </span>
                     </template>
                     <ul class="w-full flex flex-col gap-y-5 box-border overflow-auto">
                       <div v-for="(opt, opt_index) in group.children" :key="opt.channel_id">
-                        <li v-for="(model, model_index) in opt.model_options" :key="model.value" class="w-full box-border flex items-center gap-2">
+                        <li
+                          v-for="(model, model_index) in opt.model_options"
+                          :key="model.value"
+                          class="w-full box-border flex items-center gap-2"
+                        >
                           <img
                             v-if="model.icon"
                             class="flex-none w-[20px] h-[20px] object-contain"
                             :src="$getRealPath({ url: `/images/platform/${model.icon}.png` })"
                           />
                           <label class="flex-none text-sm text[#1D1E1F]">{{ model.label }}</label>
-                          <ElIcon class="flex-none cursor-pointer hover:opacity-70" size="14" @click="handleModelEdit(opt)">
+                          <ElIcon
+                            class="flex-none cursor-pointer hover:opacity-70"
+                            size="14"
+                            @click="handleModelEdit(opt)"
+                          >
                             <Setting />
                           </ElIcon>
                           <div class="flex-1" />
-                          <ElIcon class="flex-none cursor-pointer hover:opacity-70" size="16" color="#F04F4D" @click="handleModelDelete(opt)">
+                          <ElIcon
+                            class="flex-none cursor-pointer hover:opacity-70"
+                            size="16"
+                            color="#F04F4D"
+                            @click="handleModelDelete(opt)"
+                          >
                             <Remove />
                           </ElIcon>
                         </li>
@@ -230,8 +258,9 @@ import { PROVIDER_VALUE } from '@/constants/platform/provider'
 import type { ModelConfig, ProviderConfig } from '@/constants/platform/config'
 import { getModelByChannelType, getModelChannelTypes, getProvidersByAuth } from '@/constants/platform/config'
 import eventBus from '@/utils/event-bus'
+import { isInternalNetwork } from '@/utils'
 import { agentApi, channelApi, providerApi } from '@/api'
-import { useEnv } from '@/hooks/useEnv'
+
 import TipConfirm from '@/components/TipConfirm/setup'
 
 interface ProviderOption extends ProviderConfig {
@@ -252,10 +281,8 @@ const createProviderOption = (item: ProviderConfig): ProviderOption => ({
   client_secret: '',
   agent_total: 0,
   channel_loading: !item.auth,
-  value: item.id
+  value: item.id,
 })
-
-const { isLocalEnv, isOpLocalEnv } = useEnv()
 
 const auth_providers = ref<ProviderOption[]>(getProvidersByAuth(true).map(createProviderOption))
 const agent_providers = ref<ProviderOption[]>(getProvidersByAuth(false).map(createProviderOption))
@@ -274,8 +301,8 @@ const tool_options = ref([
     desc: 'module.platform_search_online_desc',
     icon: 'search-online',
     enable: true,
-    api_key: 'sk-5f90820c429943bb99aaa18804a0e385'
-  }
+    api_key: 'sk-5f90820c429943bb99aaa18804a0e385',
+  },
 ])
 const channel_list = ref([])
 const channel_loading = ref(false)
@@ -285,11 +312,11 @@ const provider_group_list = computed(() => {
   const list = [...auth_providers.value, ...agent_providers.value]
 
   return list.reduce((acc, item) => {
-    let group = acc.find((row) => row.label === item.category)
+    let group = acc.find(row => row.label === item.category)
     if (!group) {
       group = {
         label: item.category,
-        children: []
+        children: [],
       }
       acc.push(group)
     }
@@ -303,15 +330,15 @@ const loadProviderList = async () => {
   provider_loading.value = true
   try {
     const list = await providerApi.list()
-    auth_providers.value = auth_providers.value.map((item) => {
-      const providerData = list.find((row) => item.value === row.provider_type)
+    auth_providers.value = auth_providers.value.map(item => {
+      const providerData = list.find(row => item.value === row.provider_type)
       if (providerData) {
         return {
           ...item,
           ...providerData,
           connected: true,
           client_id: providerData.configs?.client_id || '',
-          client_secret: providerData.configs?.client_secret || ''
+          client_secret: providerData.configs?.client_secret || '',
         }
       }
       return item
@@ -326,8 +353,8 @@ const loadAllTotal = async () => {
       group_id: '-1',
       keyword: '',
       offset: 0,
-      limit: 1
-    }
+      limit: 1,
+    },
   })
   all_total.value = count
 }
@@ -335,7 +362,7 @@ const loadAgentListCount = async () => {
   loadAllTotal()
   for (const provider of agent_providers.value) {
     const { count = 0 } = await agentApi.list({
-      params: { channel_types: provider.value, limit: 1 }
+      params: { channel_types: provider.value, limit: 1 },
     })
     provider.agent_total = count
     provider.channel_loading = false
@@ -347,9 +374,9 @@ const loadModelList = async () => {
   try {
     const list = await channelApi.list()
     channel_list.value = list
-      .filter((item) => getModelChannelTypes().includes(+item.channel_type))
+      .filter(item => getModelChannelTypes().includes(+item.channel_type))
       .reduce((acc, item) => {
-        let group = acc.find((row) => row.channel_type === item.channel_type)
+        let group = acc.find(row => row.channel_type === item.channel_type)
         if (!group) {
           const model = getModelByChannelType(item.channel_type)
           group = {
@@ -358,7 +385,7 @@ const loadModelList = async () => {
             channel_type: item.channel_type,
             multiple: model.multiple,
             data: item,
-            children: []
+            children: [],
           }
           acc.push(group)
         }
@@ -376,12 +403,12 @@ const refresh = () => {
   loadAgentListCount()
 }
 const handleProviderAuthorize = ({ data = {} } = {}) => {
-  if ([PROVIDER_VALUE.COZE_CN].includes(data.value) && isLocalEnv.value && isOpLocalEnv.value) {
+  if ([PROVIDER_VALUE.COZE_CN].includes(data.value) && isInternalNetwork()) {
     return TipConfirm({
       title: window.$t('local_config_limited_tip'),
       content: window.$t('local_config_limited_desc', { url: window.location.href }),
       confirmButtonText: window.$t('know_it'),
-      showCancelButton: false
+      showCancelButton: false,
     }).open()
   }
   if (data.auth) authorize_ref.value.open({ data })
@@ -398,8 +425,9 @@ const handleProviderDelete = async ({ data = {} } = {}) => {
   await providerApi.delete({ data: { provider_id: data.provider_id } })
   ElMessage.success(window.$t('action_delete_success'))
   setTimeout(() => {
+    auth_providers.value = getProvidersByAuth(true).map(createProviderOption)
     loadProviderList()
-  }, 600)
+  }, 1000)
 }
 const handleToolEnableChange = (opt = {}) => {
   ElMessage.success(window.$t(opt.enable ? 'enabled' : 'disabled'))
@@ -413,7 +441,7 @@ const handleModelAdd = (data: ModelConfig) => {
   model_save_ref.value.open({ channel_type: data.channelType })
 }
 
-const handleModelEdit = (data) => {
+const handleModelEdit = data => {
   model_save_ref.value.open(data)
 }
 const handleModelDelete = async (data, model) => {
@@ -427,12 +455,12 @@ const handleModelDelete = async (data, model) => {
         base_url: data.base_url,
         config: data.config || {},
         models: data.model_options
-          ?.map((item) => item.value)
-          .filter((item) => item !== model.value)
+          ?.map(item => item.value)
+          .filter(item => item !== model.value)
           .join(','),
         name: data.name,
-        type: data.channel_type
-      }
+        type: data.channel_type,
+      },
     })
   } else {
     await channelApi.delete({ data: { channel_id: data.channel_id } })
@@ -447,7 +475,7 @@ const onModelEdit = ({ data = {}, parent_data = {} } = {}) => {
 }
 
 const onAgentListChange = ({ data = {}, count = 0 } = {}) => {
-  const provider = agent_providers.value.find((item) => item.value === data.value)
+  const provider = agent_providers.value.find(item => item.value === data.value)
   if (provider) provider.agent_total = count
   loadAgentListCount()
 }

@@ -86,11 +86,18 @@ export const getConfirmPasswordRules = (form: any, passwordField: string) => {
   return {
     validator: (rule: any, value: string) => {
       if (value !== form[passwordField]) {
-        return Promise.reject(window.$t('form.password_not_match'));
-      } else {
-        return Promise.resolve();
+        return Promise.reject(window.$t('form.password_not_match'))
       }
+      return Promise.resolve()
     },
     trigger: 'blur'
+  }
+}
+
+export const getRequiredRules = (message: string, trigger: string | string[] = 'blur') => {
+  return {
+    required: true,
+    message: message || window.$t('form.input_placeholder'),
+    trigger
   }
 }

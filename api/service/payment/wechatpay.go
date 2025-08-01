@@ -12,6 +12,7 @@ import (
 	"io"
 	"net/http"
 	"strings"
+	"time"
 
 	"github.com/53AI/53AIHub/common/storage"
 	"github.com/53AI/53AIHub/config"
@@ -142,8 +143,53 @@ func (w *WechatService) CloseOrder(order *model.Order, paySetting *model.PaySett
 
 // Refund 微信退款
 func (w *WechatService) Refund(order *model.Order, paySetting *model.PaySetting) (any, error) {
-	// 实现微信支付退款逻辑
-	return "", nil
+	// 验证微信支付配置
+	wechatConfig, err := ValidateWechatConfig(paySetting.PayConfig)
+	if err != nil {
+		xlog.Errorf("[Wechat] invalid config: %v", err)
+		return "", fmt.Errorf("invalid wechat configuration: %w", err)
+	}
+
+	// 初始化微信客户端
+	client, err := InitWechatClient(wechatConfig)
+	if err != nil {
+		return nil, err
+	}
+
+	// 构建退款请求参数
+	bm := make(gopay.BodyMap)
+	bm.Set("out_trade_no", order.OrderId)                    // 商户订单号
+	bm.Set("out_refund_no", generateRefundNo(order.OrderId)) // 商户退款单号，需要唯一
+
+	// 设置退款金额信息
+	amount := make(gopay.BodyMap)
+	amount.Set("refund", int64(order.Amount)) // 退款金额
+	amount.Set("total", int64(order.Amount))  // 原订单金额
+	amount.Set("currency", order.Currency)    // 货币类型
+	bm.Set("amount", amount)
+
+	// 设置退款原因（可选）
+	bm.Set("reason", "测试用户申请退款")
+
+	// 发起退款请求
+	refundRsp, err := client.V3Refund(context.Background(), bm)
+	if err != nil {
+		return nil, fmt.Errorf("发起微信退款失败: %w", err)
+	}
+
+	// 检查响应状态
+	if refundRsp.Code != wechat.Success {
+		return nil, fmt.Errorf("微信退款失败: %s", refundRsp.Error)
+	}
+
+	// 返回退款结果
+	return refundRsp, nil
+}
+
+// generateRefundNo 生成退款单号
+func generateRefundNo(orderId string) string {
+	// 使用订单号+时间戳+随机数生成唯一退款单号
+	return fmt.Sprintf("%s_refund_%d", orderId, time.Now().Unix())
 }
 
 // QueryPaymentStatus 查询微信支付状态
@@ -166,7 +212,7 @@ func (w *WechatService) QueryPaymentStatus(order *model.Order, paySetting *model
 	if wxRsp.Code != wechat.Success {
 		return nil, fmt.Errorf("WeChat payment error: %s", wxRsp.Error)
 	}
-	return wxRsp.Response, nil
+	return wxRsp, nil
 }
 
 // Function to decrypt sensitive data
@@ -414,6 +460,7 @@ func buildWechatPaymentBodyMap(wechatConfig model.WechatPayConfig, order *model.
 	bm.Set("out_trade_no", order.OrderId)
 
 	notifyURL := formatNotifyURL(wechatConfig.NotifyURL, config.ApiHost, order.Eid, model.PayTypeWechat)
+	xlog.Info("notifyURL:", notifyURL)
 	bm.Set("notify_url", notifyURL)
 
 	amountBM := make(gopay.BodyMap)

@@ -2,6 +2,7 @@
 const colors = require('tailwindcss/colors')
 
 module.exports = {
+  mode: 'jit',
   darkMode: 'class',
   content: ['./index.html', './src/**/*.{vue,js,ts,jsx,tsx}'],
   theme: {
@@ -10,6 +11,9 @@ module.exports = {
     },
     extend: {
       height: {
+        15: '60px'
+      },
+      padding: {
         15: '60px'
       },
       animation: {

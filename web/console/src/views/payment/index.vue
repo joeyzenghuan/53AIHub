@@ -9,12 +9,19 @@
           <div class="relative w-full flex items-center gap-3">
             <SvgIcon name="wechat" width="24" />
             <label class="font-semibold text-[#1D1E1F]">{{ $t('payment.type.wechat') }}</label>
-            <ElTag v-if="wechat_setting_info.pay_status" class="!border-none !bg-[#E3F6E0] !text-[#09BB07]" type="success" size="default">
+            <ElTag
+              v-if="wechat_setting_info.pay_status"
+              class="!border-none !bg-[#E3F6E0] !text-[#09BB07]"
+              type="success"
+              size="default"
+            >
               {{ $t('enabled') }}
             </ElTag>
             <div class="flex-1" />
             <ElDropdown placement="bottom" @command="handleCommand($event, 'wechat')">
-              <div class="!border-none !outline-none p-1 cursor-pointer rounded overflow-hidden invisible group-hover:visible hover:bg-[#F0F0F0]">
+              <div
+                class="!border-none !outline-none p-1 cursor-pointer rounded overflow-hidden invisible group-hover:visible hover:bg-[#F0F0F0]"
+              >
                 <ElIcon class="rotate-90" size="16">
                   <MoreFilled />
                 </ElIcon>
@@ -49,12 +56,19 @@
           <div class="relative w-full flex items-center gap-3">
             <SvgIcon name="alipay" width="24" />
             <label class="font-semibold text-[#1D1E1F]">{{ $t('payment.type.alipay') }}</label>
-            <ElTag v-if="alipay_setting_info.pay_status" class="!border-none !bg-[#E3F6E0] !text-[#09BB07]" type="success" size="default">
+            <ElTag
+              v-if="alipay_setting_info.pay_status"
+              class="!border-none !bg-[#E3F6E0] !text-[#09BB07]"
+              type="success"
+              size="default"
+            >
               {{ $t('enabled') }}
             </ElTag>
             <div class="flex-1" />
             <ElDropdown placement="bottom" @command="handleCommand($event, 'alipay')">
-              <div class="!border-none !outline-none p-1 cursor-pointer rounded overflow-hidden invisible group-hover:visible hover:bg-[#F0F0F0]">
+              <div
+                class="!border-none !outline-none p-1 cursor-pointer rounded overflow-hidden invisible group-hover:visible hover:bg-[#F0F0F0]"
+              >
                 <ElIcon class="rotate-90" size="16">
                   <MoreFilled />
                 </ElIcon>
@@ -89,12 +103,19 @@
           <div class="relative w-full flex items-center gap-3">
             <SvgIcon name="manual-pay" width="24" />
             <label class="font-semibold text-[#1D1E1F]">{{ $t('payment.type.manual') }}</label>
-            <ElTag v-if="manual_setting_info.pay_status" class="!border-none !bg-[#E3F6E0] !text-[#09BB07]" type="success" size="default">
+            <ElTag
+              v-if="manual_setting_info.pay_status"
+              class="!border-none !bg-[#E3F6E0] !text-[#09BB07]"
+              type="success"
+              size="default"
+            >
               {{ $t('enabled') }}
             </ElTag>
             <div class="flex-1" />
             <ElDropdown placement="bottom" @command="handleCommand($event, 'manual')">
-              <div class="!border-none !outline-none p-1 cursor-pointer rounded overflow-hidden invisible group-hover:visible hover:bg-[#F0F0F0]">
+              <div
+                class="!border-none !outline-none p-1 cursor-pointer rounded overflow-hidden invisible group-hover:visible hover:bg-[#F0F0F0]"
+              >
                 <ElIcon class="rotate-90" size="16">
                   <MoreFilled />
                 </ElIcon>
@@ -134,7 +155,9 @@
             <label class="font-semibold text-[#1D1E1F]">{{ $t('payment.type.paypal') }}</label>
             <div class="flex-1" />
             <ElDropdown placement="bottom" @command="handleCommand($event, 'paypal')">
-              <div class="!border-none !outline-none p-1 cursor-pointer rounded overflow-hidden invisible group-hover:visible hover:bg-[#F0F0F0]">
+              <div
+                class="!border-none !outline-none p-1 cursor-pointer rounded overflow-hidden invisible group-hover:visible hover:bg-[#F0F0F0]"
+              >
                 <ElIcon class="rotate-90" size="16">
                   <MoreFilled />
                 </ElIcon>
@@ -175,10 +198,10 @@ import AlipaySettingDialog from './components/alipay-setting-dialog.vue'
 import eventBus from '@/utils/event-bus'
 import { settingApi } from '@/api/modules/setting'
 import { PAYMENT_TYPE } from '@/constants/payment'
-import { useEnv } from '@/hooks/useEnv'
 import TipConfirm from '@/components/TipConfirm/setup'
 
-const { isLocalEnv, isOpLocalEnv } = useEnv()
+import { isInternalNetwork } from '@/utils'
+
 const wechat_setting_ref = ref()
 const manual_setting_ref = ref()
 const alipay_setting_ref = ref()
@@ -197,22 +220,27 @@ onUnmounted(() => {
 
 const refresh = async () => {
   const list = await settingApi.paymentSettingList()
-  wechat_setting_info.value = list.find((item) => item.pay_type === PAYMENT_TYPE.WECHAT) || {}
-  manual_setting_info.value = list.find((item) => item.pay_type === PAYMENT_TYPE.MANUAL) || {}
-  alipay_setting_info.value = list.find((item) => item.pay_type === PAYMENT_TYPE.ALIPAY) || {}
+  wechat_setting_info.value = list.find(item => item.pay_type === PAYMENT_TYPE.WECHAT) || {}
+  manual_setting_info.value = list.find(item => item.pay_type === PAYMENT_TYPE.MANUAL) || {}
+  alipay_setting_info.value = list.find(item => item.pay_type === PAYMENT_TYPE.ALIPAY) || {}
 }
 
 const handleCommand = async (command, type = '') => {
-  if (type == 'paypal') return ElMessage.warning(window.$t('feature_coming_soon'))
-  if (isLocalEnv.value && isOpLocalEnv.value) {
+  if (type === 'paypal') return ElMessage.warning(window.$t('feature_coming_soon'))
+  if (isInternalNetwork() && type !== 'manual') {
     return TipConfirm({
       title: window.$t('local_config_limited_tip'),
       content: window.$t('local_config_limited_desc', { url: window.location.href }),
       confirmButtonText: window.$t('know_it'),
-      showCancelButton: false
+      showCancelButton: false,
     }).open()
   }
-  const data = type === 'wechat' ? wechat_setting_info.value : type === 'alipay' ? alipay_setting_info.value : manual_setting_info.value
+  const data =
+    type === 'wechat'
+      ? wechat_setting_info.value
+      : type === 'alipay'
+        ? alipay_setting_info.value
+        : manual_setting_info.value
   switch (command) {
     case 'setting':
       if (type === 'wechat') wechat_setting_ref.value.open({ data })

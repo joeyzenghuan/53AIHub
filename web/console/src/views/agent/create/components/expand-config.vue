@@ -10,8 +10,8 @@
         </div>
       </div>
       <div class="flex-none text-sm text-[#1D1E1F]">
-        {{ store.form_data.custom_config.file_parse.enable ? $t('action_open') : $t('action_close') }}
-        <el-switch v-model="store.form_data.custom_config.file_parse.enable" />
+        {{ store.form_data.settings.file_parse.enable ? $t('action_open') : $t('action_close') }}
+        <el-switch v-model="store.form_data.settings.file_parse.enable" />
       </div>
     </div>
     <div v-if="store.support_image" class="flex items-center gap-2 mt-4">
@@ -21,8 +21,8 @@
         </div>
       </div>
       <div class="flex-none text-sm text-[#1D1E1F]">
-        {{ store.form_data.custom_config.image_parse.enable ? $t('action_open') : $t('action_close') }}
-        <el-switch v-model="store.form_data.custom_config.image_parse.enable" />
+        {{ store.form_data.settings.image_parse.enable ? $t('action_open') : $t('action_close') }}
+        <el-switch v-model="store.form_data.settings.image_parse.enable" />
       </div>
     </div>
   </template>
@@ -34,6 +34,4 @@ import { useAgentFormStore } from '../store';
 const store = useAgentFormStore()
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

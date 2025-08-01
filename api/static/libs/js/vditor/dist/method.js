@@ -38,49 +38,333 @@ return /******/ (() => { // webpackBootstrap
 /******/ 	"use strict";
 /******/ 	var __webpack_modules__ = ({
 
-/***/ 29:
+/***/ 10:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   h: () => (/* binding */ merge)
+/* harmony export */   T: () => (/* binding */ addStyle)
 /* harmony export */ });
-var merge = function () {
-    var options = [];
-    for (var _i = 0; _i < arguments.length; _i++) {
-        options[_i] = arguments[_i];
+var addStyle = function (url, id) {
+    if (!document.getElementById(id)) {
+        var styleElement = document.createElement("link");
+        styleElement.id = id;
+        styleElement.rel = "stylesheet";
+        styleElement.type = "text/css";
+        styleElement.href = url;
+        document.getElementsByTagName("head")[0].appendChild(styleElement);
     }
-    var target = {};
-    var merger = function (obj) {
-        for (var prop in obj) {
-            if (obj.hasOwnProperty(prop)) {
-                if (Object.prototype.toString.call(obj[prop]) === "[object Object]") {
-                    target[prop] = merge(target[prop], obj[prop]);
-                }
-                else {
-                    target[prop] = obj[prop];
-                }
-            }
-        }
-    };
-    for (var i = 0; i < options.length; i++) {
-        merger(options[i]);
-    }
-    return target;
 };
 
 
 /***/ }),
 
-/***/ 47:
+/***/ 13:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   l: () => (/* binding */ mediaRender)
+/* harmony export */ });
+/* harmony import */ var _util_function__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(138);
+
+var videoRender = function (element, url) {
+    element.insertAdjacentHTML("afterend", "<video controls=\"controls\" src=\"".concat(url, "\"></video>"));
+    element.remove();
+};
+var audioRender = function (element, url) {
+    element.insertAdjacentHTML("afterend", "<audio controls=\"controls\" src=\"".concat(url, "\"></audio>"));
+    element.remove();
+};
+var iframeRender = function (element, url) {
+    var youtubeMatch = url.match(/\/\/(?:www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w|-]{11})(?:(?:[\?&]t=)(\S+))?/);
+    var youkuMatch = url.match(/\/\/v\.youku\.com\/v_show\/id_(\w+)=*\.html/);
+    var qqMatch = url.match(/\/\/v\.qq\.com\/x\/cover\/.*\/([^\/]+)\.html\??.*/);
+    var coubMatch = url.match(/(?:www\.|\/\/)coub\.com\/view\/(\w+)/);
+    var facebookMatch = url.match(/(?:www\.|\/\/)facebook\.com\/([^\/]+)\/videos\/([0-9]+)/);
+    var dailymotionMatch = url.match(/.+dailymotion.com\/(video|hub)\/(\w+)\?/);
+    var bilibiliMatch = url.match(/(?:www\.|\/\/)bilibili\.com\/video\/(\w+)/);
+    var tedMatch = url.match(/(?:www\.|\/\/)ted\.com\/talks\/(\w+)/);
+    if (youtubeMatch && youtubeMatch[1].length === 11) {
+        element.insertAdjacentHTML("afterend", "<iframe class=\"iframe__video\" src=\"//www.youtube.com/embed/".concat(youtubeMatch[1] +
+            (youtubeMatch[2] ? "?start=" + youtubeMatch[2] : ""), "\"></iframe>"));
+        element.remove();
+    }
+    else if (youkuMatch && youkuMatch[1]) {
+        element.insertAdjacentHTML("afterend", "<iframe class=\"iframe__video\" src=\"//player.youku.com/embed/".concat(youkuMatch[1], "\"></iframe>"));
+        element.remove();
+    }
+    else if (qqMatch && qqMatch[1]) {
+        element.insertAdjacentHTML("afterend", "<iframe class=\"iframe__video\" src=\"https://v.qq.com/txp/iframe/player.html?vid=".concat(qqMatch[1], "\"></iframe>"));
+        element.remove();
+    }
+    else if (coubMatch && coubMatch[1]) {
+        element.insertAdjacentHTML("afterend", "<iframe class=\"iframe__video\"\n src=\"//coub.com/embed/".concat(coubMatch[1], "?muted=false&autostart=false&originalSize=true&startWithHD=true\"></iframe>"));
+        element.remove();
+    }
+    else if (facebookMatch && facebookMatch[0]) {
+        element.insertAdjacentHTML("afterend", "<iframe class=\"iframe__video\"\n src=\"https://www.facebook.com/plugins/video.php?href=".concat(encodeURIComponent(facebookMatch[0]), "\"></iframe>"));
+        element.remove();
+    }
+    else if (dailymotionMatch && dailymotionMatch[2]) {
+        element.insertAdjacentHTML("afterend", "<iframe class=\"iframe__video\"\n src=\"https://www.dailymotion.com/embed/video/".concat(dailymotionMatch[2], "\"></iframe>"));
+        element.remove();
+    }
+    else if (url.indexOf("bilibili.com") > -1 && (url.indexOf("bvid=") > -1 || (bilibiliMatch && bilibiliMatch[1]))) {
+        var params_1 = {
+            bvid: (0,_util_function__WEBPACK_IMPORTED_MODULE_0__/* .getSearch */ .TK)("bvid", url) || (bilibiliMatch && bilibiliMatch[1]),
+            page: "1",
+            high_quality: "1",
+            as_wide: "1",
+            allowfullscreen: "true",
+            autoplay: "0"
+        };
+        new URL(url.startsWith("http") ? url : "https:" + url).search.split("&").forEach(function (item, index) {
+            if (!item) {
+                return;
+            }
+            if (index === 0) {
+                item = item.substr(1);
+            }
+            var keyValue = item.split("=");
+            params_1[keyValue[0]] = keyValue[1];
+        });
+        var src_1 = "https://player.bilibili.com/player.html?";
+        var keys_1 = Object.keys(params_1);
+        keys_1.forEach(function (key, index) {
+            src_1 += "".concat(key, "=").concat(params_1[key]);
+            if (index < keys_1.length - 1) {
+                src_1 += "&";
+            }
+        });
+        element.insertAdjacentHTML("afterend", "<iframe class=\"iframe__video\" src=\"".concat(src_1, "\"></iframe>"));
+        element.remove();
+    }
+    else if (tedMatch && tedMatch[1]) {
+        element.insertAdjacentHTML("afterend", "<iframe class=\"iframe__video\" src=\"//embed.ted.com/talks/".concat(tedMatch[1], "\"></iframe>"));
+        element.remove();
+    }
+};
+var mediaRender = function (element) {
+    if (!element) {
+        return;
+    }
+    element.querySelectorAll("a").forEach(function (aElement) {
+        var url = aElement.getAttribute("href");
+        if (!url) {
+            return;
+        }
+        if (url.match(/^.+.(mp4|m4v|ogg|ogv|webm)$/)) {
+            videoRender(aElement, url);
+        }
+        else if (url.match(/^.+.(mp3|wav|flac)$/)) {
+            audioRender(aElement, url);
+        }
+        else {
+            iframeRender(aElement, url);
+        }
+    });
+};
+
+
+/***/ }),
+
+/***/ 138:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   Ee: () => (/* binding */ genUUID),
+/* harmony export */   TK: () => (/* binding */ getSearch),
+/* harmony export */   kY: () => (/* binding */ looseJsonParse)
+/* harmony export */ });
+var genUUID = function () { return ([1e7].toString() + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, function (c) {
+    return (parseInt(c, 10) ^ (window.crypto.getRandomValues(new Uint32Array(1))[0] & (15 >> (parseInt(c, 10) / 4)))).toString(16);
+}); };
+var getSearch = function (key, link) {
+    if (link === void 0) { link = window.location.search; }
+    var params = link.substring(link.indexOf("?"));
+    var hashIndex = params.indexOf("#");
+    // REF https://developer.mozilla.org/zh-CN/docs/Web/API/URLSearchParams
+    var urlSearchParams = new URLSearchParams(params.substring(0, hashIndex >= 0 ? hashIndex : undefined));
+    return urlSearchParams.get(key);
+};
+var looseJsonParse = function (text) {
+    return Function("\"use strict\";return (".concat(text, ")"))();
+};
+
+
+/***/ }),
+
+/***/ 145:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   KJ: () => (/* binding */ hasClosestByClassName),
+/* harmony export */   _Y: () => (/* binding */ hasClosestByMatchTag)
+/* harmony export */ });
+/* unused harmony exports hasTopClosestByClassName, hasTopClosestByAttribute, hasTopClosestByTag, getTopList, hasClosestByAttribute, hasClosestBlock, getLastNode */
+
+var hasTopClosestByClassName = function (element, className) {
+    var closest = hasClosestByClassName(element, className);
+    var parentClosest = false;
+    var findTop = false;
+    while (closest && !closest.classList.contains("vditor-reset") && !findTop) {
+        parentClosest = hasClosestByClassName(closest.parentElement, className);
+        if (parentClosest) {
+            closest = parentClosest;
+        }
+        else {
+            findTop = true;
+        }
+    }
+    return closest || false;
+};
+var hasTopClosestByAttribute = function (element, attr, value) {
+    var closest = hasClosestByAttribute(element, attr, value);
+    var parentClosest = false;
+    var findTop = false;
+    while (closest && !closest.classList.contains("vditor-reset") && !findTop) {
+        parentClosest = hasClosestByAttribute(closest.parentElement, attr, value);
+        if (parentClosest) {
+            closest = parentClosest;
+        }
+        else {
+            findTop = true;
+        }
+    }
+    return closest || false;
+};
+var hasTopClosestByTag = function (element, nodeName) {
+    var closest = hasClosestByTag(element, nodeName);
+    var parentClosest = false;
+    var findTop = false;
+    while (closest && !closest.classList.contains("vditor-reset") && !findTop) {
+        parentClosest = hasClosestByTag(closest.parentElement, nodeName);
+        if (parentClosest) {
+            closest = parentClosest;
+        }
+        else {
+            findTop = true;
+        }
+    }
+    return closest || false;
+};
+var getTopList = function (element) {
+    var topUlElement = hasTopClosestByTag(element, "UL");
+    var topOlElement = hasTopClosestByTag(element, "OL");
+    var topListElement = topUlElement;
+    if (topOlElement && (!topUlElement || (topUlElement && topOlElement.contains(topUlElement)))) {
+        topListElement = topOlElement;
+    }
+    return topListElement;
+};
+var hasClosestByAttribute = function (element, attr, value) {
+    if (!element) {
+        return false;
+    }
+    if (element.nodeType === 3) {
+        element = element.parentElement;
+    }
+    var e = element;
+    var isClosest = false;
+    while (e && !isClosest && !e.classList.contains("vditor-reset")) {
+        if (e.getAttribute(attr) === value) {
+            isClosest = true;
+        }
+        else {
+            e = e.parentElement;
+        }
+    }
+    return isClosest && e;
+};
+var hasClosestBlock = function (element) {
+    if (!element) {
+        return false;
+    }
+    if (element.nodeType === 3) {
+        element = element.parentElement;
+    }
+    var e = element;
+    var isClosest = false;
+    var blockElement = hasClosestByAttribute(element, "data-block", "0");
+    if (blockElement) {
+        return blockElement;
+    }
+    while (e && !isClosest && !e.classList.contains("vditor-reset")) {
+        if (e.tagName === "H1" ||
+            e.tagName === "H2" ||
+            e.tagName === "H3" ||
+            e.tagName === "H4" ||
+            e.tagName === "H5" ||
+            e.tagName === "H6" ||
+            e.tagName === "P" ||
+            e.tagName === "BLOCKQUOTE" ||
+            e.tagName === "OL" ||
+            e.tagName === "UL") {
+            isClosest = true;
+        }
+        else {
+            e = e.parentElement;
+        }
+    }
+    return isClosest && e;
+};
+var hasClosestByMatchTag = function (element, nodeName) {
+    if (!element) {
+        return false;
+    }
+    if (element.nodeType === 3) {
+        element = element.parentElement;
+    }
+    var e = element;
+    var isClosest = false;
+    while (e && !isClosest && !e.classList.contains("vditor-reset")) {
+        if (e.nodeName === nodeName) {
+            isClosest = true;
+        }
+        else {
+            e = e.parentElement;
+        }
+    }
+    return isClosest && e;
+};
+var hasClosestByClassName = function (element, className) {
+    if (!element) {
+        return false;
+    }
+    if (element.nodeType === 3) {
+        element = element.parentElement;
+    }
+    var e = element;
+    var isClosest = false;
+    while (e && !isClosest && !e.classList.contains("vditor-reset")) {
+        if (e.classList.contains(className)) {
+            isClosest = true;
+        }
+        else {
+            e = e.parentElement;
+        }
+    }
+    return isClosest && e;
+};
+var getLastNode = function (node) {
+    while (node && node.lastChild) {
+        node = node.lastChild;
+    }
+    return node;
+};
+
+
+/***/ }),
+
+/***/ 292:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   Y: () => (/* binding */ SMILESRender)
 /* harmony export */ });
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(357);
-/* harmony import */ var _util_addScript__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(901);
-/* harmony import */ var _adapterRender__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(687);
-/* harmony import */ var _util_function__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(249);
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(842);
+/* harmony import */ var _util_addScript__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(444);
+/* harmony import */ var _adapterRender__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(794);
+/* harmony import */ var _util_function__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(138);
 
 
 
@@ -109,44 +393,73 @@ var SMILESRender = function (element, cdn, theme) {
 
 /***/ }),
 
-/***/ 108:
+/***/ 316:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   $: () => (/* binding */ abcRender)
+/* harmony export */   K: () => (/* binding */ markmapRender)
 /* harmony export */ });
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(357);
-/* harmony import */ var _util_addScript__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(901);
-/* harmony import */ var _adapterRender__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(687);
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(842);
+/* harmony import */ var _util_addScript__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(444);
+/* harmony import */ var _adapterRender__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(794);
 
 
 
-var abcRender = function (element, cdn) {
+var enabled = {};
+var transform = function (transformer, content) {
+    var result = transformer.transform(content);
+    var keys = Object.keys(result.features).filter(function (key) { return !enabled[key]; });
+    keys.forEach(function (key) {
+        enabled[key] = true;
+    });
+    var _a = transformer.getAssets(keys), styles = _a.styles, scripts = _a.scripts;
+    var markmap = window.markmap;
+    if (styles)
+        markmap.loadCSS(styles);
+    if (scripts)
+        markmap.loadJS(scripts);
+    return result;
+};
+var init = function (el, code) {
+    var _a = window.markmap, Transformer = _a.Transformer, Markmap = _a.Markmap, deriveOptions = _a.deriveOptions, globalCSS = _a.globalCSS;
+    var transformer = new Transformer();
+    el.innerHTML = '<svg style="width:100%"></svg>';
+    var svg = el.firstChild;
+    var mm = Markmap.create(svg, null);
+    var _b = transform(transformer, code), root = _b.root, frontmatter = _b.frontmatter;
+    var markmapOptions = frontmatter === null || frontmatter === void 0 ? void 0 : frontmatter.markmap;
+    var frontmatterOptions = deriveOptions(markmapOptions);
+    mm.setData(root, frontmatterOptions);
+    mm.fit();
+};
+var markmapRender = function (element, cdn) {
     if (element === void 0) { element = document; }
     if (cdn === void 0) { cdn = _constants__WEBPACK_IMPORTED_MODULE_0__/* .Constants */ .Y.CDN; }
-    var abcElements = _adapterRender__WEBPACK_IMPORTED_MODULE_1__.abcRenderAdapter.getElements(element);
-    if (abcElements.length > 0) {
-        (0,_util_addScript__WEBPACK_IMPORTED_MODULE_2__/* .addScript */ .Z)("".concat(cdn, "/dist/js/abcjs/abcjs_basic.min.js"), "vditorAbcjsScript").then(function () {
-            abcElements.forEach(function (item) {
-                if (item.parentElement.classList.contains("vditor-wysiwyg__pre") ||
-                    item.parentElement.classList.contains("vditor-ir__marker--pre")) {
-                    return;
-                }
-                if (item.getAttribute("data-processed") === "true") {
-                    return;
-                }
-                ABCJS.renderAbc(item, _adapterRender__WEBPACK_IMPORTED_MODULE_1__.abcRenderAdapter.getCode(item).trim());
-                item.style.overflowX = "auto";
-                item.setAttribute("data-processed", "true");
-            });
-        });
+    var markmapElements = _adapterRender__WEBPACK_IMPORTED_MODULE_1__.markmapRenderAdapter.getElements(element);
+    if (markmapElements.length === 0) {
+        return;
     }
+    (0,_util_addScript__WEBPACK_IMPORTED_MODULE_2__/* .addScript */ .Z)("".concat(cdn, "/dist/js/markmap/markmap.min.js"), "vditorMarkerScript").then(function () {
+        markmapElements.forEach(function (item) {
+            var code = _adapterRender__WEBPACK_IMPORTED_MODULE_1__.markmapRenderAdapter.getCode(item);
+            if (item.getAttribute("data-processed") === "true" || code.trim() === "") {
+                return;
+            }
+            var render = document.createElement("div");
+            render.className = "language-markmap";
+            item.parentNode.appendChild(render);
+            init(render, code);
+            if (item.parentNode.childNodes[0].nodeName == "CODE") {
+                item.parentNode.removeChild(item.parentNode.childNodes[0]);
+            }
+        });
+    });
 };
 
 
 /***/ }),
 
-/***/ 136:
+/***/ 329:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
@@ -180,7 +493,277 @@ var setLute = function (options) {
 
 /***/ }),
 
-/***/ 170:
+/***/ 444:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   U: () => (/* binding */ addScriptSync),
+/* harmony export */   Z: () => (/* binding */ addScript)
+/* harmony export */ });
+var addScriptSync = function (path, id) {
+    if (document.getElementById(id)) {
+        return false;
+    }
+    var xhrObj = new XMLHttpRequest();
+    xhrObj.open("GET", path, false);
+    xhrObj.setRequestHeader("Accept", "text/javascript, application/javascript, application/ecmascript, application/x-ecmascript, */*; q=0.01");
+    xhrObj.send("");
+    var scriptElement = document.createElement("script");
+    scriptElement.type = "text/javascript";
+    scriptElement.text = xhrObj.responseText;
+    scriptElement.id = id;
+    document.head.appendChild(scriptElement);
+};
+var addScript = function (path, id) {
+    return new Promise(function (resolve, reject) {
+        if (document.getElementById(id)) {
+            // 脚本加载后再次调用直接返回
+            resolve(true);
+            return false;
+        }
+        var scriptElement = document.createElement("script");
+        scriptElement.src = path;
+        scriptElement.async = true;
+        // 循环调用时 Chrome 不会重复请求 js
+        document.head.appendChild(scriptElement);
+        scriptElement.onerror = function (event) {
+            reject(event);
+        };
+        scriptElement.onload = function () {
+            if (document.getElementById(id)) {
+                // 循环调用需清除 DOM 中的 script 标签
+                scriptElement.remove();
+                resolve(true);
+                return false;
+            }
+            scriptElement.id = id;
+            resolve(true);
+        };
+    });
+};
+
+
+/***/ }),
+
+/***/ 449:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   $: () => (/* binding */ abcRender)
+/* harmony export */ });
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(842);
+/* harmony import */ var _util_addScript__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(444);
+/* harmony import */ var _adapterRender__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(794);
+
+
+
+var abcRender = function (element, cdn) {
+    if (element === void 0) { element = document; }
+    if (cdn === void 0) { cdn = _constants__WEBPACK_IMPORTED_MODULE_0__/* .Constants */ .Y.CDN; }
+    var abcElements = _adapterRender__WEBPACK_IMPORTED_MODULE_1__.abcRenderAdapter.getElements(element);
+    if (abcElements.length > 0) {
+        (0,_util_addScript__WEBPACK_IMPORTED_MODULE_2__/* .addScript */ .Z)("".concat(cdn, "/dist/js/abcjs/abcjs_basic.min.js"), "vditorAbcjsScript").then(function () {
+            abcElements.forEach(function (item) {
+                if (item.parentElement.classList.contains("vditor-wysiwyg__pre") ||
+                    item.parentElement.classList.contains("vditor-ir__marker--pre")) {
+                    return;
+                }
+                if (item.getAttribute("data-processed") === "true") {
+                    return;
+                }
+                ABCJS.renderAbc(item, _adapterRender__WEBPACK_IMPORTED_MODULE_1__.abcRenderAdapter.getCode(item).trim());
+                item.style.overflowX = "auto";
+                item.setAttribute("data-processed", "true");
+            });
+        });
+    }
+};
+
+
+/***/ }),
+
+/***/ 516:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   m: () => (/* binding */ graphvizRender)
+/* harmony export */ });
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(842);
+/* harmony import */ var _util_addScript__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(444);
+/* harmony import */ var _adapterRender__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(794);
+
+
+
+var graphvizRender = function (element, cdn) {
+    if (cdn === void 0) { cdn = _constants__WEBPACK_IMPORTED_MODULE_0__/* .Constants */ .Y.CDN; }
+    var graphvizElements = _adapterRender__WEBPACK_IMPORTED_MODULE_1__.graphvizRenderAdapter.getElements(element);
+    if (graphvizElements.length === 0) {
+        return;
+    }
+    (0,_util_addScript__WEBPACK_IMPORTED_MODULE_2__/* .addScript */ .Z)("".concat(cdn, "/dist/js/graphviz/viz.js"), "vditorGraphVizScript").then(function () {
+        graphvizElements.forEach(function (e) {
+            var code = _adapterRender__WEBPACK_IMPORTED_MODULE_1__.graphvizRenderAdapter.getCode(e);
+            if (e.parentElement.classList.contains("vditor-wysiwyg__pre") ||
+                e.parentElement.classList.contains("vditor-ir__marker--pre")) {
+                return;
+            }
+            if (e.getAttribute("data-processed") === "true" || code.trim() === "") {
+                return;
+            }
+            try {
+                var blob = new Blob(["importScripts('".concat(document.getElementById("vditorGraphVizScript").src.replace("viz.js", "full.render.js"), "');")], { type: "application/javascript" });
+                var url = window.URL || window.webkitURL;
+                var blobUrl = url.createObjectURL(blob);
+                var worker = new Worker(blobUrl);
+                new Viz({ worker: worker })
+                    .renderSVGElement(code).then(function (result) {
+                    e.innerHTML = result.outerHTML;
+                }).catch(function (error) {
+                    e.innerHTML = "graphviz render error: <br>".concat(error);
+                    e.className = "vditor-reset--error";
+                });
+            }
+            catch (e) {
+                console.error("graphviz error", e);
+            }
+            e.setAttribute("data-processed", "true");
+        });
+    });
+};
+
+
+/***/ }),
+
+/***/ 600:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   h: () => (/* binding */ merge)
+/* harmony export */ });
+var merge = function () {
+    var options = [];
+    for (var _i = 0; _i < arguments.length; _i++) {
+        options[_i] = arguments[_i];
+    }
+    var target = {};
+    var merger = function (obj) {
+        for (var prop in obj) {
+            if (obj.hasOwnProperty(prop)) {
+                if (Object.prototype.toString.call(obj[prop]) === "[object Object]") {
+                    target[prop] = merge(target[prop], obj[prop]);
+                }
+                else {
+                    target[prop] = obj[prop];
+                }
+            }
+        }
+    };
+    for (var i = 0; i < options.length; i++) {
+        merger(options[i]);
+    }
+    return target;
+};
+
+
+/***/ }),
+
+/***/ 625:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   $: () => (/* binding */ highlightRender)
+/* harmony export */ });
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(842);
+/* harmony import */ var _util_addScript__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(444);
+/* harmony import */ var _util_addStyle__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(10);
+
+
+
+var highlightRender = function (hljsOption, element, cdn) {
+    if (element === void 0) { element = document; }
+    if (cdn === void 0) { cdn = _constants__WEBPACK_IMPORTED_MODULE_0__/* .Constants */ .Y.CDN; }
+    var style = hljsOption.style;
+    if (!_constants__WEBPACK_IMPORTED_MODULE_0__/* .Constants */ .Y.CODE_THEME.includes(style)) {
+        style = "github";
+    }
+    var vditorHljsStyle = document.getElementById("vditorHljsStyle");
+    var href = "".concat(cdn, "/dist/js/highlight.js/styles/").concat(style, ".min.css");
+    if (vditorHljsStyle && vditorHljsStyle.getAttribute('href') !== href) {
+        vditorHljsStyle.remove();
+    }
+    (0,_util_addStyle__WEBPACK_IMPORTED_MODULE_1__/* .addStyle */ .T)("".concat(cdn, "/dist/js/highlight.js/styles/").concat(style, ".min.css"), "vditorHljsStyle");
+    if (hljsOption.enable === false) {
+        return;
+    }
+    var codes = element.querySelectorAll("pre > code");
+    if (codes.length === 0) {
+        return;
+    }
+    (0,_util_addScript__WEBPACK_IMPORTED_MODULE_2__/* .addScript */ .Z)("".concat(cdn, "/dist/js/highlight.js/highlight.min.js?v=11.7.0"), "vditorHljsScript").then(function () {
+        (0,_util_addScript__WEBPACK_IMPORTED_MODULE_2__/* .addScript */ .Z)("".concat(cdn, "/dist/js/highlight.js/third-languages.js?v=1.0.1"), "vditorHljsThirdScript").then(function () {
+            element.querySelectorAll("pre > code").forEach(function (block) {
+                // ir & wysiwyg 区域不渲染
+                if (block.parentElement.classList.contains("vditor-ir__marker--pre") ||
+                    block.parentElement.classList.contains("vditor-wysiwyg__pre")) {
+                    return;
+                }
+                if (block.classList.contains("language-mermaid") || block.classList.contains("language-flowchart") ||
+                    block.classList.contains("language-echarts") || block.classList.contains("language-mindmap") ||
+                    block.classList.contains("language-plantuml") || block.classList.contains("language-smiles") ||
+                    block.classList.contains("language-abc") || block.classList.contains("language-graphviz") ||
+                    block.classList.contains("language-math")) {
+                    return;
+                }
+                if (hljsOption.defaultLang !== "" && block.className.indexOf("language-") === -1) {
+                    block.classList.add("language-" + hljsOption.defaultLang);
+                }
+                var language = block.className.replace("language-", "");
+                if (!window.hljs.getLanguage(language)) {
+                    language = "plaintext";
+                }
+                block.innerHTML = window.hljs.highlight(block.textContent, {
+                    language: language,
+                    ignoreIllegals: true
+                }).value;
+                block.classList.add("hljs");
+                if (!hljsOption.lineNumber) {
+                    return;
+                }
+                block.classList.add("vditor-linenumber");
+                var linenNumberTemp = block.querySelector(".vditor-linenumber__temp");
+                if (!linenNumberTemp) {
+                    linenNumberTemp = document.createElement("div");
+                    linenNumberTemp.className = "vditor-linenumber__temp";
+                    block.insertAdjacentElement("beforeend", linenNumberTemp);
+                }
+                var whiteSpace = getComputedStyle(block).whiteSpace;
+                var isSoftWrap = false;
+                if (whiteSpace === "pre-wrap" || whiteSpace === "pre-line") {
+                    isSoftWrap = true;
+                }
+                var lineNumberHTML = "";
+                var lineList = block.textContent.split(/\r\n|\r|\n/g);
+                lineList.pop();
+                lineList.map(function (line) {
+                    var lineHeight = "";
+                    if (isSoftWrap) {
+                        linenNumberTemp.textContent = line || "\n";
+                        lineHeight = " style=\"height:".concat(linenNumberTemp.getBoundingClientRect().height, "px\"");
+                    }
+                    lineNumberHTML += "<span".concat(lineHeight, "></span>");
+                });
+                linenNumberTemp.style.display = "none";
+                lineNumberHTML = "<span class=\"vditor-linenumber__rows\">".concat(lineNumberHTML, "</span>");
+                block.insertAdjacentHTML("beforeend", lineNumberHTML);
+            });
+        });
+    });
+};
+
+
+/***/ }),
+
+/***/ 649:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
@@ -222,14 +805,265 @@ var previewImage = function (oldImgElement, lang, theme) {
 
 /***/ }),
 
-/***/ 183:
+/***/ 667:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   c: () => (/* binding */ hasClosestByHeadings)
+/* harmony export */ });
+/* unused harmony export hasClosestByTag */
+// NOTE: 减少 method.ts 打包，故从 hasClosest.ts 中拆分
+var hasClosestByTag = function (element, nodeName) {
+    if (!element) {
+        return false;
+    }
+    if (element.nodeType === 3) {
+        element = element.parentElement;
+    }
+    var e = element;
+    var isClosest = false;
+    while (e && !isClosest && !e.classList.contains("vditor-reset")) {
+        if (e.nodeName.indexOf(nodeName) === 0) {
+            isClosest = true;
+        }
+        else {
+            e = e.parentElement;
+        }
+    }
+    return isClosest && e;
+};
+var hasClosestByHeadings = function (element) {
+    var headingElement = hasClosestByTag(element, "H");
+    if (headingElement && headingElement.tagName.length === 2 && headingElement.tagName !== "HR") {
+        return headingElement;
+    }
+    return false;
+};
+
+
+/***/ }),
+
+/***/ 691:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   N: () => (/* binding */ outlineRender)
+/* harmony export */ });
+/* harmony import */ var _util_hasClosestByHeadings__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(667);
+/* harmony import */ var _mathRender__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(947);
+
+
+var outlineRender = function (contentElement, targetElement, vditor) {
+    var wrapperElement = contentElement;
+    if (contentElement.children.length > 0) {
+        var firstElementChild = contentElement.children[0];
+        if (firstElementChild.classList.contains('vditor-reset')) {
+            contentElement = firstElementChild;
+        }
+    }
+    var tocHTML = "";
+    var ids = [];
+    Array.from(contentElement.children).forEach(function (item, index) {
+        if ((0,_util_hasClosestByHeadings__WEBPACK_IMPORTED_MODULE_1__/* .hasClosestByHeadings */ .c)(item)) {
+            if (vditor) {
+                var lastIndex = item.id.lastIndexOf("_");
+                item.id = item.id.substring(0, lastIndex === -1 ? undefined : lastIndex) + "_" + index;
+            }
+            ids.push(item.id);
+            tocHTML += item.outerHTML.replace("<wbr>", "");
+        }
+    });
+    if (tocHTML === "") {
+        targetElement.innerHTML = "";
+        return "";
+    }
+    var tempElement = document.createElement("div");
+    if (vditor) {
+        vditor.lute.SetToC(true);
+        if (vditor.currentMode === "wysiwyg" && !vditor.preview.element.contains(contentElement)) {
+            tempElement.innerHTML = vditor.lute.SpinVditorDOM("<p>[ToC]</p>" + tocHTML);
+        }
+        else if (vditor.currentMode === "ir" && !vditor.preview.element.contains(contentElement)) {
+            tempElement.innerHTML = vditor.lute.SpinVditorIRDOM("<p>[ToC]</p>" + tocHTML);
+        }
+        else {
+            tempElement.innerHTML = vditor.lute.HTML2VditorDOM("<p>[ToC]</p>" + tocHTML);
+        }
+        vditor.lute.SetToC(vditor.options.preview.markdown.toc);
+    }
+    else {
+        targetElement.classList.add("vditor-outline");
+        var lute = Lute.New();
+        lute.SetToC(true);
+        tempElement.innerHTML = lute.HTML2VditorDOM("<p>[ToC]</p>" + tocHTML);
+    }
+    var headingsElement = tempElement.firstElementChild.querySelectorAll("li > span[data-target-id]");
+    headingsElement.forEach(function (item, index) {
+        if (item.nextElementSibling && item.nextElementSibling.tagName === "UL") {
+            var iconHTML = "<svg class='vditor-outline__action'><use xlink:href='#vditor-icon-down'></use></svg>";
+            if (!document.getElementById("vditorIconScript")) {
+                iconHTML = '<svg class="vditor-outline__action" viewBox="0 0 32 32"><path d="M3.76 6.12l12.24 12.213 12.24-12.213 3.76 3.76-16 16-16-16 3.76-3.76z"></path></svg>';
+            }
+            item.innerHTML = "".concat(iconHTML, "<span>").concat(item.innerHTML, "</span>");
+        }
+        else {
+            item.innerHTML = "<svg></svg><span>".concat(item.innerHTML, "</span>");
+        }
+        item.setAttribute("data-target-id", ids[index]);
+    });
+    tocHTML = tempElement.firstElementChild.innerHTML;
+    if (headingsElement.length === 0) {
+        targetElement.innerHTML = "";
+        return tocHTML;
+    }
+    targetElement.innerHTML = tocHTML;
+    if (vditor) {
+        (0,_mathRender__WEBPACK_IMPORTED_MODULE_0__/* .mathRender */ .T)(targetElement, {
+            cdn: vditor.options.cdn,
+            math: vditor.options.preview.math,
+        });
+    }
+    targetElement.firstElementChild.addEventListener("click", function (event) {
+        var target = event.target;
+        while (target && !target.isEqualNode(targetElement)) {
+            if (target.classList.contains("vditor-outline__action")) {
+                if (target.classList.contains("vditor-outline__action--close")) {
+                    target.classList.remove("vditor-outline__action--close");
+                    target.parentElement.nextElementSibling.setAttribute("style", "display:block");
+                }
+                else {
+                    target.classList.add("vditor-outline__action--close");
+                    target.parentElement.nextElementSibling.setAttribute("style", "display:none");
+                }
+                event.preventDefault();
+                event.stopPropagation();
+                break;
+            }
+            else if (target.getAttribute("data-target-id")) {
+                event.preventDefault();
+                event.stopPropagation();
+                var idElement = document.getElementById(target.getAttribute("data-target-id"));
+                if (!idElement) {
+                    return;
+                }
+                if (vditor) {
+                    if (vditor.options.height === "auto") {
+                        var windowScrollY = idElement.offsetTop + vditor.element.offsetTop;
+                        if (!vditor.options.toolbarConfig.pin) {
+                            windowScrollY += vditor.toolbar.element.offsetHeight;
+                        }
+                        window.scrollTo(window.scrollX, windowScrollY);
+                    }
+                    else {
+                        if (vditor.element.offsetTop < window.scrollY) {
+                            window.scrollTo(window.scrollX, vditor.element.offsetTop);
+                        }
+                        if (vditor.preview.element.contains(contentElement)) {
+                            contentElement.parentElement.scrollTop = idElement.offsetTop;
+                        }
+                        else {
+                            contentElement.scrollTop = idElement.offsetTop;
+                        }
+                    }
+                }
+                else {
+                    // 判断contentElement是否可滚动
+                    var isContentScrollable = wrapperElement.scrollHeight > wrapperElement.clientHeight;
+                    if (isContentScrollable) {
+                        // 如果wrapperElement可滚动，使用其scrollTop属性
+                        wrapperElement.scrollTop = idElement.offsetTop;
+                    }
+                    else {
+                        // 如果wrapperElement不可滚动，使用window.scrollTo
+                        window.scrollTo(window.scrollX, idElement.offsetTop);
+                    }
+                }
+                break;
+            }
+            target = target.parentElement;
+        }
+    });
+    return tocHTML;
+};
+
+
+/***/ }),
+
+/***/ 756:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   o: () => (/* binding */ codeRender)
+/* harmony export */ });
+/* harmony import */ var _util_code160to32__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(930);
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(842);
+
+
+var codeRender = function (element, option) {
+    Array.from(element.querySelectorAll("pre > code")).filter(function (e, index) {
+        if (e.parentElement.classList.contains("vditor-wysiwyg__pre") ||
+            e.parentElement.classList.contains("vditor-ir__marker--pre")) {
+            return false;
+        }
+        if (e.classList.contains("language-mermaid") || e.classList.contains("language-flowchart") ||
+            e.classList.contains("language-echarts") || e.classList.contains("language-mindmap") ||
+            e.classList.contains("language-plantuml") || e.classList.contains("language-markmap") ||
+            e.classList.contains("language-abc") || e.classList.contains("language-graphviz") ||
+            e.classList.contains("language-math") || e.classList.contains("language-smiles")) {
+            return false;
+        }
+        if (e.style.maxHeight.indexOf("px") > -1) {
+            return false;
+        }
+        // 避免预览区在渲染后由于代码块过多产生性能问题 https://github.com/b3log/vditor/issues/67
+        if (element.classList.contains("vditor-preview") && index > 5) {
+            return false;
+        }
+        return true;
+    }).forEach(function (e) {
+        var _a, _b, _c;
+        var codeText = e.innerText;
+        if (e.classList.contains("highlight-chroma")) {
+            var codeElement = e.cloneNode(true);
+            codeElement.querySelectorAll(".highlight-ln").forEach(function (item) {
+                item.remove();
+            });
+            codeText = codeElement.innerText;
+        }
+        else if (codeText.endsWith("\n")) {
+            codeText = codeText.substr(0, codeText.length - 1);
+        }
+        var iconHTML = '<svg><use xlink:href="#vditor-icon-copy"></use></svg>';
+        if (!document.getElementById("vditorIconScript")) {
+            iconHTML = '<svg viewBox="0 0 32 32"><path d="M22.545-0h-17.455c-1.6 0-2.909 1.309-2.909 2.909v20.364h2.909v-20.364h17.455v-2.909zM26.909 5.818h-16c-1.6 0-2.909 1.309-2.909 2.909v20.364c0 1.6 1.309 2.909 2.909 2.909h16c1.6 0 2.909-1.309 2.909-2.909v-20.364c0-1.6-1.309-2.909-2.909-2.909zM26.909 29.091h-16v-20.364h16v20.364z"></path></svg>';
+        }
+        var divElement = document.createElement("div");
+        divElement.className = "vditor-copy";
+        divElement.innerHTML = "<span aria-label=\"".concat(((_a = window.VditorI18n) === null || _a === void 0 ? void 0 : _a.copy) || "复制", "\"\nonmouseover=\"this.setAttribute('aria-label', '").concat(((_b = window.VditorI18n) === null || _b === void 0 ? void 0 : _b.copy) || "复制", "')\"\nclass=\"vditor-tooltipped vditor-tooltipped__w\"\nonclick=\"event.stopPropagation();this.previousElementSibling.select();document.execCommand('copy');this.setAttribute('aria-label', '").concat(((_c = window.VditorI18n) === null || _c === void 0 ? void 0 : _c.copied) || "已复制", "');this.previousElementSibling.blur()\">").concat(iconHTML, "</span>");
+        var textarea = document.createElement("textarea");
+        textarea.value = (0,_util_code160to32__WEBPACK_IMPORTED_MODULE_1__/* .code160to32 */ .p)(codeText);
+        divElement.insertAdjacentElement("afterbegin", textarea);
+        if (option && option.renderMenu) {
+            option.renderMenu(e, divElement);
+        }
+        e.before(divElement);
+        e.style.maxHeight = (window.outerHeight - 40) + "px";
+        // https://github.com/Vanessa219/vditor/issues/1356
+        e.insertAdjacentHTML("afterend", "<span style=\"position: absolute\">".concat(_constants__WEBPACK_IMPORTED_MODULE_0__/* .Constants */ .Y.ZWSP, "</span>"));
+    });
+};
+
+
+/***/ }),
+
+/***/ 782:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   jl: () => (/* binding */ setSelectionFocus)
 /* harmony export */ });
 /* unused harmony exports getEditorRange, getCursorPosition, selectIsEditor, getSelectPosition, setSelectionByPosition, setRangeByWbr, insertHTML */
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(357);
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(842);
 
 
 
@@ -509,33 +1343,208 @@ var insertHTML = function (html, vditor) {
 
 /***/ }),
 
-/***/ 249:
+/***/ 794:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
+__webpack_require__.r(__webpack_exports__);
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   Ee: () => (/* binding */ genUUID),
-/* harmony export */   TK: () => (/* binding */ getSearch),
-/* harmony export */   kY: () => (/* binding */ looseJsonParse)
+/* harmony export */   SMILESRenderAdapter: () => (/* binding */ SMILESRenderAdapter),
+/* harmony export */   abcRenderAdapter: () => (/* binding */ abcRenderAdapter),
+/* harmony export */   chartRenderAdapter: () => (/* binding */ chartRenderAdapter),
+/* harmony export */   flowchartRenderAdapter: () => (/* binding */ flowchartRenderAdapter),
+/* harmony export */   graphvizRenderAdapter: () => (/* binding */ graphvizRenderAdapter),
+/* harmony export */   markmapRenderAdapter: () => (/* binding */ markmapRenderAdapter),
+/* harmony export */   mathRenderAdapter: () => (/* binding */ mathRenderAdapter),
+/* harmony export */   mermaidRenderAdapter: () => (/* binding */ mermaidRenderAdapter),
+/* harmony export */   mindmapRenderAdapter: () => (/* binding */ mindmapRenderAdapter),
+/* harmony export */   plantumlRenderAdapter: () => (/* binding */ plantumlRenderAdapter)
 /* harmony export */ });
-var genUUID = function () { return ([1e7].toString() + -1e3 + -4e3 + -8e3 + -1e11).replace(/[018]/g, function (c) {
-    return (parseInt(c, 10) ^ (window.crypto.getRandomValues(new Uint32Array(1))[0] & (15 >> (parseInt(c, 10) / 4)))).toString(16);
-}); };
-var getSearch = function (key, link) {
-    if (link === void 0) { link = window.location.search; }
-    var params = link.substring(link.indexOf("?"));
-    var hashIndex = params.indexOf("#");
-    // REF https://developer.mozilla.org/zh-CN/docs/Web/API/URLSearchParams
-    var urlSearchParams = new URLSearchParams(params.substring(0, hashIndex >= 0 ? hashIndex : undefined));
-    return urlSearchParams.get(key);
+var mathRenderAdapter = {
+    getCode: function (el) { return el.textContent; },
+    getElements: function (element) { return element.querySelectorAll(".language-math"); },
 };
-var looseJsonParse = function (text) {
-    return Function("\"use strict\";return (".concat(text, ")"))();
+var SMILESRenderAdapter = {
+    getCode: function (el) { return el.textContent; },
+    getElements: function (element) { return element.querySelectorAll(".language-smiles"); },
+};
+var mermaidRenderAdapter = {
+    /** 不仅要返回code，并且需要将 code 设置为 el 的 innerHTML */
+    getCode: function (el) { return el.textContent; },
+    getElements: function (element) { return element.querySelectorAll(".language-mermaid"); },
+};
+var markmapRenderAdapter = {
+    getCode: function (el) { return el.textContent; },
+    getElements: function (element) { return element.querySelectorAll(".language-markmap"); },
+};
+var mindmapRenderAdapter = {
+    getCode: function (el) { return el.getAttribute("data-code"); },
+    getElements: function (el) { return el.querySelectorAll(".language-mindmap"); },
+};
+var chartRenderAdapter = {
+    getCode: function (el) { return el.innerText; },
+    getElements: function (el) { return el.querySelectorAll(".language-echarts"); },
+};
+var abcRenderAdapter = {
+    getCode: function (el) { return el.textContent; },
+    getElements: function (el) { return el.querySelectorAll(".language-abc"); },
+};
+var graphvizRenderAdapter = {
+    getCode: function (el) { return el.textContent; },
+    getElements: function (el) { return el.querySelectorAll(".language-graphviz"); },
+};
+var flowchartRenderAdapter = {
+    getCode: function (el) { return el.textContent; },
+    getElements: function (el) { return el.querySelectorAll(".language-flowchart"); },
+};
+var plantumlRenderAdapter = {
+    getCode: function (el) { return el.textContent; },
+    getElements: function (el) { return el.querySelectorAll(".language-plantuml"); },
 };
 
 
 /***/ }),
 
-/***/ 357:
+/***/ 801:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   v: () => (/* binding */ chartRender)
+/* harmony export */ });
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(842);
+/* harmony import */ var _util_addScript__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(444);
+/* harmony import */ var _adapterRender__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(794);
+/* harmony import */ var _util_function__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(138);
+var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
+    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
+    return new (P || (P = Promise))(function (resolve, reject) {
+        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
+        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
+        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
+        step((generator = generator.apply(thisArg, _arguments || [])).next());
+    });
+};
+var __generator = (undefined && undefined.__generator) || function (thisArg, body) {
+    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
+    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
+    function verb(n) { return function (v) { return step([n, v]); }; }
+    function step(op) {
+        if (f) throw new TypeError("Generator is already executing.");
+        while (g && (g = 0, op[0] && (_ = 0)), _) try {
+            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
+            if (y = 0, t) op = [op[0] & 2, t.value];
+            switch (op[0]) {
+                case 0: case 1: t = op; break;
+                case 4: _.label++; return { value: op[1], done: false };
+                case 5: _.label++; y = op[1]; op = [0]; continue;
+                case 7: op = _.ops.pop(); _.trys.pop(); continue;
+                default:
+                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
+                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
+                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
+                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
+                    if (t[2]) _.ops.pop();
+                    _.trys.pop(); continue;
+            }
+            op = body.call(thisArg, _);
+        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
+        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
+    }
+};
+
+
+
+
+var chartRender = function (element, cdn, theme) {
+    if (element === void 0) { element = document; }
+    if (cdn === void 0) { cdn = _constants__WEBPACK_IMPORTED_MODULE_0__/* .Constants */ .Y.CDN; }
+    var echartsElements = _adapterRender__WEBPACK_IMPORTED_MODULE_1__.chartRenderAdapter.getElements(element);
+    if (echartsElements.length > 0) {
+        (0,_util_addScript__WEBPACK_IMPORTED_MODULE_2__/* .addScript */ .Z)("".concat(cdn, "/dist/js/echarts/echarts.min.js?v=5.5.1"), "vditorEchartsScript").then(function () {
+            echartsElements.forEach(function (e) { return __awaiter(void 0, void 0, void 0, function () {
+                var text, option, error_1;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            if (e.parentElement.classList.contains("vditor-wysiwyg__pre") ||
+                                e.parentElement.classList.contains("vditor-ir__marker--pre")) {
+                                return [2 /*return*/];
+                            }
+                            text = _adapterRender__WEBPACK_IMPORTED_MODULE_1__.chartRenderAdapter.getCode(e).trim();
+                            if (!text) {
+                                return [2 /*return*/];
+                            }
+                            _a.label = 1;
+                        case 1:
+                            _a.trys.push([1, 3, , 4]);
+                            if (e.getAttribute("data-processed") === "true") {
+                                return [2 /*return*/];
+                            }
+                            return [4 /*yield*/, (0,_util_function__WEBPACK_IMPORTED_MODULE_3__/* .looseJsonParse */ .kY)(text)];
+                        case 2:
+                            option = _a.sent();
+                            echarts.init(e, theme === "dark" ? "dark" : undefined).setOption(option);
+                            e.setAttribute("data-processed", "true");
+                            return [3 /*break*/, 4];
+                        case 3:
+                            error_1 = _a.sent();
+                            e.className = "vditor-reset--error";
+                            e.innerHTML = "echarts render error: <br>".concat(error_1);
+                            return [3 /*break*/, 4];
+                        case 4: return [2 /*return*/];
+                    }
+                });
+            }); });
+        });
+    }
+};
+
+
+/***/ }),
+
+/***/ 816:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   M: () => (/* binding */ plantumlRender)
+/* harmony export */ });
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(842);
+/* harmony import */ var _util_addScript__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(444);
+/* harmony import */ var _adapterRender__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(794);
+
+
+
+var plantumlRender = function (element, cdn) {
+    if (element === void 0) { element = document; }
+    if (cdn === void 0) { cdn = _constants__WEBPACK_IMPORTED_MODULE_0__/* .Constants */ .Y.CDN; }
+    var plantumlElements = _adapterRender__WEBPACK_IMPORTED_MODULE_1__.plantumlRenderAdapter.getElements(element);
+    if (plantumlElements.length === 0) {
+        return;
+    }
+    (0,_util_addScript__WEBPACK_IMPORTED_MODULE_2__/* .addScript */ .Z)("".concat(cdn, "/dist/js/plantuml/plantuml-encoder.min.js"), "vditorPlantumlScript").then(function () {
+        plantumlElements.forEach(function (e) {
+            if (e.parentElement.classList.contains("vditor-wysiwyg__pre") ||
+                e.parentElement.classList.contains("vditor-ir__marker--pre")) {
+                return;
+            }
+            var text = _adapterRender__WEBPACK_IMPORTED_MODULE_1__.plantumlRenderAdapter.getCode(e).trim();
+            if (!text) {
+                return;
+            }
+            try {
+                e.innerHTML = "<object type=\"image/svg+xml\" data=\"https://www.plantuml.com/plantuml/svg/~1".concat(plantumlEncoder.encode(text), "\"/>");
+            }
+            catch (error) {
+                e.className = "vditor-reset--error";
+                e.innerHTML = "plantuml render error: <br>".concat(error);
+            }
+        });
+    });
+};
+
+
+/***/ }),
+
+/***/ 842:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
@@ -640,162 +1649,14 @@ var Constants = /** @class */ (function () {
 
 /***/ }),
 
-/***/ 376:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   $: () => (/* binding */ highlightRender)
-/* harmony export */ });
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(357);
-/* harmony import */ var _util_addScript__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(901);
-/* harmony import */ var _util_addStyle__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(477);
-
-
-
-var highlightRender = function (hljsOption, element, cdn) {
-    if (element === void 0) { element = document; }
-    if (cdn === void 0) { cdn = _constants__WEBPACK_IMPORTED_MODULE_0__/* .Constants */ .Y.CDN; }
-    var style = hljsOption.style;
-    if (!_constants__WEBPACK_IMPORTED_MODULE_0__/* .Constants */ .Y.CODE_THEME.includes(style)) {
-        style = "github";
-    }
-    var vditorHljsStyle = document.getElementById("vditorHljsStyle");
-    var href = "".concat(cdn, "/dist/js/highlight.js/styles/").concat(style, ".min.css");
-    if (vditorHljsStyle && vditorHljsStyle.getAttribute('href') !== href) {
-        vditorHljsStyle.remove();
-    }
-    (0,_util_addStyle__WEBPACK_IMPORTED_MODULE_1__/* .addStyle */ .T)("".concat(cdn, "/dist/js/highlight.js/styles/").concat(style, ".min.css"), "vditorHljsStyle");
-    if (hljsOption.enable === false) {
-        return;
-    }
-    var codes = element.querySelectorAll("pre > code");
-    if (codes.length === 0) {
-        return;
-    }
-    (0,_util_addScript__WEBPACK_IMPORTED_MODULE_2__/* .addScript */ .Z)("".concat(cdn, "/dist/js/highlight.js/highlight.min.js?v=11.7.0"), "vditorHljsScript").then(function () {
-        (0,_util_addScript__WEBPACK_IMPORTED_MODULE_2__/* .addScript */ .Z)("".concat(cdn, "/dist/js/highlight.js/third-languages.js?v=1.0.1"), "vditorHljsThirdScript").then(function () {
-            element.querySelectorAll("pre > code").forEach(function (block) {
-                // ir & wysiwyg 区域不渲染
-                if (block.parentElement.classList.contains("vditor-ir__marker--pre") ||
-                    block.parentElement.classList.contains("vditor-wysiwyg__pre")) {
-                    return;
-                }
-                if (block.classList.contains("language-mermaid") || block.classList.contains("language-flowchart") ||
-                    block.classList.contains("language-echarts") || block.classList.contains("language-mindmap") ||
-                    block.classList.contains("language-plantuml") || block.classList.contains("language-smiles") ||
-                    block.classList.contains("language-abc") || block.classList.contains("language-graphviz") ||
-                    block.classList.contains("language-math")) {
-                    return;
-                }
-                if (hljsOption.defaultLang !== "" && block.className.indexOf("language-") === -1) {
-                    block.classList.add("language-" + hljsOption.defaultLang);
-                }
-                var language = block.className.replace("language-", "");
-                if (!window.hljs.getLanguage(language)) {
-                    language = "plaintext";
-                }
-                block.innerHTML = window.hljs.highlight(block.textContent, {
-                    language: language,
-                    ignoreIllegals: true
-                }).value;
-                block.classList.add("hljs");
-                if (!hljsOption.lineNumber) {
-                    return;
-                }
-                block.classList.add("vditor-linenumber");
-                var linenNumberTemp = block.querySelector(".vditor-linenumber__temp");
-                if (!linenNumberTemp) {
-                    linenNumberTemp = document.createElement("div");
-                    linenNumberTemp.className = "vditor-linenumber__temp";
-                    block.insertAdjacentElement("beforeend", linenNumberTemp);
-                }
-                var whiteSpace = getComputedStyle(block).whiteSpace;
-                var isSoftWrap = false;
-                if (whiteSpace === "pre-wrap" || whiteSpace === "pre-line") {
-                    isSoftWrap = true;
-                }
-                var lineNumberHTML = "";
-                var lineList = block.textContent.split(/\r\n|\r|\n/g);
-                lineList.pop();
-                lineList.map(function (line) {
-                    var lineHeight = "";
-                    if (isSoftWrap) {
-                        linenNumberTemp.textContent = line || "\n";
-                        lineHeight = " style=\"height:".concat(linenNumberTemp.getBoundingClientRect().height, "px\"");
-                    }
-                    lineNumberHTML += "<span".concat(lineHeight, "></span>");
-                });
-                linenNumberTemp.style.display = "none";
-                lineNumberHTML = "<span class=\"vditor-linenumber__rows\">".concat(lineNumberHTML, "</span>");
-                block.insertAdjacentHTML("beforeend", lineNumberHTML);
-            });
-        });
-    });
-};
-
-
-/***/ }),
-
-/***/ 407:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   m: () => (/* binding */ graphvizRender)
-/* harmony export */ });
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(357);
-/* harmony import */ var _util_addScript__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(901);
-/* harmony import */ var _adapterRender__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(687);
-
-
-
-var graphvizRender = function (element, cdn) {
-    if (cdn === void 0) { cdn = _constants__WEBPACK_IMPORTED_MODULE_0__/* .Constants */ .Y.CDN; }
-    var graphvizElements = _adapterRender__WEBPACK_IMPORTED_MODULE_1__.graphvizRenderAdapter.getElements(element);
-    if (graphvizElements.length === 0) {
-        return;
-    }
-    (0,_util_addScript__WEBPACK_IMPORTED_MODULE_2__/* .addScript */ .Z)("".concat(cdn, "/dist/js/graphviz/viz.js"), "vditorGraphVizScript").then(function () {
-        graphvizElements.forEach(function (e) {
-            var code = _adapterRender__WEBPACK_IMPORTED_MODULE_1__.graphvizRenderAdapter.getCode(e);
-            if (e.parentElement.classList.contains("vditor-wysiwyg__pre") ||
-                e.parentElement.classList.contains("vditor-ir__marker--pre")) {
-                return;
-            }
-            if (e.getAttribute("data-processed") === "true" || code.trim() === "") {
-                return;
-            }
-            try {
-                var blob = new Blob(["importScripts('".concat(document.getElementById("vditorGraphVizScript").src.replace("viz.js", "full.render.js"), "');")], { type: "application/javascript" });
-                var url = window.URL || window.webkitURL;
-                var blobUrl = url.createObjectURL(blob);
-                var worker = new Worker(blobUrl);
-                new Viz({ worker: worker })
-                    .renderSVGElement(code).then(function (result) {
-                    e.innerHTML = result.outerHTML;
-                }).catch(function (error) {
-                    e.innerHTML = "graphviz render error: <br>".concat(error);
-                    e.className = "vditor-reset--error";
-                });
-            }
-            catch (e) {
-                console.error("graphviz error", e);
-            }
-            e.setAttribute("data-processed", "true");
-        });
-    });
-};
-
-
-/***/ }),
-
-/***/ 417:
+/***/ 854:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   h: () => (/* binding */ setCodeTheme)
 /* harmony export */ });
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(357);
-/* harmony import */ var _util_addStyle__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(477);
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(842);
+/* harmony import */ var _util_addStyle__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(10);
 
 
 var setCodeTheme = function (codeTheme, cdn) {
@@ -817,15 +1678,41 @@ var setCodeTheme = function (codeTheme, cdn) {
 
 /***/ }),
 
-/***/ 430:
+/***/ 860:
+/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
+
+/* harmony export */ __webpack_require__.d(__webpack_exports__, {
+/* harmony export */   H: () => (/* binding */ setContentTheme)
+/* harmony export */ });
+/* harmony import */ var _util_addStyle__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(10);
+
+var setContentTheme = function (contentTheme, path) {
+    if (!contentTheme || !path) {
+        return;
+    }
+    var vditorContentTheme = document.getElementById("vditorContentTheme");
+    var cssPath = "".concat(path, "/").concat(contentTheme, ".css");
+    if (!vditorContentTheme) {
+        (0,_util_addStyle__WEBPACK_IMPORTED_MODULE_0__/* .addStyle */ .T)(cssPath, "vditorContentTheme");
+    }
+    else if (vditorContentTheme.getAttribute("href") !== cssPath) {
+        vditorContentTheme.remove();
+        (0,_util_addStyle__WEBPACK_IMPORTED_MODULE_0__/* .addStyle */ .T)(cssPath, "vditorContentTheme");
+    }
+};
+
+
+/***/ }),
+
+/***/ 883:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   l: () => (/* binding */ mindmapRender)
 /* harmony export */ });
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(357);
-/* harmony import */ var _util_addScript__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(901);
-/* harmony import */ var _adapterRender__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(687);
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(842);
+/* harmony import */ var _util_addScript__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(444);
+/* harmony import */ var _adapterRender__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(794);
 
 
 
@@ -904,540 +1791,15 @@ var mindmapRender = function (element, cdn, theme) {
 
 /***/ }),
 
-/***/ 435:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   p: () => (/* binding */ code160to32)
-/* harmony export */ });
-var code160to32 = function (text) {
-    // 非打断空格转换为空格
-    return text.replace(/\u00a0/g, " ");
-};
-
-
-/***/ }),
-
-/***/ 442:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   N: () => (/* binding */ outlineRender)
-/* harmony export */ });
-/* harmony import */ var _util_hasClosestByHeadings__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(472);
-/* harmony import */ var _mathRender__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(876);
-
-
-var outlineRender = function (contentElement, targetElement, vditor) {
-    var wrapperElement = contentElement;
-    if (contentElement.children.length > 0) {
-        var firstElementChild = contentElement.children[0];
-        if (firstElementChild.classList.contains('vditor-reset')) {
-            contentElement = firstElementChild;
-        }
-    }
-    var tocHTML = "";
-    var ids = [];
-    Array.from(contentElement.children).forEach(function (item, index) {
-        if ((0,_util_hasClosestByHeadings__WEBPACK_IMPORTED_MODULE_1__/* .hasClosestByHeadings */ .c)(item)) {
-            if (vditor) {
-                var lastIndex = item.id.lastIndexOf("_");
-                item.id = item.id.substring(0, lastIndex === -1 ? undefined : lastIndex) + "_" + index;
-            }
-            ids.push(item.id);
-            tocHTML += item.outerHTML.replace("<wbr>", "");
-        }
-    });
-    if (tocHTML === "") {
-        targetElement.innerHTML = "";
-        return "";
-    }
-    var tempElement = document.createElement("div");
-    if (vditor) {
-        vditor.lute.SetToC(true);
-        if (vditor.currentMode === "wysiwyg" && !vditor.preview.element.contains(contentElement)) {
-            tempElement.innerHTML = vditor.lute.SpinVditorDOM("<p>[ToC]</p>" + tocHTML);
-        }
-        else if (vditor.currentMode === "ir" && !vditor.preview.element.contains(contentElement)) {
-            tempElement.innerHTML = vditor.lute.SpinVditorIRDOM("<p>[ToC]</p>" + tocHTML);
-        }
-        else {
-            tempElement.innerHTML = vditor.lute.HTML2VditorDOM("<p>[ToC]</p>" + tocHTML);
-        }
-        vditor.lute.SetToC(vditor.options.preview.markdown.toc);
-    }
-    else {
-        targetElement.classList.add("vditor-outline");
-        var lute = Lute.New();
-        lute.SetToC(true);
-        tempElement.innerHTML = lute.HTML2VditorDOM("<p>[ToC]</p>" + tocHTML);
-    }
-    var headingsElement = tempElement.firstElementChild.querySelectorAll("li > span[data-target-id]");
-    headingsElement.forEach(function (item, index) {
-        if (item.nextElementSibling && item.nextElementSibling.tagName === "UL") {
-            var iconHTML = "<svg class='vditor-outline__action'><use xlink:href='#vditor-icon-down'></use></svg>";
-            if (!document.getElementById("vditorIconScript")) {
-                iconHTML = '<svg class="vditor-outline__action" viewBox="0 0 32 32"><path d="M3.76 6.12l12.24 12.213 12.24-12.213 3.76 3.76-16 16-16-16 3.76-3.76z"></path></svg>';
-            }
-            item.innerHTML = "".concat(iconHTML, "<span>").concat(item.innerHTML, "</span>");
-        }
-        else {
-            item.innerHTML = "<svg></svg><span>".concat(item.innerHTML, "</span>");
-        }
-        item.setAttribute("data-target-id", ids[index]);
-    });
-    tocHTML = tempElement.firstElementChild.innerHTML;
-    if (headingsElement.length === 0) {
-        targetElement.innerHTML = "";
-        return tocHTML;
-    }
-    targetElement.innerHTML = tocHTML;
-    if (vditor) {
-        (0,_mathRender__WEBPACK_IMPORTED_MODULE_0__/* .mathRender */ .T)(targetElement, {
-            cdn: vditor.options.cdn,
-            math: vditor.options.preview.math,
-        });
-    }
-    targetElement.firstElementChild.addEventListener("click", function (event) {
-        var target = event.target;
-        while (target && !target.isEqualNode(targetElement)) {
-            if (target.classList.contains("vditor-outline__action")) {
-                if (target.classList.contains("vditor-outline__action--close")) {
-                    target.classList.remove("vditor-outline__action--close");
-                    target.parentElement.nextElementSibling.setAttribute("style", "display:block");
-                }
-                else {
-                    target.classList.add("vditor-outline__action--close");
-                    target.parentElement.nextElementSibling.setAttribute("style", "display:none");
-                }
-                event.preventDefault();
-                event.stopPropagation();
-                break;
-            }
-            else if (target.getAttribute("data-target-id")) {
-                event.preventDefault();
-                event.stopPropagation();
-                var idElement = document.getElementById(target.getAttribute("data-target-id"));
-                if (!idElement) {
-                    return;
-                }
-                if (vditor) {
-                    if (vditor.options.height === "auto") {
-                        var windowScrollY = idElement.offsetTop + vditor.element.offsetTop;
-                        if (!vditor.options.toolbarConfig.pin) {
-                            windowScrollY += vditor.toolbar.element.offsetHeight;
-                        }
-                        window.scrollTo(window.scrollX, windowScrollY);
-                    }
-                    else {
-                        if (vditor.element.offsetTop < window.scrollY) {
-                            window.scrollTo(window.scrollX, vditor.element.offsetTop);
-                        }
-                        if (vditor.preview.element.contains(contentElement)) {
-                            contentElement.parentElement.scrollTop = idElement.offsetTop;
-                        }
-                        else {
-                            contentElement.scrollTop = idElement.offsetTop;
-                        }
-                    }
-                }
-                else {
-                    // 判断contentElement是否可滚动
-                    var isContentScrollable = wrapperElement.scrollHeight > wrapperElement.clientHeight;
-                    if (isContentScrollable) {
-                        // 如果wrapperElement可滚动，使用其scrollTop属性
-                        wrapperElement.scrollTop = idElement.offsetTop;
-                    }
-                    else {
-                        // 如果wrapperElement不可滚动，使用window.scrollTo
-                        window.scrollTo(window.scrollX, idElement.offsetTop);
-                    }
-                }
-                break;
-            }
-            target = target.parentElement;
-        }
-    });
-    return tocHTML;
-};
-
-
-/***/ }),
-
-/***/ 472:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   c: () => (/* binding */ hasClosestByHeadings)
-/* harmony export */ });
-/* unused harmony export hasClosestByTag */
-// NOTE: 减少 method.ts 打包，故从 hasClosest.ts 中拆分
-var hasClosestByTag = function (element, nodeName) {
-    if (!element) {
-        return false;
-    }
-    if (element.nodeType === 3) {
-        element = element.parentElement;
-    }
-    var e = element;
-    var isClosest = false;
-    while (e && !isClosest && !e.classList.contains("vditor-reset")) {
-        if (e.nodeName.indexOf(nodeName) === 0) {
-            isClosest = true;
-        }
-        else {
-            e = e.parentElement;
-        }
-    }
-    return isClosest && e;
-};
-var hasClosestByHeadings = function (element) {
-    var headingElement = hasClosestByTag(element, "H");
-    if (headingElement && headingElement.tagName.length === 2 && headingElement.tagName !== "HR") {
-        return headingElement;
-    }
-    return false;
-};
-
-
-/***/ }),
-
-/***/ 477:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   T: () => (/* binding */ addStyle)
-/* harmony export */ });
-var addStyle = function (url, id) {
-    if (!document.getElementById(id)) {
-        var styleElement = document.createElement("link");
-        styleElement.id = id;
-        styleElement.rel = "stylesheet";
-        styleElement.type = "text/css";
-        styleElement.href = url;
-        document.getElementsByTagName("head")[0].appendChild(styleElement);
-    }
-};
-
-
-/***/ }),
-
-/***/ 512:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   e: () => (/* binding */ mermaidRender)
-/* harmony export */ });
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(357);
-/* harmony import */ var _util_addScript__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(901);
-/* harmony import */ var _adapterRender__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(687);
-/* harmony import */ var _util_function__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(249);
-var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
-    function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
-    return new (P || (P = Promise))(function (resolve, reject) {
-        function fulfilled(value) { try { step(generator.next(value)); } catch (e) { reject(e); } }
-        function rejected(value) { try { step(generator["throw"](value)); } catch (e) { reject(e); } }
-        function step(result) { result.done ? resolve(result.value) : adopt(result.value).then(fulfilled, rejected); }
-        step((generator = generator.apply(thisArg, _arguments || [])).next());
-    });
-};
-var __generator = (undefined && undefined.__generator) || function (thisArg, body) {
-    var _ = { label: 0, sent: function() { if (t[0] & 1) throw t[1]; return t[1]; }, trys: [], ops: [] }, f, y, t, g;
-    return g = { next: verb(0), "throw": verb(1), "return": verb(2) }, typeof Symbol === "function" && (g[Symbol.iterator] = function() { return this; }), g;
-    function verb(n) { return function (v) { return step([n, v]); }; }
-    function step(op) {
-        if (f) throw new TypeError("Generator is already executing.");
-        while (g && (g = 0, op[0] && (_ = 0)), _) try {
-            if (f = 1, y && (t = op[0] & 2 ? y["return"] : op[0] ? y["throw"] || ((t = y["return"]) && t.call(y), 0) : y.next) && !(t = t.call(y, op[1])).done) return t;
-            if (y = 0, t) op = [op[0] & 2, t.value];
-            switch (op[0]) {
-                case 0: case 1: t = op; break;
-                case 4: _.label++; return { value: op[1], done: false };
-                case 5: _.label++; y = op[1]; op = [0]; continue;
-                case 7: op = _.ops.pop(); _.trys.pop(); continue;
-                default:
-                    if (!(t = _.trys, t = t.length > 0 && t[t.length - 1]) && (op[0] === 6 || op[0] === 2)) { _ = 0; continue; }
-                    if (op[0] === 3 && (!t || (op[1] > t[0] && op[1] < t[3]))) { _.label = op[1]; break; }
-                    if (op[0] === 6 && _.label < t[1]) { _.label = t[1]; t = op; break; }
-                    if (t && _.label < t[2]) { _.label = t[2]; _.ops.push(op); break; }
-                    if (t[2]) _.ops.pop();
-                    _.trys.pop(); continue;
-            }
-            op = body.call(thisArg, _);
-        } catch (e) { op = [6, e]; y = 0; } finally { f = t = 0; }
-        if (op[0] & 5) throw op[1]; return { value: op[0] ? op[1] : void 0, done: true };
-    }
-};
-
-
-
-
-var mermaidRender = function (element, cdn, theme) {
-    if (element === void 0) { element = document; }
-    if (cdn === void 0) { cdn = _constants__WEBPACK_IMPORTED_MODULE_0__/* .Constants */ .Y.CDN; }
-    var mermaidElements = _adapterRender__WEBPACK_IMPORTED_MODULE_1__.mermaidRenderAdapter.getElements(element);
-    if (mermaidElements.length === 0) {
-        return;
-    }
-    (0,_util_addScript__WEBPACK_IMPORTED_MODULE_2__/* .addScript */ .Z)("".concat(cdn, "/dist/js/mermaid/mermaid.min.js?v=11.6.0"), "vditorMermaidScript").then(function () {
-        var config = {
-            securityLevel: "loose",
-            altFontFamily: "sans-serif",
-            fontFamily: "sans-serif",
-            startOnLoad: false,
-            flowchart: {
-                htmlLabels: true,
-                useMaxWidth: !0
-            },
-            sequence: {
-                useMaxWidth: true,
-                diagramMarginX: 8,
-                diagramMarginY: 8,
-                boxMargin: 8,
-                showSequenceNumbers: true // Mermaid 时序图增加序号 https://github.com/siyuan-note/siyuan/pull/6992 https://mermaid.js.org/syntax/sequenceDiagram.html#sequencenumbers
-            },
-            gantt: {
-                leftPadding: 75,
-                rightPadding: 20
-            }
-        };
-        if (theme === "dark") {
-            config.theme = "dark";
-        }
-        mermaid.initialize(config);
-        mermaidElements.forEach(function (item) { return __awaiter(void 0, void 0, void 0, function () {
-            var code, id, mermaidData, e_1, errorElement;
-            return __generator(this, function (_a) {
-                switch (_a.label) {
-                    case 0:
-                        code = _adapterRender__WEBPACK_IMPORTED_MODULE_1__.mermaidRenderAdapter.getCode(item);
-                        if (item.getAttribute("data-processed") === "true" || code.trim() === "") {
-                            return [2 /*return*/];
-                        }
-                        id = "mermaid" + (0,_util_function__WEBPACK_IMPORTED_MODULE_3__/* .genUUID */ .Ee)();
-                        _a.label = 1;
-                    case 1:
-                        _a.trys.push([1, 3, , 4]);
-                        return [4 /*yield*/, mermaid.render(id, item.textContent)];
-                    case 2:
-                        mermaidData = _a.sent();
-                        item.innerHTML = mermaidData.svg;
-                        return [3 /*break*/, 4];
-                    case 3:
-                        e_1 = _a.sent();
-                        errorElement = document.querySelector("#" + id);
-                        item.innerHTML = "".concat(errorElement.outerHTML, "<br>\n<div style=\"text-align: left\"><small>").concat(e_1.message.replace(/\n/, "<br>"), "</small></div>");
-                        errorElement.parentElement.remove();
-                        return [3 /*break*/, 4];
-                    case 4:
-                        item.setAttribute("data-processed", "true");
-                        return [2 /*return*/];
-                }
-            });
-        }); });
-    });
-};
-
-
-/***/ }),
-
-/***/ 514:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   KJ: () => (/* binding */ hasClosestByClassName),
-/* harmony export */   _Y: () => (/* binding */ hasClosestByMatchTag)
-/* harmony export */ });
-/* unused harmony exports hasTopClosestByClassName, hasTopClosestByAttribute, hasTopClosestByTag, getTopList, hasClosestByAttribute, hasClosestBlock, getLastNode */
-
-var hasTopClosestByClassName = function (element, className) {
-    var closest = hasClosestByClassName(element, className);
-    var parentClosest = false;
-    var findTop = false;
-    while (closest && !closest.classList.contains("vditor-reset") && !findTop) {
-        parentClosest = hasClosestByClassName(closest.parentElement, className);
-        if (parentClosest) {
-            closest = parentClosest;
-        }
-        else {
-            findTop = true;
-        }
-    }
-    return closest || false;
-};
-var hasTopClosestByAttribute = function (element, attr, value) {
-    var closest = hasClosestByAttribute(element, attr, value);
-    var parentClosest = false;
-    var findTop = false;
-    while (closest && !closest.classList.contains("vditor-reset") && !findTop) {
-        parentClosest = hasClosestByAttribute(closest.parentElement, attr, value);
-        if (parentClosest) {
-            closest = parentClosest;
-        }
-        else {
-            findTop = true;
-        }
-    }
-    return closest || false;
-};
-var hasTopClosestByTag = function (element, nodeName) {
-    var closest = hasClosestByTag(element, nodeName);
-    var parentClosest = false;
-    var findTop = false;
-    while (closest && !closest.classList.contains("vditor-reset") && !findTop) {
-        parentClosest = hasClosestByTag(closest.parentElement, nodeName);
-        if (parentClosest) {
-            closest = parentClosest;
-        }
-        else {
-            findTop = true;
-        }
-    }
-    return closest || false;
-};
-var getTopList = function (element) {
-    var topUlElement = hasTopClosestByTag(element, "UL");
-    var topOlElement = hasTopClosestByTag(element, "OL");
-    var topListElement = topUlElement;
-    if (topOlElement && (!topUlElement || (topUlElement && topOlElement.contains(topUlElement)))) {
-        topListElement = topOlElement;
-    }
-    return topListElement;
-};
-var hasClosestByAttribute = function (element, attr, value) {
-    if (!element) {
-        return false;
-    }
-    if (element.nodeType === 3) {
-        element = element.parentElement;
-    }
-    var e = element;
-    var isClosest = false;
-    while (e && !isClosest && !e.classList.contains("vditor-reset")) {
-        if (e.getAttribute(attr) === value) {
-            isClosest = true;
-        }
-        else {
-            e = e.parentElement;
-        }
-    }
-    return isClosest && e;
-};
-var hasClosestBlock = function (element) {
-    if (!element) {
-        return false;
-    }
-    if (element.nodeType === 3) {
-        element = element.parentElement;
-    }
-    var e = element;
-    var isClosest = false;
-    var blockElement = hasClosestByAttribute(element, "data-block", "0");
-    if (blockElement) {
-        return blockElement;
-    }
-    while (e && !isClosest && !e.classList.contains("vditor-reset")) {
-        if (e.tagName === "H1" ||
-            e.tagName === "H2" ||
-            e.tagName === "H3" ||
-            e.tagName === "H4" ||
-            e.tagName === "H5" ||
-            e.tagName === "H6" ||
-            e.tagName === "P" ||
-            e.tagName === "BLOCKQUOTE" ||
-            e.tagName === "OL" ||
-            e.tagName === "UL") {
-            isClosest = true;
-        }
-        else {
-            e = e.parentElement;
-        }
-    }
-    return isClosest && e;
-};
-var hasClosestByMatchTag = function (element, nodeName) {
-    if (!element) {
-        return false;
-    }
-    if (element.nodeType === 3) {
-        element = element.parentElement;
-    }
-    var e = element;
-    var isClosest = false;
-    while (e && !isClosest && !e.classList.contains("vditor-reset")) {
-        if (e.nodeName === nodeName) {
-            isClosest = true;
-        }
-        else {
-            e = e.parentElement;
-        }
-    }
-    return isClosest && e;
-};
-var hasClosestByClassName = function (element, className) {
-    if (!element) {
-        return false;
-    }
-    if (element.nodeType === 3) {
-        element = element.parentElement;
-    }
-    var e = element;
-    var isClosest = false;
-    while (e && !isClosest && !e.classList.contains("vditor-reset")) {
-        if (e.classList.contains(className)) {
-            isClosest = true;
-        }
-        else {
-            e = e.parentElement;
-        }
-    }
-    return isClosest && e;
-};
-var getLastNode = function (node) {
-    while (node && node.lastChild) {
-        node = node.lastChild;
-    }
-    return node;
-};
-
-
-/***/ }),
-
-/***/ 557:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   H: () => (/* binding */ setContentTheme)
-/* harmony export */ });
-/* harmony import */ var _util_addStyle__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(477);
-
-var setContentTheme = function (contentTheme, path) {
-    if (!contentTheme || !path) {
-        return;
-    }
-    var vditorContentTheme = document.getElementById("vditorContentTheme");
-    var cssPath = "".concat(path, "/").concat(contentTheme, ".css");
-    if (!vditorContentTheme) {
-        (0,_util_addStyle__WEBPACK_IMPORTED_MODULE_0__/* .addStyle */ .T)(cssPath, "vditorContentTheme");
-    }
-    else if (vditorContentTheme.getAttribute("href") !== cssPath) {
-        vditorContentTheme.remove();
-        (0,_util_addStyle__WEBPACK_IMPORTED_MODULE_0__/* .addStyle */ .T)(cssPath, "vditorContentTheme");
-    }
-};
-
-
-/***/ }),
-
-/***/ 600:
+/***/ 889:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   D: () => (/* binding */ flowchartRender)
 /* harmony export */ });
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(357);
-/* harmony import */ var _util_addScript__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(901);
-/* harmony import */ var _adapterRender__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(687);
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(842);
+/* harmony import */ var _util_addScript__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(444);
+/* harmony import */ var _adapterRender__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(794);
 
 
 
@@ -1463,254 +1825,31 @@ var flowchartRender = function (element, cdn) {
 
 /***/ }),
 
-/***/ 663:
+/***/ 930:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   o: () => (/* binding */ codeRender)
+/* harmony export */   p: () => (/* binding */ code160to32)
 /* harmony export */ });
-/* harmony import */ var _util_code160to32__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(435);
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(357);
-
-
-var codeRender = function (element, option) {
-    Array.from(element.querySelectorAll("pre > code")).filter(function (e, index) {
-        if (e.parentElement.classList.contains("vditor-wysiwyg__pre") ||
-            e.parentElement.classList.contains("vditor-ir__marker--pre")) {
-            return false;
-        }
-        if (e.classList.contains("language-mermaid") || e.classList.contains("language-flowchart") ||
-            e.classList.contains("language-echarts") || e.classList.contains("language-mindmap") ||
-            e.classList.contains("language-plantuml") || e.classList.contains("language-markmap") ||
-            e.classList.contains("language-abc") || e.classList.contains("language-graphviz") ||
-            e.classList.contains("language-math") || e.classList.contains("language-smiles")) {
-            return false;
-        }
-        if (e.style.maxHeight.indexOf("px") > -1) {
-            return false;
-        }
-        // 避免预览区在渲染后由于代码块过多产生性能问题 https://github.com/b3log/vditor/issues/67
-        if (element.classList.contains("vditor-preview") && index > 5) {
-            return false;
-        }
-        return true;
-    }).forEach(function (e) {
-        var _a, _b, _c;
-        var codeText = e.innerText;
-        if (e.classList.contains("highlight-chroma")) {
-            var codeElement = e.cloneNode(true);
-            codeElement.querySelectorAll(".highlight-ln").forEach(function (item) {
-                item.remove();
-            });
-            codeText = codeElement.innerText;
-        }
-        else if (codeText.endsWith("\n")) {
-            codeText = codeText.substr(0, codeText.length - 1);
-        }
-        var iconHTML = '<svg><use xlink:href="#vditor-icon-copy"></use></svg>';
-        if (!document.getElementById("vditorIconScript")) {
-            iconHTML = '<svg viewBox="0 0 32 32"><path d="M22.545-0h-17.455c-1.6 0-2.909 1.309-2.909 2.909v20.364h2.909v-20.364h17.455v-2.909zM26.909 5.818h-16c-1.6 0-2.909 1.309-2.909 2.909v20.364c0 1.6 1.309 2.909 2.909 2.909h16c1.6 0 2.909-1.309 2.909-2.909v-20.364c0-1.6-1.309-2.909-2.909-2.909zM26.909 29.091h-16v-20.364h16v20.364z"></path></svg>';
-        }
-        var divElement = document.createElement("div");
-        divElement.className = "vditor-copy";
-        divElement.innerHTML = "<span aria-label=\"".concat(((_a = window.VditorI18n) === null || _a === void 0 ? void 0 : _a.copy) || "复制", "\"\nonmouseover=\"this.setAttribute('aria-label', '").concat(((_b = window.VditorI18n) === null || _b === void 0 ? void 0 : _b.copy) || "复制", "')\"\nclass=\"vditor-tooltipped vditor-tooltipped__w\"\nonclick=\"event.stopPropagation();this.previousElementSibling.select();document.execCommand('copy');this.setAttribute('aria-label', '").concat(((_c = window.VditorI18n) === null || _c === void 0 ? void 0 : _c.copied) || "已复制", "');this.previousElementSibling.blur()\">").concat(iconHTML, "</span>");
-        var textarea = document.createElement("textarea");
-        textarea.value = (0,_util_code160to32__WEBPACK_IMPORTED_MODULE_1__/* .code160to32 */ .p)(codeText);
-        divElement.insertAdjacentElement("afterbegin", textarea);
-        if (option && option.renderMenu) {
-            option.renderMenu(e, divElement);
-        }
-        e.before(divElement);
-        e.style.maxHeight = (window.outerHeight - 40) + "px";
-        // https://github.com/Vanessa219/vditor/issues/1356
-        e.insertAdjacentHTML("afterend", "<span style=\"position: absolute\">".concat(_constants__WEBPACK_IMPORTED_MODULE_0__/* .Constants */ .Y.ZWSP, "</span>"));
-    });
+var code160to32 = function (text) {
+    // 非打断空格转换为空格
+    return text.replace(/\u00a0/g, " ");
 };
 
 
 /***/ }),
 
-/***/ 667:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   M: () => (/* binding */ plantumlRender)
-/* harmony export */ });
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(357);
-/* harmony import */ var _util_addScript__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(901);
-/* harmony import */ var _adapterRender__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(687);
-
-
-
-var plantumlRender = function (element, cdn) {
-    if (element === void 0) { element = document; }
-    if (cdn === void 0) { cdn = _constants__WEBPACK_IMPORTED_MODULE_0__/* .Constants */ .Y.CDN; }
-    var plantumlElements = _adapterRender__WEBPACK_IMPORTED_MODULE_1__.plantumlRenderAdapter.getElements(element);
-    if (plantumlElements.length === 0) {
-        return;
-    }
-    (0,_util_addScript__WEBPACK_IMPORTED_MODULE_2__/* .addScript */ .Z)("".concat(cdn, "/dist/js/plantuml/plantuml-encoder.min.js"), "vditorPlantumlScript").then(function () {
-        plantumlElements.forEach(function (e) {
-            if (e.parentElement.classList.contains("vditor-wysiwyg__pre") ||
-                e.parentElement.classList.contains("vditor-ir__marker--pre")) {
-                return;
-            }
-            var text = _adapterRender__WEBPACK_IMPORTED_MODULE_1__.plantumlRenderAdapter.getCode(e).trim();
-            if (!text) {
-                return;
-            }
-            try {
-                e.innerHTML = "<object type=\"image/svg+xml\" data=\"https://www.plantuml.com/plantuml/svg/~1".concat(plantumlEncoder.encode(text), "\"/>");
-            }
-            catch (error) {
-                e.className = "vditor-reset--error";
-                e.innerHTML = "plantuml render error: <br>".concat(error);
-            }
-        });
-    });
-};
-
-
-/***/ }),
-
-/***/ 687:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-__webpack_require__.r(__webpack_exports__);
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   SMILESRenderAdapter: () => (/* binding */ SMILESRenderAdapter),
-/* harmony export */   abcRenderAdapter: () => (/* binding */ abcRenderAdapter),
-/* harmony export */   chartRenderAdapter: () => (/* binding */ chartRenderAdapter),
-/* harmony export */   flowchartRenderAdapter: () => (/* binding */ flowchartRenderAdapter),
-/* harmony export */   graphvizRenderAdapter: () => (/* binding */ graphvizRenderAdapter),
-/* harmony export */   markmapRenderAdapter: () => (/* binding */ markmapRenderAdapter),
-/* harmony export */   mathRenderAdapter: () => (/* binding */ mathRenderAdapter),
-/* harmony export */   mermaidRenderAdapter: () => (/* binding */ mermaidRenderAdapter),
-/* harmony export */   mindmapRenderAdapter: () => (/* binding */ mindmapRenderAdapter),
-/* harmony export */   plantumlRenderAdapter: () => (/* binding */ plantumlRenderAdapter)
-/* harmony export */ });
-var mathRenderAdapter = {
-    getCode: function (el) { return el.textContent; },
-    getElements: function (element) { return element.querySelectorAll(".language-math"); },
-};
-var SMILESRenderAdapter = {
-    getCode: function (el) { return el.textContent; },
-    getElements: function (element) { return element.querySelectorAll(".language-smiles"); },
-};
-var mermaidRenderAdapter = {
-    /** 不仅要返回code，并且需要将 code 设置为 el 的 innerHTML */
-    getCode: function (el) { return el.textContent; },
-    getElements: function (element) { return element.querySelectorAll(".language-mermaid"); },
-};
-var markmapRenderAdapter = {
-    getCode: function (el) { return el.textContent; },
-    getElements: function (element) { return element.querySelectorAll(".language-markmap"); },
-};
-var mindmapRenderAdapter = {
-    getCode: function (el) { return el.getAttribute("data-code"); },
-    getElements: function (el) { return el.querySelectorAll(".language-mindmap"); },
-};
-var chartRenderAdapter = {
-    getCode: function (el) { return el.innerText; },
-    getElements: function (el) { return el.querySelectorAll(".language-echarts"); },
-};
-var abcRenderAdapter = {
-    getCode: function (el) { return el.textContent; },
-    getElements: function (el) { return el.querySelectorAll(".language-abc"); },
-};
-var graphvizRenderAdapter = {
-    getCode: function (el) { return el.textContent; },
-    getElements: function (el) { return el.querySelectorAll(".language-graphviz"); },
-};
-var flowchartRenderAdapter = {
-    getCode: function (el) { return el.textContent; },
-    getElements: function (el) { return el.querySelectorAll(".language-flowchart"); },
-};
-var plantumlRenderAdapter = {
-    getCode: function (el) { return el.textContent; },
-    getElements: function (el) { return el.querySelectorAll(".language-plantuml"); },
-};
-
-
-/***/ }),
-
-/***/ 729:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   K: () => (/* binding */ markmapRender)
-/* harmony export */ });
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(357);
-/* harmony import */ var _util_addScript__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(901);
-/* harmony import */ var _adapterRender__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(687);
-
-
-
-var enabled = {};
-var transform = function (transformer, content) {
-    var result = transformer.transform(content);
-    var keys = Object.keys(result.features).filter(function (key) { return !enabled[key]; });
-    keys.forEach(function (key) {
-        enabled[key] = true;
-    });
-    var _a = transformer.getAssets(keys), styles = _a.styles, scripts = _a.scripts;
-    var markmap = window.markmap;
-    if (styles)
-        markmap.loadCSS(styles);
-    if (scripts)
-        markmap.loadJS(scripts);
-    return result;
-};
-var init = function (el, code) {
-    var _a = window.markmap, Transformer = _a.Transformer, Markmap = _a.Markmap, deriveOptions = _a.deriveOptions, globalCSS = _a.globalCSS;
-    var transformer = new Transformer();
-    el.innerHTML = '<svg style="width:100%"></svg>';
-    var svg = el.firstChild;
-    var mm = Markmap.create(svg, null);
-    var _b = transform(transformer, code), root = _b.root, frontmatter = _b.frontmatter;
-    var markmapOptions = frontmatter === null || frontmatter === void 0 ? void 0 : frontmatter.markmap;
-    var frontmatterOptions = deriveOptions(markmapOptions);
-    mm.setData(root, frontmatterOptions);
-    mm.fit();
-};
-var markmapRender = function (element, cdn) {
-    if (element === void 0) { element = document; }
-    if (cdn === void 0) { cdn = _constants__WEBPACK_IMPORTED_MODULE_0__/* .Constants */ .Y.CDN; }
-    var markmapElements = _adapterRender__WEBPACK_IMPORTED_MODULE_1__.markmapRenderAdapter.getElements(element);
-    if (markmapElements.length === 0) {
-        return;
-    }
-    (0,_util_addScript__WEBPACK_IMPORTED_MODULE_2__/* .addScript */ .Z)("".concat(cdn, "/dist/js/markmap/markmap.min.js"), "vditorMarkerScript").then(function () {
-        markmapElements.forEach(function (item) {
-            var code = _adapterRender__WEBPACK_IMPORTED_MODULE_1__.markmapRenderAdapter.getCode(item);
-            if (item.getAttribute("data-processed") === "true" || code.trim() === "") {
-                return;
-            }
-            var render = document.createElement("div");
-            render.className = "language-markmap";
-            item.parentNode.appendChild(render);
-            init(render, code);
-            if (item.parentNode.childNodes[0].nodeName == "CODE") {
-                item.parentNode.removeChild(item.parentNode.childNodes[0]);
-            }
-        });
-    });
-};
-
-
-/***/ }),
-
-/***/ 876:
+/***/ 947:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
 /* harmony export */   T: () => (/* binding */ mathRender)
 /* harmony export */ });
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(357);
-/* harmony import */ var _util_addScript__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(901);
-/* harmony import */ var _util_addStyle__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(477);
-/* harmony import */ var _util_code160to32__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(435);
-/* harmony import */ var _adapterRender__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(687);
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(842);
+/* harmony import */ var _util_addScript__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(444);
+/* harmony import */ var _util_addStyle__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(10);
+/* harmony import */ var _util_code160to32__WEBPACK_IMPORTED_MODULE_4__ = __webpack_require__(930);
+/* harmony import */ var _adapterRender__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(794);
 
 
 
@@ -1849,16 +1988,16 @@ var mathRender = function (element, options) {
 
 /***/ }),
 
-/***/ 900:
+/***/ 998:
 /***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
 
 /* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   v: () => (/* binding */ chartRender)
+/* harmony export */   e: () => (/* binding */ mermaidRender)
 /* harmony export */ });
-/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(357);
-/* harmony import */ var _util_addScript__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(901);
-/* harmony import */ var _adapterRender__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(687);
-/* harmony import */ var _util_function__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(249);
+/* harmony import */ var _constants__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(842);
+/* harmony import */ var _util_addScript__WEBPACK_IMPORTED_MODULE_2__ = __webpack_require__(444);
+/* harmony import */ var _adapterRender__WEBPACK_IMPORTED_MODULE_1__ = __webpack_require__(794);
+/* harmony import */ var _util_function__WEBPACK_IMPORTED_MODULE_3__ = __webpack_require__(138);
 var __awaiter = (undefined && undefined.__awaiter) || function (thisArg, _arguments, P, generator) {
     function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
     return new (P || (P = Promise))(function (resolve, reject) {
@@ -1899,208 +2038,69 @@ var __generator = (undefined && undefined.__generator) || function (thisArg, bod
 
 
 
-var chartRender = function (element, cdn, theme) {
+var mermaidRender = function (element, cdn, theme) {
     if (element === void 0) { element = document; }
     if (cdn === void 0) { cdn = _constants__WEBPACK_IMPORTED_MODULE_0__/* .Constants */ .Y.CDN; }
-    var echartsElements = _adapterRender__WEBPACK_IMPORTED_MODULE_1__.chartRenderAdapter.getElements(element);
-    if (echartsElements.length > 0) {
-        (0,_util_addScript__WEBPACK_IMPORTED_MODULE_2__/* .addScript */ .Z)("".concat(cdn, "/dist/js/echarts/echarts.min.js?v=5.5.1"), "vditorEchartsScript").then(function () {
-            echartsElements.forEach(function (e) { return __awaiter(void 0, void 0, void 0, function () {
-                var text, option, error_1;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0:
-                            if (e.parentElement.classList.contains("vditor-wysiwyg__pre") ||
-                                e.parentElement.classList.contains("vditor-ir__marker--pre")) {
-                                return [2 /*return*/];
-                            }
-                            text = _adapterRender__WEBPACK_IMPORTED_MODULE_1__.chartRenderAdapter.getCode(e).trim();
-                            if (!text) {
-                                return [2 /*return*/];
-                            }
-                            _a.label = 1;
-                        case 1:
-                            _a.trys.push([1, 3, , 4]);
-                            if (e.getAttribute("data-processed") === "true") {
-                                return [2 /*return*/];
-                            }
-                            return [4 /*yield*/, (0,_util_function__WEBPACK_IMPORTED_MODULE_3__/* .looseJsonParse */ .kY)(text)];
-                        case 2:
-                            option = _a.sent();
-                            echarts.init(e, theme === "dark" ? "dark" : undefined).setOption(option);
-                            e.setAttribute("data-processed", "true");
-                            return [3 /*break*/, 4];
-                        case 3:
-                            error_1 = _a.sent();
-                            e.className = "vditor-reset--error";
-                            e.innerHTML = "echarts render error: <br>".concat(error_1);
-                            return [3 /*break*/, 4];
-                        case 4: return [2 /*return*/];
-                    }
-                });
-            }); });
-        });
-    }
-};
-
-
-/***/ }),
-
-/***/ 901:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   U: () => (/* binding */ addScriptSync),
-/* harmony export */   Z: () => (/* binding */ addScript)
-/* harmony export */ });
-var addScriptSync = function (path, id) {
-    if (document.getElementById(id)) {
-        return false;
-    }
-    var xhrObj = new XMLHttpRequest();
-    xhrObj.open("GET", path, false);
-    xhrObj.setRequestHeader("Accept", "text/javascript, application/javascript, application/ecmascript, application/x-ecmascript, */*; q=0.01");
-    xhrObj.send("");
-    var scriptElement = document.createElement("script");
-    scriptElement.type = "text/javascript";
-    scriptElement.text = xhrObj.responseText;
-    scriptElement.id = id;
-    document.head.appendChild(scriptElement);
-};
-var addScript = function (path, id) {
-    return new Promise(function (resolve, reject) {
-        if (document.getElementById(id)) {
-            // 脚本加载后再次调用直接返回
-            resolve(true);
-            return false;
-        }
-        var scriptElement = document.createElement("script");
-        scriptElement.src = path;
-        scriptElement.async = true;
-        // 循环调用时 Chrome 不会重复请求 js
-        document.head.appendChild(scriptElement);
-        scriptElement.onerror = function (event) {
-            reject(event);
-        };
-        scriptElement.onload = function () {
-            if (document.getElementById(id)) {
-                // 循环调用需清除 DOM 中的 script 标签
-                scriptElement.remove();
-                resolve(true);
-                return false;
-            }
-            scriptElement.id = id;
-            resolve(true);
-        };
-    });
-};
-
-
-/***/ }),
-
-/***/ 924:
-/***/ ((__unused_webpack_module, __webpack_exports__, __webpack_require__) => {
-
-/* harmony export */ __webpack_require__.d(__webpack_exports__, {
-/* harmony export */   l: () => (/* binding */ mediaRender)
-/* harmony export */ });
-/* harmony import */ var _util_function__WEBPACK_IMPORTED_MODULE_0__ = __webpack_require__(249);
-
-var videoRender = function (element, url) {
-    element.insertAdjacentHTML("afterend", "<video controls=\"controls\" src=\"".concat(url, "\"></video>"));
-    element.remove();
-};
-var audioRender = function (element, url) {
-    element.insertAdjacentHTML("afterend", "<audio controls=\"controls\" src=\"".concat(url, "\"></audio>"));
-    element.remove();
-};
-var iframeRender = function (element, url) {
-    var youtubeMatch = url.match(/\/\/(?:www\.)?(?:youtu\.be\/|youtube\.com\/(?:embed\/|v\/|watch\?v=|watch\?.+&v=))([\w|-]{11})(?:(?:[\?&]t=)(\S+))?/);
-    var youkuMatch = url.match(/\/\/v\.youku\.com\/v_show\/id_(\w+)=*\.html/);
-    var qqMatch = url.match(/\/\/v\.qq\.com\/x\/cover\/.*\/([^\/]+)\.html\??.*/);
-    var coubMatch = url.match(/(?:www\.|\/\/)coub\.com\/view\/(\w+)/);
-    var facebookMatch = url.match(/(?:www\.|\/\/)facebook\.com\/([^\/]+)\/videos\/([0-9]+)/);
-    var dailymotionMatch = url.match(/.+dailymotion.com\/(video|hub)\/(\w+)\?/);
-    var bilibiliMatch = url.match(/(?:www\.|\/\/)bilibili\.com\/video\/(\w+)/);
-    var tedMatch = url.match(/(?:www\.|\/\/)ted\.com\/talks\/(\w+)/);
-    if (youtubeMatch && youtubeMatch[1].length === 11) {
-        element.insertAdjacentHTML("afterend", "<iframe class=\"iframe__video\" src=\"//www.youtube.com/embed/".concat(youtubeMatch[1] +
-            (youtubeMatch[2] ? "?start=" + youtubeMatch[2] : ""), "\"></iframe>"));
-        element.remove();
-    }
-    else if (youkuMatch && youkuMatch[1]) {
-        element.insertAdjacentHTML("afterend", "<iframe class=\"iframe__video\" src=\"//player.youku.com/embed/".concat(youkuMatch[1], "\"></iframe>"));
-        element.remove();
-    }
-    else if (qqMatch && qqMatch[1]) {
-        element.insertAdjacentHTML("afterend", "<iframe class=\"iframe__video\" src=\"https://v.qq.com/txp/iframe/player.html?vid=".concat(qqMatch[1], "\"></iframe>"));
-        element.remove();
-    }
-    else if (coubMatch && coubMatch[1]) {
-        element.insertAdjacentHTML("afterend", "<iframe class=\"iframe__video\"\n src=\"//coub.com/embed/".concat(coubMatch[1], "?muted=false&autostart=false&originalSize=true&startWithHD=true\"></iframe>"));
-        element.remove();
-    }
-    else if (facebookMatch && facebookMatch[0]) {
-        element.insertAdjacentHTML("afterend", "<iframe class=\"iframe__video\"\n src=\"https://www.facebook.com/plugins/video.php?href=".concat(encodeURIComponent(facebookMatch[0]), "\"></iframe>"));
-        element.remove();
-    }
-    else if (dailymotionMatch && dailymotionMatch[2]) {
-        element.insertAdjacentHTML("afterend", "<iframe class=\"iframe__video\"\n src=\"https://www.dailymotion.com/embed/video/".concat(dailymotionMatch[2], "\"></iframe>"));
-        element.remove();
-    }
-    else if (url.indexOf("bilibili.com") > -1 && (url.indexOf("bvid=") > -1 || (bilibiliMatch && bilibiliMatch[1]))) {
-        var params_1 = {
-            bvid: (0,_util_function__WEBPACK_IMPORTED_MODULE_0__/* .getSearch */ .TK)("bvid", url) || (bilibiliMatch && bilibiliMatch[1]),
-            page: "1",
-            high_quality: "1",
-            as_wide: "1",
-            allowfullscreen: "true",
-            autoplay: "0"
-        };
-        new URL(url.startsWith("http") ? url : "https:" + url).search.split("&").forEach(function (item, index) {
-            if (!item) {
-                return;
-            }
-            if (index === 0) {
-                item = item.substr(1);
-            }
-            var keyValue = item.split("=");
-            params_1[keyValue[0]] = keyValue[1];
-        });
-        var src_1 = "https://player.bilibili.com/player.html?";
-        var keys_1 = Object.keys(params_1);
-        keys_1.forEach(function (key, index) {
-            src_1 += "".concat(key, "=").concat(params_1[key]);
-            if (index < keys_1.length - 1) {
-                src_1 += "&";
-            }
-        });
-        element.insertAdjacentHTML("afterend", "<iframe class=\"iframe__video\" src=\"".concat(src_1, "\"></iframe>"));
-        element.remove();
-    }
-    else if (tedMatch && tedMatch[1]) {
-        element.insertAdjacentHTML("afterend", "<iframe class=\"iframe__video\" src=\"//embed.ted.com/talks/".concat(tedMatch[1], "\"></iframe>"));
-        element.remove();
-    }
-};
-var mediaRender = function (element) {
-    if (!element) {
+    var mermaidElements = _adapterRender__WEBPACK_IMPORTED_MODULE_1__.mermaidRenderAdapter.getElements(element);
+    if (mermaidElements.length === 0) {
         return;
     }
-    element.querySelectorAll("a").forEach(function (aElement) {
-        var url = aElement.getAttribute("href");
-        if (!url) {
-            return;
+    (0,_util_addScript__WEBPACK_IMPORTED_MODULE_2__/* .addScript */ .Z)("".concat(cdn, "/dist/js/mermaid/mermaid.min.js?v=11.6.0"), "vditorMermaidScript").then(function () {
+        var config = {
+            securityLevel: "loose",
+            altFontFamily: "sans-serif",
+            fontFamily: "sans-serif",
+            startOnLoad: false,
+            flowchart: {
+                htmlLabels: true,
+                useMaxWidth: !0
+            },
+            sequence: {
+                useMaxWidth: true,
+                diagramMarginX: 8,
+                diagramMarginY: 8,
+                boxMargin: 8,
+                showSequenceNumbers: true // Mermaid 时序图增加序号 https://github.com/siyuan-note/siyuan/pull/6992 https://mermaid.js.org/syntax/sequenceDiagram.html#sequencenumbers
+            },
+            gantt: {
+                leftPadding: 75,
+                rightPadding: 20
+            }
+        };
+        if (theme === "dark") {
+            config.theme = "dark";
         }
-        if (url.match(/^.+.(mp4|m4v|ogg|ogv|webm)$/)) {
-            videoRender(aElement, url);
-        }
-        else if (url.match(/^.+.(mp3|wav|flac)$/)) {
-            audioRender(aElement, url);
-        }
-        else {
-            iframeRender(aElement, url);
-        }
+        mermaid.initialize(config);
+        mermaidElements.forEach(function (item) { return __awaiter(void 0, void 0, void 0, function () {
+            var code, id, mermaidData, e_1, errorElement;
+            return __generator(this, function (_a) {
+                switch (_a.label) {
+                    case 0:
+                        code = _adapterRender__WEBPACK_IMPORTED_MODULE_1__.mermaidRenderAdapter.getCode(item);
+                        if (item.getAttribute("data-processed") === "true" || code.trim() === "") {
+                            return [2 /*return*/];
+                        }
+                        id = "mermaid" + (0,_util_function__WEBPACK_IMPORTED_MODULE_3__/* .genUUID */ .Ee)();
+                        _a.label = 1;
+                    case 1:
+                        _a.trys.push([1, 3, , 4]);
+                        return [4 /*yield*/, mermaid.render(id, item.textContent)];
+                    case 2:
+                        mermaidData = _a.sent();
+                        item.innerHTML = mermaidData.svg;
+                        return [3 /*break*/, 4];
+                    case 3:
+                        e_1 = _a.sent();
+                        errorElement = document.querySelector("#" + id);
+                        item.innerHTML = "".concat(errorElement.outerHTML, "<br>\n<div style=\"text-align: left\"><small>").concat(e_1.message.replace(/\n/, "<br>"), "</small></div>");
+                        errorElement.parentElement.remove();
+                        return [3 /*break*/, 4];
+                    case 4:
+                        item.setAttribute("data-processed", "true");
+                        return [2 /*return*/];
+                }
+            });
+        }); });
     });
 };
 
@@ -2171,19 +2171,19 @@ __webpack_require__.d(__webpack_exports__, {
 });
 
 // EXTERNAL MODULE: ./src/ts/markdown/abcRender.ts
-var abcRender = __webpack_require__(108);
+var abcRender = __webpack_require__(449);
 // EXTERNAL MODULE: ./src/ts/markdown/adapterRender.ts
-var adapterRender = __webpack_require__(687);
+var adapterRender = __webpack_require__(794);
 // EXTERNAL MODULE: ./src/ts/markdown/chartRender.ts
-var chartRender = __webpack_require__(900);
+var chartRender = __webpack_require__(801);
 // EXTERNAL MODULE: ./src/ts/markdown/codeRender.ts
-var codeRender = __webpack_require__(663);
+var codeRender = __webpack_require__(756);
 // EXTERNAL MODULE: ./src/ts/markdown/flowchartRender.ts
-var flowchartRender = __webpack_require__(600);
+var flowchartRender = __webpack_require__(889);
 // EXTERNAL MODULE: ./src/ts/markdown/graphvizRender.ts
-var graphvizRender = __webpack_require__(407);
+var graphvizRender = __webpack_require__(516);
 // EXTERNAL MODULE: ./src/ts/markdown/highlightRender.ts
-var highlightRender = __webpack_require__(376);
+var highlightRender = __webpack_require__(625);
 ;// ./src/ts/markdown/lazyLoadImageRender.ts
 var lazyLoadImageRender = function (element) {
     if (element === void 0) { element = document; }
@@ -2236,31 +2236,31 @@ var lazyLoadImageRender = function (element) {
 };
 
 // EXTERNAL MODULE: ./src/ts/markdown/mathRender.ts
-var mathRender = __webpack_require__(876);
+var mathRender = __webpack_require__(947);
 // EXTERNAL MODULE: ./src/ts/markdown/mediaRender.ts
-var mediaRender = __webpack_require__(924);
+var mediaRender = __webpack_require__(13);
 // EXTERNAL MODULE: ./src/ts/markdown/mermaidRender.ts
-var mermaidRender = __webpack_require__(512);
+var mermaidRender = __webpack_require__(998);
 // EXTERNAL MODULE: ./src/ts/markdown/SMILESRender.ts
-var SMILESRender = __webpack_require__(47);
+var SMILESRender = __webpack_require__(292);
 // EXTERNAL MODULE: ./src/ts/markdown/markmapRender.ts
-var markmapRender = __webpack_require__(729);
+var markmapRender = __webpack_require__(316);
 // EXTERNAL MODULE: ./src/ts/markdown/mindmapRender.ts
-var mindmapRender = __webpack_require__(430);
+var mindmapRender = __webpack_require__(883);
 // EXTERNAL MODULE: ./src/ts/markdown/outlineRender.ts
-var outlineRender = __webpack_require__(442);
+var outlineRender = __webpack_require__(691);
 // EXTERNAL MODULE: ./src/ts/markdown/plantumlRender.ts
-var plantumlRender = __webpack_require__(667);
+var plantumlRender = __webpack_require__(816);
 // EXTERNAL MODULE: ./src/ts/constants.ts
-var constants = __webpack_require__(357);
+var constants = __webpack_require__(842);
 // EXTERNAL MODULE: ./src/ts/ui/setContentTheme.ts
-var setContentTheme = __webpack_require__(557);
+var setContentTheme = __webpack_require__(860);
 // EXTERNAL MODULE: ./src/ts/util/addScript.ts
-var addScript = __webpack_require__(901);
+var addScript = __webpack_require__(444);
 // EXTERNAL MODULE: ./src/ts/util/hasClosest.ts
-var hasClosest = __webpack_require__(514);
+var hasClosest = __webpack_require__(145);
 // EXTERNAL MODULE: ./src/ts/util/merge.ts
-var merge = __webpack_require__(29);
+var merge = __webpack_require__(600);
 ;// ./src/ts/markdown/anchorRender.ts
 var anchorRender = function (type) {
     document.querySelectorAll(".vditor-anchor").forEach(function (anchor) {
@@ -2282,9 +2282,9 @@ var anchorRender = function (type) {
 };
 
 // EXTERNAL MODULE: ./src/ts/markdown/setLute.ts
-var setLute = __webpack_require__(136);
+var setLute = __webpack_require__(329);
 // EXTERNAL MODULE: ./src/ts/util/selection.ts
-var selection = __webpack_require__(183);
+var selection = __webpack_require__(782);
 ;// ./src/ts/markdown/speechRender.ts
 
 var speechRender = function (element, lang) {
@@ -2607,9 +2607,9 @@ var previewRender = function (previewElement, markdown, options) { return __awai
 }); };
 
 // EXTERNAL MODULE: ./src/ts/preview/image.ts
-var preview_image = __webpack_require__(170);
+var preview_image = __webpack_require__(649);
 // EXTERNAL MODULE: ./src/ts/ui/setCodeTheme.ts
-var setCodeTheme = __webpack_require__(417);
+var setCodeTheme = __webpack_require__(854);
 ;// ./src/method.ts
 
 

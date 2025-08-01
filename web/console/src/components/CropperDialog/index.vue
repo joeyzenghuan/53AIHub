@@ -1,3 +1,59 @@
+<template>
+	<el-dialog :model-value="dialogVisible" :title="$t('image_cropper')" width="550px" :close-on-click-modal="false"
+		:close-on-press-escape="false" append-to-body @close="dialogVisible = false">
+		<template #default>
+			<div class="cropper">
+				<div class="cropper_left">
+					<VueCropper ref="cropperRef" :style="{ width: `${showWidth}px`, height: `${showHeight}px` }"
+						:img="options.img" :info="true" :info-true="options.infoTrue" :auto-crop="options.autoCrop"
+						:fixed-box="options.fixedBox" :can-move="options.canMove" :can-scale="options.canScale"
+						:fixed-number="fixedNumber" :fixed="options.fixed" :full="options.full" :center-box="options.centerBox"
+						:fill-color="options.fillColor" :output-type="options.outputType" @real-time="previewHandle" />
+					<div class="reupload_box">
+						<div class="reupload_text" @click="uploadFile('reload')">
+							{{ $t('reupload') }}
+						</div>
+						<div>
+							<el-icon class="rotate_right" @click="changeScale(1)">
+								<CirclePlus />
+							</el-icon>
+							<el-icon class="rotate_right" @click="changeScale(-1)">
+								<Remove />
+							</el-icon>
+							<el-icon class="rotate_right" @click="rotateRight">
+								<RefreshRight />
+							</el-icon>
+						</div>
+					</div>
+				</div>
+
+				<div class="cropper_right">
+					<div class="preview_text">
+						{{ $t('action_preview') }}
+					</div>
+					<div :style="getStyle" class="previewImg">
+						<img :style="previews.img" :src="previews.img" alt="">
+					</div>
+				</div>
+			</div>
+		</template>
+
+		<template #footer>
+			<span class="dialog-footer">
+				<el-button size="large" @click="dialogVisible = false">
+					{{ $t('action_cancel') }}
+				</el-button>
+				<el-button size="large" type="" @click="refreshCrop">
+					{{ $t('action_reset') }}
+				</el-button>
+				<el-button size="large" type="primary" :loading="uploading" @click="onConfirm">
+					{{ $t('action_confirm') }}
+				</el-button>
+			</span>
+		</template>
+	</el-dialog>
+</template>
+
 <script lang="ts" setup>
 // 需要引入的库
 import 'vue-cropper/dist/index.css'
@@ -7,7 +63,7 @@ import { CirclePlus, RefreshRight, Remove } from '@element-plus/icons-vue'
 import { reactive, ref, watch, nextTick } from 'vue'
 // 封装的dialog组件
 import { ElMessage } from 'element-plus'
-import api from '@/apis'
+import uploadApi from '@/api/modules/upload'
 import { api_host } from '@/utils/config'
 
 // 父组件传参props
@@ -190,10 +246,8 @@ const uploadFile = async (type: string): Promise<void> => {
 
 /* 上传成功方法 */
 const cropperSuccess = async (dataFile: File) => {
-	const fileFormData = new FormData()
-	fileFormData.append('file', dataFile)
 	try {
-		const res = await api.upload({ data: fileFormData })
+		const res = await uploadApi.upload(dataFile)
 		return res.data
 	}
 	catch (error) {
@@ -267,62 +321,6 @@ defineExpose({
   },
 })
 </script>
-
-<template>
-	<el-dialog :model-value="dialogVisible" :title="$t('image_cropper')" width="550px" :close-on-click-modal="false"
-		:close-on-press-escape="false" append-to-body @close="dialogVisible = false">
-		<template #default>
-			<div class="cropper">
-				<div class="cropper_left">
-					<VueCropper ref="cropperRef" :style="{ width: `${showWidth}px`, height: `${showHeight}px` }"
-						:img="options.img" :info="true" :info-true="options.infoTrue" :auto-crop="options.autoCrop"
-						:fixed-box="options.fixedBox" :can-move="options.canMove" :can-scale="options.canScale"
-						:fixed-number="fixedNumber" :fixed="options.fixed" :full="options.full" :center-box="options.centerBox"
-						:fill-color="options.fillColor" :output-type="options.outputType" @real-time="previewHandle" />
-					<div class="reupload_box">
-						<div class="reupload_text" @click="uploadFile('reload')">
-							{{ $t('reupload') }}
-						</div>
-						<div>
-							<el-icon class="rotate_right" @click="changeScale(1)">
-								<CirclePlus />
-							</el-icon>
-							<el-icon class="rotate_right" @click="changeScale(-1)">
-								<Remove />
-							</el-icon>
-							<el-icon class="rotate_right" @click="rotateRight">
-								<RefreshRight />
-							</el-icon>
-						</div>
-					</div>
-				</div>
-
-				<div class="cropper_right">
-					<div class="preview_text">
-						{{ $t('action_preview') }}
-					</div>
-					<div :style="getStyle" class="previewImg">
-						<img :style="previews.img" :src="previews.img" alt="">
-					</div>
-				</div>
-			</div>
-		</template>
-
-		<template #footer>
-			<span class="dialog-footer">
-				<el-button size="large" @click="dialogVisible = false">
-					{{ $t('action_cancel') }}
-				</el-button>
-				<el-button size="large" type="" @click="refreshCrop">
-					{{ $t('action_reset') }}
-				</el-button>
-				<el-button size="large" type="primary" :loading="uploading" @click="onConfirm">
-					{{ $t('action_confirm') }}
-				</el-button>
-			</span>
-		</template>
-	</el-dialog>
-</template>
 
 <style lang="scss" scoped>
 .cropper {

@@ -85,7 +85,8 @@ export default {
     expand_more: 'もっと見る',
     collapse_more: 'もっと見る',
     or: 'または',
-    later: '後で'
+    later: '後で',
+    allow_to: 'プロンプトをコピーしました。"{name}"サイトにアクセスしますか'
   },
 
   // ステータス通知
@@ -122,6 +123,7 @@ export default {
     close: '閉じる',
     open: '開く',
     ok: 'OK',
+    allow: '許可する',
     and: 'と',
     copy: 'コピー',
     upload: 'アップロード',
@@ -153,7 +155,18 @@ export default {
     stop: '停止',
     pay: '支払いに進む',
     ok_v2: 'OK',
-    view_more: 'もっと見る'
+    view_more: 'もっと見る',
+    click_upload: 'クリックアップロード',
+    view: '表示',
+    delete: '削除'
+  },
+
+  file: {
+    file_size: 'ファイルサイズは{size}MB以下でなければなりません',
+    file_format: 'サポートされる形式：{format}',
+    file_empty: 'ファイル内容を入力してください',
+    file_exceed: 'ファイルサイズは{size}MB以下でなければなりません ({name}サイズが超過しました)',
+    file_exceed_limit: '最大{limit}個のファイルをアップロードできます'
   },
 
   // フォーム関連
@@ -288,7 +301,8 @@ export default {
     no_available_agent: '利用可能なエージェントがありません',
 
     completion_completed: '深層思考が完了しました',
-    completion_thinking: '深度思考中...'
+    completion_thinking: '深度思考中...',
+    completion_next_action: '関連シナリオを次のステップに進める'
   },
 
   // ナレッジベース関連
@@ -325,7 +339,8 @@ export default {
     likes_sort: 'いいね順',
     views_sort: '閲覧順',
     content: 'プロンプト内容',
-    auth_tip: 'あなたの所属グループにアクセス権がありません'
+    auth_tip: 'あなたの所属グループにアクセス権がありません',
+    let_use_prompt: '去使用这个提示词'
   },
 
   toolbox: {

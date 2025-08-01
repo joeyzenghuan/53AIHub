@@ -39,3 +39,34 @@ func (a *AI53Service) GetAllBots() ([]ai53.AppResponse, error) {
 
 	return allBots, nil
 }
+
+func (a *AI53Service) GetAllWorkflows() ([]ai53.AppResponse, error) {
+	api := a.GetApiSdk()
+	var allWorkflows []ai53.AppResponse
+	offset := 0
+	limit := 100
+
+	for {
+		resp, err := api.GetWorkflows(offset, limit)
+		if err != nil {
+			return nil, err
+		}
+
+		allWorkflows = append(allWorkflows, resp...)
+
+		if len(resp) < limit {
+			break
+		}
+		offset += limit
+	}
+
+	return allWorkflows, nil
+}
+
+func (a *AI53Service) GetAppParameters(botId string) (interface{}, error) {
+	// 获取 API SDK 实例 (复用现有模式)
+	api := a.GetApiSdk()
+
+	// 调用 API 方法
+	return api.GetAppParameters(botId)
+}

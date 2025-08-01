@@ -1,11 +1,32 @@
+<template>
+  <ElInput
+    v-model="input_value"
+    :style="{ '--el-input-bg-color': bgColor, '--el-input-border-color': 'transparent', '--el-input-height': height }"
+    :clearable="clearable"
+    :size="size"
+    :disabled="disabled"
+    :maxlength="maxlength"
+    :placeholder="$t(placeholder)"
+    @change="onChange"
+  >
+    <template #append>
+      <ElButton class="!bg-transparent" type="primary" text :disabled="send_disabled" @click="onSend">
+        <span :class="[send_disabled ? 'cursor-not-allowed' : 'cursor-pointer hover:opacity-70 text-[#3664EF]']">
+          {{ send_countdown > 0 ? `${$t('action_send_success')}(${send_countdown}s)` : $t('get_verification_code') }}
+        </span>
+      </ElButton>
+    </template>
+  </ElInput>
+</template>
+
 <script setup lang="ts">
-import { computed, onUnmounted, ref } from 'vue'
-import api from '@/apis'
-import { commonApi } from '@/api'
+import { computed, onUnmounted, ref } from 'vue';
+import api from '@/apis';
+import { commonApi } from '@/api';
 
 const props = withDefaults(defineProps<{
   account?: string
-  account_type?: 'email' | 'mobile'
+  accountType?: 'email' | 'mobile'
   modelValue?: string
   bgColor?: string
   height?: string
@@ -17,7 +38,7 @@ const props = withDefaults(defineProps<{
   placeholder?: string
 }>(), {
   account: '',
-  account_type: '',
+  accountType: 'mobile',
   modelValue: '',
   bgColor: '#F1F2F3',
   height: '44px',
@@ -39,7 +60,7 @@ const send_disabled = computed(() => {
   return props.disabled || !props.account || send_countdown.value > 0
 })
 const real_account_type = computed(() => {
-  return props.account_type || /^(13[0-9]|14[0-9]|15[0-9]|16[0-9]|17[0-9]|18[0-9]|19[0-9])\d{8}$/.test(props.account) ? 'mobile' : 'email'
+  return props.accountType || /^(13[0-9]|14[0-9]|15[0-9]|16[0-9]|17[0-9]|18[0-9]|19[0-9])\d{8}$/.test(props.account) ? 'mobile' : 'email'
 })
 
 onUnmounted(() => {
@@ -110,27 +131,6 @@ defineExpose({
   validateCode,
 })
 </script>
-
-<template>
-  <ElInput
-    v-model="input_value"
-    :style="{ '--el-input-bg-color': bgColor, '--el-input-border-color': 'transparent', '--el-input-height': height }"
-    :clearable="clearable"
-    :size="size"
-    :disabled="disabled"
-    :maxlength="maxlength"
-    :placeholder="$t(placeholder)"
-    @change="onChange"
-  >
-    <template #append>
-      <ElButton class="!bg-transparent" type="primary" text :disabled="send_disabled" @click="onSend">
-        <span :class="[send_disabled ? 'cursor-not-allowed' : 'cursor-pointer hover:opacity-70 text-[#3664EF]']">
-          {{ send_countdown > 0 ? `${$t('action_send_success')}(${send_countdown}s)` : $t('get_verification_code') }}
-        </span>
-      </ElButton>
-    </template>
-  </ElInput>
-</template>
 
 <style scoped lang="scss">
 ::v-deep(.el-input-group__append) {

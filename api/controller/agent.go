@@ -22,6 +22,7 @@ type AgentListRequest struct {
 	Offset       int    `json:"offset" form:"offset" example:"0"`
 	Limit        int    `json:"limit" form:"limit" example:"10"`
 	ChannelTypes string `json:"channel_types" form:"channel_types" example:"0,1,2"`
+	AgentTypes   string `json:"agent_types" form:"agent_types" example:"0,1,2"`
 }
 
 type AgentsResponse struct {
@@ -46,6 +47,7 @@ type AgentRequest struct {
 	Enable               bool    `json:"enable" example:"true"`
 	SubscriptionGroupIds []int64 `json:"subscription_group_ids"` // 订阅分组IDs
 	Settings             string  `json:"settings" example:"{}"`
+	AgentType            int     `json:"agent_type" example:"0"` // Agent type (0=App, 1=Workflow), default is 0
 }
 
 type UpdateAgentEnableRequest struct {
@@ -53,7 +55,7 @@ type UpdateAgentEnableRequest struct {
 }
 
 // @Summary Create a new agent
-// @Description Create agent with configurable parameters
+// @Description Create agent with configurable parameters. agent_type: 0=App (default), 1=Workflow
 // @Tags Agent
 // @Accept json
 // @Produce json
@@ -112,6 +114,7 @@ func CreateAgent(c *gin.Context) {
 		CreatedBy:    config.GetUserId(c),
 		Enable:       agentReq.Enable,
 		Settings:     agentReq.Settings,
+		AgentType:    agentReq.AgentType, // 添加 AgentType 字段，默认为 0
 	}
 
 	if err := tx.Create(&agent).Error; err != nil {
@@ -217,13 +220,13 @@ func GetAgent(c *gin.Context) {
 }
 
 // @Summary Update agent
-// @Description Update existing agent details
+// @Description Update existing agent details. agent_type: 0=App (default), 1=Workflow
 // @Tags Agent
 // @Accept json
 // @Produce json
 // @Security BearerAuth
 // @Param agent_id path int true "Agent ID"
-// @Param agent body AgentRequest true "Agent data" example:{"name":"OpenAI-ChatGPT","description":"ChatGPT","configs":"{\"model\":\"gpt-3.5-turbo\",\"temperature\":0.7}","prompt":"你好","model":"gpt-3.5-turbo","group_id":0,"use_cases":"[]","tools":"[]","user_group_ids":[1,2,3]}
+// @Param agent body AgentRequest true "Agent data" example:{"name":"OpenAI-ChatGPT","description":"ChatGPT","configs":"{\"model\":\"gpt-3.5-turbo\",\"temperature\":0.7}","prompt":"你好","model":"gpt-3.5-turbo","group_id":0,"use_cases":"[]","tools":"[]","user_group_ids":[1,2,3],"agent_type":0}
 // @Success 200 {object} model.CommonResponse{data=model.Agent} "Success"
 // @Router /api/agents/{agent_id} [put]
 func UpdateAgent(c *gin.Context) {
@@ -281,6 +284,7 @@ func UpdateAgent(c *gin.Context) {
 	agent.CustomConfig = agentReq.CustomConfig
 	agent.Enable = agentReq.Enable
 	agent.Settings = agentReq.Settings
+	agent.AgentType = agentReq.AgentType // 添加 AgentType 字段更新
 
 	if err := tx.Save(agent).Error; err != nil {
 		tx.Rollback()
@@ -493,6 +497,7 @@ func DeleteAgent(c *gin.Context) {
 // @Param offset query int false "Offset"
 // @Param limit query int false "Limit" default(10)
 // @Param channel_types query string false "Channel types , split by comma"
+// @Param agent_types query string false "Agent types , split by comma"
 // @Success 200 {object} model.CommonResponse{data=AgentsResponse} "Success"
 // @Router /api/agents [get]
 func GetAgents(c *gin.Context) {
@@ -512,10 +517,11 @@ func GetAgents(c *gin.Context) {
 	var agents []*model.Agent
 	var err error
 	channelTypes := splitChannelTypesString(agentListRequest.ChannelTypes)
+	agentTypes := splitAgentTypesString(agentListRequest.AgentTypes)
 	if common.IsAdmin(c) {
 		total, agents, err = model.GetAgentListWithIDs(
 			config.GetEID(c), agentListRequest.Keyword, agentListRequest.GroupId,
-			nil, channelTypes, agentListRequest.Offset, agentListRequest.Limit) // 使用解析后的channelTypes
+			nil, channelTypes, agentTypes, agentListRequest.Offset, agentListRequest.Limit)
 	} else {
 		// Get list of agent IDs the user has permission to access
 		permittedAgentIDs, getErr := model.GetResourcesByGroupAndType(config.GetUserGroupID(c), model.ResourceTypeAgent)
@@ -526,7 +532,7 @@ func GetAgents(c *gin.Context) {
 
 		total, agents, err = model.GetAgentListWithIDs(
 			config.GetEID(c), agentListRequest.Keyword, agentListRequest.GroupId,
-			permittedAgentIDs, channelTypes, // 使用解析后的channelTypes
+			permittedAgentIDs, channelTypes, agentTypes,
 			agentListRequest.Offset, agentListRequest.Limit)
 	}
 
@@ -558,6 +564,7 @@ func GetAgents(c *gin.Context) {
 // @Param offset     query int    false "Pagination offset" default(0)
 // @Param limit      query int    false "Pagination limit"  default(10)
 // @Param channel_types query string false "Channel types , split by comma"
+// @Param agent_types query string false "Agent types , split by comma"
 // @Success 200 {object} model.CommonResponse{data=AgentsResponse} "Success response with agent list"
 // @Router /api/agents/group [get]
 func GetAgentsByGroup(c *gin.Context) {
@@ -573,9 +580,10 @@ func GetAgentsByGroup(c *gin.Context) {
 	}
 
 	channelTypes := splitChannelTypesString(agentListRequest.ChannelTypes)
+	agentTypes := splitAgentTypesString(agentListRequest.AgentTypes)
 	var total, agents, err = model.GetAgentListWithIDs(
 		config.GetEID(c), agentListRequest.Keyword, agentListRequest.GroupId,
-		nil, channelTypes, agentListRequest.Offset, agentListRequest.Limit)
+		nil, channelTypes, agentTypes, agentListRequest.Offset, agentListRequest.Limit)
 
 	if err != nil {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(nil))
@@ -601,6 +609,7 @@ func GetAgentsByGroup(c *gin.Context) {
 // @Produce json
 // @Param offset query int false "Pagination offset" default(0)
 // @Param limit query int false "Pagination limit" default(10)
+// @Param agent_types query string false "Agent types , split by comma"
 // @Success 200 {object} model.CommonResponse{data=AgentsResponse} "Success response with available agent list"
 // @Router /api/agents/available [get]
 func GetAvailableAgents(c *gin.Context) {
@@ -614,8 +623,10 @@ func GetAvailableAgents(c *gin.Context) {
 		agentListRequest.Limit = 10
 	}
 
+	agentTypes := splitAgentTypesString(agentListRequest.AgentTypes)
 	var total, agents, err = model.GetAvailableAgentList(
 		config.GetEID(c),
+		agentTypes,
 		agentListRequest.Offset,
 		agentListRequest.Limit,
 	)
@@ -774,6 +785,19 @@ func splitChannelTypesString(channelTypesStr string) []int {
 		}
 	}
 	return channelTypes
+}
+
+func splitAgentTypesString(agentTypesStr string) []int {
+	var agentTypes []int
+	if agentTypesStr != "" {
+		strSlice := strings.Split(agentTypesStr, ",")
+		for _, s := range strSlice {
+			if i, err := strconv.Atoi(strings.TrimSpace(s)); err == nil {
+				agentTypes = append(agentTypes, i)
+			}
+		}
+	}
+	return agentTypes
 }
 
 // GetInternalUserAgents retrieves available agents for a specific internal user

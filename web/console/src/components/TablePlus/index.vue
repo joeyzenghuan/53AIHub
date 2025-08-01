@@ -1,3 +1,90 @@
+<template>
+	<!-- 继承属性 -->
+	<ElTable ref="tableRef" v-loading="loading" v-bind="{ ...$attrs }">
+		<ElTableColumn v-if="sortable" width="40">
+			<div class="pr-3 sort-icon cursor-move">
+				<SvgIcon name="drag" width="20px" height="28px" color="#C7C7C7" />
+			</div>
+		</ElTableColumn>
+		<visibleSlots :vnode="showSlots" />
+		<ElTableColumn v-if="allFieldList.length" class-name="table-setting" prop="system_setting" label="" width="20"
+			align="center" fixed="right">
+			<template #header="scope">
+				<div class="cursor-pointer" @click="handleSetting">
+					<el-icon>
+						<Setting />
+					</el-icon>
+				</div>
+			</template>
+		</ElTableColumn>
+		<template v-if="$slots.empty" #empty>
+			<slot name="empty" />
+		</template>
+	</ElTable>
+
+	<Pagination v-if="pagination" layout="sizes, prev, pager, next, jumper" :page="page" :page-size="limit" :total="total"
+		@size-change="onSizeChange" @current-change="onCurrentChange" />
+
+	<el-dialog v-model="showFieldVisible" title="列表显示设置" width="660px">
+		<div class="flex border-b pb-4" style="height: 350px;">
+			<div class="flex-1 flex flex-col overflow-y-auto">
+				<div class="flex-none text-sm mb-3">
+					<span class="text-[#182B50]">
+						需显示的字段
+					</span>
+					<span class="text-[#182B5066]">
+						（最多展示{{ MAX_SHOW_NUM }}个）
+					</span>
+				</div>
+				<div class="flex-1 overflow-y-auto">
+					<div class="el-checkbox-group">
+						<template v-for="field in allFieldList" :key="field.field_key">
+							<el-checkbox
+								:disabled="fixedFields.includes(field.field_key) || (showFieldList.length === 1 && field.field_key === showFieldList[0].field_key)"
+								:checked="Boolean(showFieldList.find(item => item.field_key === field.field_key))"
+								:value="field.field_key" @change="handleFieldChange($event, field)">
+								{{ field.field_name }}
+							</el-checkbox>
+						</template>
+					</div>
+				</div>
+			</div>
+			<div class="border-l mx-4" />
+			<div class="flex-1 flex flex-col">
+				<div class="flex-none text-sm mb-3">
+					<span class="text-[#182B50]">
+						显示顺序
+					</span>
+					<span class="text-[#182B5066]">
+						（拖动分组调整分组顺序）
+					</span>
+				</div>
+				<Sortable v-model="showFieldList" identity="id" class="flex-1 w-full flex flex-col gap-1 overflow-y-auto">
+					<template #item="{ item, index }">
+						<div class="flex-none h-8 flex items-center">
+							<div class="pr-3 sort-icon cursor-move">
+								<svg-icon name="drag" width="16px" height="32px" color="#a1a5af" />
+							</div>
+							<div class="flex-1 text-sm text-[#182B50] truncate">
+								{{ item.field_name }}
+							</div>
+						</div>
+					</template>
+				</Sortable>
+			</div>
+		</div>
+
+		<template #footer>
+			<el-button size="large" type="default" @click="handleCancel">
+				取消
+			</el-button>
+			<el-button v-debounce size="large" type="primary" @click="handleConfirm">
+				保存
+			</el-button>
+		</template>
+	</el-dialog>
+</template>
+
 <script setup lang="ts">
 import { h, nextTick, onMounted, ref, useSlots, onUnmounted, watch, getCurrentInstance, computed } from 'vue'
 import { Setting } from '@element-plus/icons-vue'
@@ -5,8 +92,6 @@ import { ElTableColumn } from 'element-plus'
 
 import Sortable from 'sortablejs'
 import createSlots from './create-slots'
-
-import api from '@/apis'
 
 const { proxy } = getCurrentInstance()
 const tableData = computed(() => proxy.$attrs.data || [])
@@ -136,12 +221,6 @@ const handleCancel = () => {
   showFieldVisible.value = false
 }
 const handleConfirm = async () => {
-  if (/^user_memory_list/im.test(props.type)) {
-    await api.console.user_setting.save(props.type, {
-      value: JSON.stringify(showFieldList.value.map(item => item.field_key)),
-    })
-    loadUserMemoryFieldList()
-  }
   ElMessage.success('已设置')
   showFieldVisible.value = false
 }
@@ -209,93 +288,6 @@ defineExpose({
   },
 })
 </script>
-
-<template>
-	<!-- 继承属性 -->
-	<ElTable ref="tableRef" v-loading="loading" v-bind="{ ...$attrs }">
-		<ElTableColumn v-if="sortable" width="40">
-			<div class="pr-3 sort-icon cursor-move">
-				<SvgIcon name="drag" width="20px" height="28px" color="#C7C7C7" />
-			</div>
-		</ElTableColumn>
-		<visibleSlots :vnode="showSlots" />
-		<ElTableColumn v-if="allFieldList.length" class-name="table-setting" prop="system_setting" label="" width="20"
-			align="center" fixed="right">
-			<template #header="scope">
-				<div class="cursor-pointer" @click="handleSetting">
-					<el-icon>
-						<Setting />
-					</el-icon>
-				</div>
-			</template>
-		</ElTableColumn>
-		<template v-if="$slots.empty" #empty>
-			<slot name="empty" />
-		</template>
-	</ElTable>
-
-	<Pagination v-if="pagination" layout="sizes, prev, pager, next, jumper" :page="page" :page-size="limit" :total="total"
-		@size-change="onSizeChange" @current-change="onCurrentChange" />
-
-	<el-dialog v-model="showFieldVisible" title="列表显示设置" width="660px">
-		<div class="flex border-b pb-4" style="height: 350px;">
-			<div class="flex-1 flex flex-col overflow-y-auto">
-				<div class="flex-none text-sm mb-3">
-					<span class="text-[#182B50]">
-						需显示的字段
-					</span>
-					<span class="text-[#182B5066]">
-						（最多展示{{ MAX_SHOW_NUM }}个）
-					</span>
-				</div>
-				<div class="flex-1 overflow-y-auto">
-					<div class="el-checkbox-group">
-						<template v-for="field in allFieldList" :key="field.field_key">
-							<el-checkbox
-								:disabled="fixedFields.includes(field.field_key) || (showFieldList.length === 1 && field.field_key === showFieldList[0].field_key)"
-								:checked="Boolean(showFieldList.find(item => item.field_key === field.field_key))"
-								:value="field.field_key" @change="handleFieldChange($event, field)">
-								{{ field.field_name }}
-							</el-checkbox>
-						</template>
-					</div>
-				</div>
-			</div>
-			<div class="border-l mx-4" />
-			<div class="flex-1 flex flex-col">
-				<div class="flex-none text-sm mb-3">
-					<span class="text-[#182B50]">
-						显示顺序
-					</span>
-					<span class="text-[#182B5066]">
-						（拖动分组调整分组顺序）
-					</span>
-				</div>
-				<Sortable v-model="showFieldList" identity="id" class="flex-1 w-full flex flex-col gap-1 overflow-y-auto">
-					<template #item="{ item, index }">
-						<div class="flex-none h-8 flex items-center">
-							<div class="pr-3 sort-icon cursor-move">
-								<svg-icon name="drag" width="16px" height="32px" color="#a1a5af" />
-							</div>
-							<div class="flex-1 text-sm text-[#182B50] truncate">
-								{{ item.field_name }}
-							</div>
-						</div>
-					</template>
-				</Sortable>
-			</div>
-		</div>
-
-		<template #footer>
-			<el-button size="large" type="default" @click="handleCancel">
-				取消
-			</el-button>
-			<el-button v-debounce size="large" type="primary" @click="handleConfirm">
-				保存
-			</el-button>
-		</template>
-	</el-dialog>
-</template>
 
 <style>
 .table-setting .cell{

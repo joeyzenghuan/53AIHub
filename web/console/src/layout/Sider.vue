@@ -1,21 +1,32 @@
 <template>
   <el-aside v-show="!siderHidden" width="232px">
-    <div class="flex flex-col flex-1 h-full ">
+    <div class="flex flex-col flex-1 h-full">
       <div class="flex-none pl-7 pt-8 pb-5">
-        <img class="w-[136px] object-contain" :src="$getRealPath({ url: '/images/logo.png' })" alt="">
+        <!-- #ifndef KM -->
+        <img class="w-[136px] object-contain" :src="$getRealPath({ url: '/images/logo_2.png' })" alt="" />
+        <!-- #endif -->
+
+        <!-- #ifdef KM -->
+        <img class="w-[136px] object-contain" :src="$getRealPath({ url: '/images/km-logo.png' })" alt="" />
+        <!-- #endif -->
       </div>
       <div class="flex-1 border-t overflow-y-auto scrollbar--none">
         <el-menu
-          router :default-active="activeName" :default-openeds="[openedMenu, '/agent']"
-          active-text-color="#2563EB" background-color="#F6F7F8" class="border-none mx-4" text-color="#4C4D4E"
-          style="
-
---el-menu-item-height: 54px; --el-menu-item-font-size: 16px; --el-menu-hover-bg-color: #EEEFF0;"
+          router
+          :default-active="activeName"
+          :default-openeds="[openedMenu, '/agent']"
+          active-text-color="#2563EB"
+          background-color="#F6F7F8"
+          class="border-none mx-4"
+          text-color="#4C4D4E"
+          style="--el-menu-item-height: 54px; --el-menu-item-font-size: 16px; --el-menu-hover-bg-color: #eeeff0"
         >
           <el-menu-item index="/index">
             <svg-icon name="home" width="18px" class="mr-2" />
             <span>{{ $t('module.homepage') }}</span>
           </el-menu-item>
+
+          <!-- #ifndef KM -->
           <el-sub-menu index="/agent">
             <template #title>
               <svg-icon name="app" width="18px" class="mr-2" />
@@ -33,24 +44,57 @@
               </el-menu-item>
             </el-menu-item-group>
           </el-sub-menu>
+          <!-- #endif -->
+
+          <!-- #ifdef KM -->
+          <el-sub-menu index="/space">
+            <template #title>
+              <svg-icon name="app" width="18px" class="mr-2" />
+              <span>{{ $t('module.knowledge') }}</span>
+            </template>
+            <el-menu-item-group>
+              <el-menu-item index="/space">
+                {{ $t('module.space') }}
+              </el-menu-item>
+            </el-menu-item-group>
+          </el-sub-menu>
+          <el-sub-menu index="/chunk">
+            <template #title>
+              <svg-icon name="app" width="18px" class="mr-2" />
+              <span>{{ $t('module.library') }}</span>
+            </template>
+            <el-menu-item-group>
+              <el-menu-item index="/chunk">
+                {{ $t('module.chunk_setting') }}
+              </el-menu-item>
+            </el-menu-item-group>
+          </el-sub-menu>
+          <!-- #endif -->
+
           <el-sub-menu index="3">
             <template #title>
               <svg-icon name="operate" width="18px" class="mr-2" />
               <span>{{ $t('module.operation_management') }}</span>
             </template>
             <el-menu-item-group>
+              <!-- #ifndef KM -->
               <el-menu-item v-if="enterprise_info.is_independent || enterprise_info.is_industry" index="/order">
                 {{ $t('module.operation_order') }}
               </el-menu-item>
               <el-menu-item v-if="enterprise_info.is_independent || enterprise_info.is_industry" index="/user/register">
                 {{ $t('register_user.title') }}
               </el-menu-item>
-              <el-menu-item v-if="!isOpLocalEnv && (!enterprise_info.is_independent)" index="/user/internal">
+              <!-- #endif -->
+
+              <el-menu-item v-if="!isOpLocalEnv && !enterprise_info.is_independent" index="/user/internal">
                 {{ $t('internal_user.title') }}
               </el-menu-item>
+
+              <!-- #ifndef KM -->
               <el-menu-item index="/subscription">
                 {{ $t('module.subscription') }}
               </el-menu-item>
+              <!-- #endif -->
               <el-menu-item index="/user/admin">
                 {{ $t('admin_user.title') }}
               </el-menu-item>
@@ -59,6 +103,8 @@
 							</el-menu-item> -->
             </el-menu-item-group>
           </el-sub-menu>
+
+          <!-- #ifndef KM -->
           <el-sub-menu index="5">
             <template #title>
               <svg-icon name="decoration" width="18px" class="mr-2" />
@@ -76,6 +122,7 @@
               </el-menu-item>
             </el-menu-item-group>
           </el-sub-menu>
+          <!-- #endif -->
           <el-sub-menu index="6">
             <template #title>
               <svg-icon name="setting" width="18px" class="mr-2" />
@@ -85,12 +132,13 @@
               <el-menu-item index="/info">
                 {{ $t('module.website_info') }}
               </el-menu-item>
-              <el-menu-item v-if="!isOpLocalEnv && (!enterprise_info.is_independent)" index="/sso">
+              <el-menu-item v-if="!isOpLocalEnv && !enterprise_info.is_independent" index="/sso">
                 {{ $t('sso.title') }}
               </el-menu-item>
               <el-menu-item index="/platform">
                 {{ $t('module.platform') }}
               </el-menu-item>
+              <!-- #ifndef KM -->
               <el-menu-item index="/payment">
                 {{ $t('module.payment') }}
               </el-menu-item>
@@ -100,6 +148,7 @@
               <el-menu-item index="/statistics">
                 {{ $t('module.statistics') }}
               </el-menu-item>
+              <!-- #endif -->
               <el-menu-item v-if="!isWorkEnv" index="/system-log">
                 {{ $t('module.system_log') }}
               </el-menu-item>
@@ -146,14 +195,18 @@
             {{ $t('action_exit') }}
           </div>
         </div>
-        <div class="flex items-center justify-start gap-2 px-5 mt-4 text-[#1D1E1F]" style="font-size: 10px;">
+        <div class="flex items-center justify-start gap-2 px-5 mt-4 text-[#1D1E1F]" style="font-size: 10px">
           <span>POWERED BY</span>
-          <img class="w-[58px] object-contain" :src="$getRealPath({ url: '/images/logo_2.png' })" alt="">
+          <!-- #ifndef KM -->
+          <img class="w-[58px] object-contain" :src="$getRealPath({ url: '/images/logo_2.png' })" alt="" />
+          <!-- #endif -->
+          <!-- #ifdef KM -->
+          <img class="w-[58px] object-contain" :src="$getRealPath({ url: '/images/km-logo.png' })" alt="" />
+          <!-- #endif -->
         </div>
       </div>
     </div>
   </el-aside>
-
 </template>
 
 <script setup lang="ts">
@@ -163,11 +216,14 @@ import { ArrowRight } from '@element-plus/icons-vue'
 import { useEnterpriseStore, useUserStore } from '@/stores'
 import { useEnv } from '@/hooks/useEnv'
 
-withDefaults(defineProps<{
-  siderHidden?: boolean
-}>(), {
-  siderHidden: false,
-})
+withDefaults(
+  defineProps<{
+    siderHidden?: boolean
+  }>(),
+  {
+    siderHidden: false,
+  }
+)
 
 const { isOpLocalEnv, isWorkEnv } = useEnv()
 const route = useRoute()
@@ -184,8 +240,7 @@ watchEffect(() => {
   openedMenu.value = paths[0]
 })
 
-onMounted(() => {
-})
+onMounted(() => {})
 
 const onExit = () => {
   user_store.logoff({ show_confirm: true, back_to_login: true })
@@ -197,36 +252,36 @@ const handleFunctionUpdate = () => {
 
 <style scoped>
 :deep(.el-menu-item-group__title:empty) {
-	display: none;
+  display: none;
 }
 
 /* :deep(.el-menu-item)  {
 	margin-bottom: 6px;
 } */
-:deep(.el-menu-item) ,
+:deep(.el-menu-item),
 :deep(.el-sub-menu__title) {
-	padding: 0 16px !important;
+  padding: 0 16px !important;
 }
 
 :deep(.el-menu-item:hover),
 :deep(.el-sub-menu__title:hover) {
-	border-radius: 8px;
+  border-radius: 8px;
 }
 
 :deep(.el-sub-menu .el-menu-item) {
-	--el-menu-sub-item-height: 40px;
-	--el-menu-base-level-padding: 0px;
-	--el-menu-level-padding: 16px;
+  --el-menu-sub-item-height: 40px;
+  --el-menu-base-level-padding: 0px;
+  --el-menu-level-padding: 16px;
 
-	font-size: 14px;
+  font-size: 14px;
 }
 
 :deep(.el-menu-item-group) {
-	padding-left: 30px;
+  padding-left: 30px;
 }
 
 :deep(.el-sub-menu .el-menu-item:hover) {
-	background-color: #EEEFF0;
-	border-radius: 8px;
+  background-color: #eeeff0;
+  border-radius: 8px;
 }
 </style>

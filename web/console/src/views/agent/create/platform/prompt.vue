@@ -1,50 +1,3 @@
-<script setup lang="ts">
-import { ref } from 'vue'
-import { View } from '@element-plus/icons-vue'
-import AgentInfo from '../components/agent-info.vue'
-import BaseConfig from '../components/base-config.vue'
-import ExpandConfig from '../components/expand-config.vue'
-import UseScope from '../components/use-scope.vue'
-import { useAgentFormStore } from '../store'
-import PromptInput from '@/components/Prompt/input.vue'
-// import LimitConfig from '../components/limit-config.vue'
-import { copyToClip } from '@/utils/copy'
-import { generateInputRules } from '@/utils/form-rule'
-
-const props = defineProps({
-  showChannelConfig: {
-    type: Boolean,
-    default: false,
-  },
-})
-
-const store = useAgentFormStore()
-
-const form_ref = ref()
-
-const onOptimize = () => {
-  return ElMessage.warning(window.$t('feature_coming_soon'))
-}
-const onGenerate = () => {
-  return ElMessage.warning(window.$t('feature_coming_soon'))
-}
-
-const onModelChange = (data) => {
-  const option = data.option
-  if (!option.vision)
-    store.form_data.custom_config.image_parse.enable = false
-}
-const onCopy = async (text = '') => {
-  await copyToClip(text)
-  ElMessage.success(window.$t('action_copy_success'))
-}
-const validateForm = async () => form_ref.value.validate()
-
-defineExpose({
-  validateForm,
-})
-</script>
-
 <template>
   <div :class="[showChannelConfig ? '' : 'py-7']">
     <ElForm ref="form_ref" :model="store.form_data" label-width="104px" label-position="top">
@@ -82,11 +35,11 @@ defineExpose({
         <ElFormItem label-width="0" class="mb-10">
           <!-- target="#app-config-full-screen-hook" -->
           <Fullscreen class="w-full" :z-index="9">
-            <template #default="{ isopen, handler }">
+            <template #default="{ isFullscreen, toggleFullscreen }">
               <div class="border rounded w-full flex flex-col !bg-[#FAFBFC] overflow-auto relative">
                 <div
                   class="min-h-10 pl-3 pr-2 border-b flex items-center justify-between rounded-t bg-[#FBFBFC]"
-                  :class="[isopen ? 'sticky top-0 left-0 right-0 z-10' : '']"
+                  :class="[isFullscreen ? 'sticky top-0 left-0 right-0 z-10' : '']"
                 >
                   <div class="flex-1 text-sm text-[#4F5052] truncate" :title="$t('role_instruction_desc')">
                     *{{ $t('role_instruction_desc') }}
@@ -112,14 +65,14 @@ defineExpose({
                         <svg-icon name="copy" width="18px" />
                       </span>
                     </el-tooltip>
-                    <el-tooltip placement="top" :content="$t(!isopen ? 'action_amplify' : 'action_shrink')">
-                      <span class="text-[#182B50] px-1 cursor-pointer" @click.stop="handler">
-                        <svg-icon :name="!isopen ? 'amplify' : 'shrink'" width="18px" />
+                    <el-tooltip placement="top" :content="$t(!isFullscreen ? 'action_amplify' : 'action_shrink')">
+                      <span class="text-[#182B50] px-1 cursor-pointer" @click.stop="toggleFullscreen">
+                        <svg-icon :name="!isFullscreen ? 'amplify' : 'shrink'" width="18px" />
                       </span>
                     </el-tooltip>
                   </div>
                 </div>
-                <PromptInput v-model="store.form_data.prompt" style="height: 280px; min-height: max-content;" show-line />
+                <PromptInput v-model="store.form_data.prompt" :style="{ 'flex': isFullscreen ? '1' : 'auto' }" style="height: 280px; min-height: max-content;" show-line />
               </div>
             </template>
           </Fullscreen>
@@ -134,8 +87,53 @@ defineExpose({
   </div>
 </template>
 
-<style scoped>
-::v-deep(.el-input-number--large) {
-	width: 60px;
+<script setup lang="ts">
+import { ref } from 'vue'
+import { View } from '@element-plus/icons-vue'
+import AgentInfo from '../components/agent-info.vue'
+import BaseConfig from '../components/base-config.vue'
+import ExpandConfig from '../components/expand-config.vue'
+import UseScope from '../components/use-scope.vue'
+import { useAgentFormStore } from '../store'
+import PromptInput from '@/components/Prompt/input.vue'
+// import LimitConfig from '../components/limit-config.vue'
+import { copyToClip } from '@/utils/copy'
+import { generateInputRules } from '@/utils/form-rule'
+
+const props = defineProps({
+  showChannelConfig: {
+    type: Boolean,
+    default: false,
+  },
+})
+
+const store = useAgentFormStore()
+
+const form_ref = ref()
+
+const onOptimize = () => {
+  return ElMessage.warning(window.$t('feature_coming_soon'))
 }
+const onGenerate = () => {
+  return ElMessage.warning(window.$t('feature_coming_soon'))
+}
+
+const onModelChange = (data) => {
+  const {option} = data
+  if (!option.vision)
+    store.form_data.custom_config.image_parse.enable = false
+}
+const onCopy = async (text = '') => {
+  await copyToClip(text)
+  ElMessage.success(window.$t('action_copy_success'))
+}
+const validateForm = async () => form_ref.value.validate()
+
+defineExpose({
+  validateForm,
+})
+</script>
+
+<style scoped>
+
 </style>

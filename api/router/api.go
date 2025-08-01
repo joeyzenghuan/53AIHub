@@ -197,6 +197,8 @@ func SetApiRouter(router *gin.Engine) {
 	ai53Router.Use(middleware.UserTokenAuth(model.RoleAdminUser))
 	{
 		ai53Router.GET("/bots", controller.Get53AIAllBots)
+		ai53Router.GET("/workflows", controller.Get53AIAllWorkflows)
+		ai53Router.GET("/parameters/:botId", controller.Get53AIAppParameters)
 	}
 
 	apiV1Router := router.Group("/v1")
@@ -205,6 +207,7 @@ func SetApiRouter(router *gin.Engine) {
 	apiV1Router.Use(middleware.RelayTokenAuth())
 	{
 		apiV1Router.POST("/chat/completions", controller.Relay)
+		apiV1Router.POST("/workflow/run", controller.WorkflowRun)
 	}
 
 	paySettingRouter := apiRouter.Group("/pay_settings")
@@ -295,6 +298,18 @@ func SetApiRouter(router *gin.Engine) {
 		systemLogRouter.GET("/modules", controller.GetModules)
 		systemLogRouter.GET("/actions", controller.GetActions)
 		systemLogRouter.GET("", controller.GetSystemLogs)
+	}
+
+	maxKB := apiRouter.Group("/maxkb")
+	{
+		maxKB.GET("/application/profile", middleware.UserTokenAuth(model.RoleAdminUser), controller.GetMaxKBApplicationProfile)
+	}
+
+	difyRouter := apiRouter.Group("/dify")
+	difyRouter.Use(middleware.UserTokenAuth(model.RoleAdminUser))
+	{
+		difyRouter.GET("/info/:channelId", controller.GetDifyAppInfo)
+		difyRouter.GET("/parameters/:channelId", controller.GetDifyAppParameters)
 	}
 
 }

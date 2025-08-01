@@ -60,10 +60,10 @@
             <template #default="{ row }">
 							<div class="flex items-center gap-1">
 								<ElTag
-									class="!border-none" :type="row.status == ORDER_STATUS_CANCELLED ? 'info'
-										: row.status == ORDER_STATUS_NOT_CONFIRM ? 'danger'
-										: row.status == ORDER_STATUS_PENDING ? 'primary'
-											: row.status == ORDER_STATUS_EXPIRED ? 'warning'
+									class="!border-none" :type="row.status == ORDER_STATUS.CANCELLED ? 'info'
+										: row.status == ORDER_STATUS.NOT_CONFIRM ? 'danger'
+										: row.status == ORDER_STATUS.PENDING ? 'primary'
+											: row.status == ORDER_STATUS.EXPIRED ? 'warning'
 												: 'success'"
 								>
 									{{ $t(ORDER_STATUS_LABEL_MAP.get(row.status) || '') }}
@@ -92,7 +92,7 @@
           </ElTableColumn>
           <ElTableColumn :label="$t('operation')" width="170" fixed="right" align="right">
 						<template #default="{ row }">
-							<template v-if="PAYMENT_TYPE.MANUAL === row.pay_type && row.status === ORDER_STATUS_NOT_CONFIRM">
+							<template v-if="PAYMENT_TYPE.MANUAL === row.pay_type && row.status === ORDER_STATUS.NOT_CONFIRM">
 								<ElButton class="text-[#5A6D9E] !bg-transparent" type="text" @click.stop="handleConfirm({ data: row })">
 									{{ $t('action_confirm_payment') }}
 								</ElButton>
@@ -120,31 +120,25 @@ import { Search } from '@element-plus/icons-vue'
 import { onMounted, reactive, ref } from 'vue'
 import FilterDateRange from '@/components/Filter/date-range.vue'
 import OrderAddDialog from './components/order-add-dialog.vue'
+import { ORDER_STATUS, ORDER_STATUS_LABEL_MAP } from '@/constants/order'
 
 import {
-  ORDER_STATUS_ALL,
-  ORDER_STATUS_CANCELLED,
-  ORDER_STATUS_EXPIRED,
-  ORDER_STATUS_LABEL_MAP,
-  ORDER_STATUS_NOT_CONFIRM,
-  ORDER_STATUS_PAID,
-  ORDER_STATUS_PENDING,
-  orderApi,
+  orderApi
 } from '@/api'
 import { PAYMENT_TYPE, PAYMENT_TYPE_LABEL_MAP } from '@/constants/payment'
 
 const add_ref = ref()
 const filter_form = reactive({
-  status: ORDER_STATUS_ALL,
+  status: ORDER_STATUS.ALL,
   pay_type: PAYMENT_TYPE.ALL,
   keyword: '',
   offset: 0,
   limit: 10,
   date: []
 })
-const order_status_options = [ORDER_STATUS_ALL, ORDER_STATUS_NOT_CONFIRM, ORDER_STATUS_PENDING, ORDER_STATUS_PAID, ORDER_STATUS_EXPIRED, ORDER_STATUS_CANCELLED].map(value => ({
+const order_status_options = [ORDER_STATUS.ALL, ORDER_STATUS.NOT_CONFIRM, ORDER_STATUS.PENDING, ORDER_STATUS.PAID, ORDER_STATUS.EXPIRED, ORDER_STATUS.CANCELLED].map(value => ({
   value,
-  label: ORDER_STATUS_LABEL_MAP.get(value) || ORDER_STATUS_LABEL_MAP.get(ORDER_STATUS_ALL),
+  label: ORDER_STATUS_LABEL_MAP.get(value) || ORDER_STATUS_LABEL_MAP.get(ORDER_STATUS.ALL),
 }))
 const order_payment_type_options = [PAYMENT_TYPE.ALL, PAYMENT_TYPE.WECHAT, PAYMENT_TYPE.ALIPAY, PAYMENT_TYPE.MANUAL].map(value => ({
   value,
@@ -194,7 +188,7 @@ const handleConfirm = async ({ data = {} } = {}) => {
   await ElMessageBox.confirm(window.$t('order.confirm_tip'), window.$t('tip'))
 	await orderApi.confirm_order({ id: data.id })
 	ElMessage.success(window.$t('action_confirm_success'))
-	data.status = ORDER_STATUS_PAID
+	data.status = ORDER_STATUS.PAID
 }
 
 

@@ -1,24 +1,22 @@
+import { BACKEND_AGENT_TYPE } from '@/constants/platform/config'
 import service from '../config'
 import { handleError } from '../errorHandler'
-import {
-  AGENT_TYPE,
-  type AgentType,
-} from '@/constants/platform'
+import { AGENT_TYPE, type AgentType } from '@/constants/platform'
 
-export {
-  AGENT_TYPE,
-  type AgentType,
-}
+export { AGENT_TYPE, type AgentType }
 
 interface AgentData {
   user_group_ids?: string | number[]
   tools?: string | any[]
   use_cases?: string | any[]
   configs?: string | Record<string, any>
-  custom_config?: string | {
-    agent_type?: string
-    channel_config?: Record<string, any>
-  }
+  custom_config?:
+    | string
+    | {
+        agent_type?: string
+        channel_config?: Record<string, any>
+      }
+  backend_agent_type?: number
   agent_type?: string
   agent_type_label?: string
   channel_type?: number
@@ -57,7 +55,8 @@ interface SaveParams {
   enable?: boolean
 }
 
-interface SaveRequestData extends Omit<SaveParams, 'configs' | 'tools' | 'use_cases' | 'custom_config'> {
+interface SaveRequestData
+  extends Omit<SaveParams, 'configs' | 'tools' | 'use_cases' | 'custom_config'> {
   configs: string
   tools: string
   use_cases: string
@@ -66,13 +65,11 @@ interface SaveRequestData extends Omit<SaveParams, 'configs' | 'tools' | 'use_ca
 }
 
 const parseJsonField = <T>(value: string | T, defaultValue: T): T => {
-  if (typeof value !== 'string')
-    return value ?? defaultValue
+  if (typeof value !== 'string') return value ?? defaultValue
 
   try {
     return JSON.parse(value) ?? defaultValue
-  }
-  catch {
+  } catch {
     return defaultValue
   }
 }
@@ -85,8 +82,8 @@ export function getFormatAgentData(data: AgentData = {}): AgentData {
   data.configs = parseJsonField(data.configs, {})
   data.custom_config = parseJsonField(data.custom_config, {})
   data.settings = parseJsonField(data.settings, {})
-
-  data.agent_type = data.agent_type || (data.custom_config as any)?.agent_type || AGENT_TYPE.PROMPT
+  data.backend_agent_type = data.agent_type || BACKEND_AGENT_TYPE.AGENT
+  data.agent_type = (data.custom_config as any)?.agent_type || AGENT_TYPE.PROMPT
   data.agent_type_label = `agent_app.${data.agent_type}`
 
   data.enable = !!+(data.enable ?? false)
@@ -96,17 +93,17 @@ export function getFormatAgentData(data: AgentData = {}): AgentData {
 }
 
 export const agentApi = {
-  async list({ params = {} as ListParams }: { params: ListParams } = { params: {} }): Promise<AgentData> {
+  async list(
+    { params = {} as ListParams }: { params: ListParams } = { params: {} }
+  ): Promise<AgentData> {
     params = JSON.parse(JSON.stringify(params))
     params.offset = params.offset ?? 0
     params.limit = params.limit ?? 10
-    params.group_id = (!params.group_id || +params.group_id < 1) ? '0' : params.group_id
+    params.group_id = !params.group_id || +params.group_id < 1 ? '0' : params.group_id
 
-    if (!params.keyword)
-      delete params.keyword
+    if (!params.keyword) delete params.keyword
 
-    if (!params.channel_types)
-      delete params.channel_types
+    if (!params.channel_types) delete params.channel_types
 
     const { data = {} } = await service.get('/api/agents/group', { params }).catch(handleError)
     const result = data as AgentData
@@ -141,17 +138,32 @@ export const agentApi = {
 
     const requestData: SaveRequestData = {
       ...saveData,
-      configs: typeof saveData.configs === 'object' ? JSON.stringify(saveData.configs) : saveData.configs as string,
-      tools: Array.isArray(saveData.tools) ? JSON.stringify(saveData.tools) : saveData.tools as string,
-      use_cases: Array.isArray(saveData.use_cases) ? JSON.stringify(saveData.use_cases) : saveData.use_cases as string,
-      custom_config: typeof saveData.custom_config === 'object' ? JSON.stringify(saveData.custom_config) : saveData.custom_config as string,
-      settings: typeof saveData.settings === 'object' ? JSON.stringify(saveData.settings) : saveData.settings as string,
+      configs:
+        typeof saveData.configs === 'object'
+          ? JSON.stringify(saveData.configs)
+          : (saveData.configs as string),
+      tools: Array.isArray(saveData.tools)
+        ? JSON.stringify(saveData.tools)
+        : (saveData.tools as string),
+      use_cases: Array.isArray(saveData.use_cases)
+        ? JSON.stringify(saveData.use_cases)
+        : (saveData.use_cases as string),
+      custom_config:
+        typeof saveData.custom_config === 'object'
+          ? JSON.stringify(saveData.custom_config)
+          : (saveData.custom_config as string),
+      settings:
+        typeof saveData.settings === 'object'
+          ? JSON.stringify(saveData.settings)
+          : (saveData.settings as string),
     }
 
-    if (typeof requestData.enable === 'undefined')
-      requestData.enable = true
+    if (typeof requestData.enable === 'undefined') requestData.enable = true
 
-    const { data: result = {} } = await service[agent_id ? 'put' : 'post'](`/api/agents${agent_id ? `/${agent_id}` : ''}`, requestData).catch(handleError)
+    const { data: result = {} } = await service[agent_id ? 'put' : 'post'](
+      `/api/agents${agent_id ? `/${agent_id}` : ''}`,
+      requestData
+    ).catch(handleError)
     return getFormatAgentData(result)
   },
 
@@ -164,7 +176,64 @@ export const agentApi = {
     return getFormatAgentData(data)
   },
 
-  async updateStatus({ data: { agent_id, enable } }: { data: { agent_id: number; enable: boolean } }) {
+  coze: {
+    workspaces_list() {
+      return service
+        .get('/api/coze/workspaces')
+        .then(res => res.data)
+        .catch(handleError)
+    },
+    bots_list(workspace_id: number) {
+      return service
+        .get(`/api/coze/workspaces/${workspace_id}/bots`)
+        .then(res => res.data)
+        .catch(handleError)
+    },
+  },
+  appbuilder: {
+    bots_list() {
+      return service
+        .get('/api/appbuilder/bots')
+        .then(res => res.data)
+        .catch(handleError)
+    },
+  },
+
+  chat53ai: {
+    bots_list() {
+      return service
+        .get('/api/53ai/bots')
+        .then(res => res.data)
+        .catch(handleError)
+    },
+    workflow_list() {
+      return service
+        .get('/api/53ai/workflows')
+        .then(res => res.data)
+        .catch(handleError)
+    },
+    workflow_field_list(botId: string) {
+      return service
+        .get(`/api/53ai/parameters/${botId}`)
+        .then(res => res.data)
+        .catch(handleError)
+    },
+  },
+
+  dify: {
+    workflow_field_list(workflow_id: string) {
+      return service
+        .get(`/api/dify/parameters/${workflow_id}`)
+        .then(res => res.data)
+        .catch(handleError)
+    },
+  },
+
+  async updateStatus({
+    data: { agent_id, enable },
+  }: {
+    data: { agent_id: number; enable: boolean }
+  }) {
     return service.patch(`/api/agents/${agent_id}/status`, { enable }).catch(handleError)
   },
 }

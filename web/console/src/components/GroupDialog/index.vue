@@ -1,10 +1,50 @@
+<template>
+	<ElDialog v-model="visible" :title="$t('group_management')" width="680px" align-center destroy-on-close
+		:close-on-click-modal="false">
+		<div class="text-[#182B50] text-opacity-60 text-sm pb-4">
+			{{ $t('display_order') }}
+		</div>
+		<Sortable v-model="options" v-loading="submitting" identity="group_id" custom-sortable-id="group_sortable" class="w-full flex flex-col gap-4 max-h-[60vh] overflow-y-auto">
+			<template #item="{ item, index }">
+				<div class="flex items-center">
+					<div class="pr-3 sort-icon cursor-move">
+						<svg-icon name="drag" width="16px" height="32px" color="#a1a5af" />
+					</div>
+					<div class="flex-1">
+						<el-input v-model="item.group_name" size="large" :placeholder="$t('form_input_placeholder')" class="w-full"
+							maxlength="10" show-word-limit />
+					</div>
+					<el-icon class="ml-4 cursor-pointer" color="rgba(24, 43, 80, 0.4)" @click="onGroupRemove({ index })">
+						<Delete />
+					</el-icon>
+				</div>
+			</template>
+		</Sortable>
+		<ElButton type="primary" link class="mt-4 ml-5" @click="onGroupAdd">
+			+{{ $t('action_add') }}
+		</ElButton>
+
+		<template #footer>
+			<div class="py-4 flex items-center justify-center">
+				<ElButton class="w-[96px] h-[36px]" type="primary" :loading="submitting" @click="onSave">
+					{{ $t('action_save') }}
+				</ElButton>
+				<ElButton class="w-[96px] h-[36px] text-[#1D1E1F]" type="info" plain @click.stop="close">
+					{{ $t('action_cancel') }}
+				</ElButton>
+			</div>
+		</template>
+	</ElDialog>
+</template>
+
 <script setup lang="ts">
 import { Delete } from '@element-plus/icons-vue'
 
-import { ref, reactive, onMounted, nextTick } from 'vue'
-import type { Group, GroupType } from '@/api/modules/group'
+import { ref, onMounted, nextTick } from 'vue'
+import type { Group } from '@/api/modules/group'
 import { groupApi, DEFAULT_GROUP_DATA } from '@/api/modules/group'
 import { deepCopy } from '@/utils'
+import type { GroupType } from '@/constants/group'
 
 const props = withDefaults(defineProps<{
 	groupType: GroupType
@@ -110,45 +150,6 @@ defineExpose({
 	close,
 })
 </script>
-
-<template>
-	<ElDialog v-model="visible" :title="$t('group_management')" width="680px" align-center destroy-on-close
-		:close-on-click-modal="false">
-		<div class="text-[#182B50] text-opacity-60 text-sm pb-4">
-			{{ $t('display_order') }}
-		</div>
-		<Sortable v-model="options" identity="group_id" customSortableId="group_sortable" class="w-full flex flex-col gap-4 max-h-[60vh] overflow-y-auto" v-loading="submitting">
-			<template #item="{ item, index }">
-				<div class="flex items-center">
-					<div class="pr-3 sort-icon cursor-move">
-						<svg-icon name="drag" width="16px" height="32px" color="#a1a5af" />
-					</div>
-					<div class="flex-1">
-						<el-input v-model="item.group_name" size="large" :placeholder="$t('form_input_placeholder')" class="w-full"
-							maxlength="10" show-word-limit />
-					</div>
-					<el-icon class="ml-4 cursor-pointer" color="rgba(24, 43, 80, 0.4)" @click="onGroupRemove({ index })">
-						<Delete />
-					</el-icon>
-				</div>
-			</template>
-		</Sortable>
-		<ElButton type="primary" link class="mt-4 ml-5" @click="onGroupAdd">
-			+{{ $t('action_add') }}
-		</ElButton>
-
-		<template #footer>
-			<div class="py-4 flex items-center justify-center">
-				<ElButton class="w-[96px] h-[36px]" type="primary" :loading="submitting" @click="onSave">
-					{{ $t('action_save') }}
-				</ElButton>
-				<ElButton class="w-[96px] h-[36px] text-[#1D1E1F]" type="info" plain @click.stop="close">
-					{{ $t('action_cancel') }}
-				</ElButton>
-			</div>
-		</template>
-	</ElDialog>
-</template>
 
 <style scoped>
 

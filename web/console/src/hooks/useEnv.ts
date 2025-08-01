@@ -1,22 +1,18 @@
 import { ref } from 'vue'
 
 function useEnv() {
-	const host = location.host
-	const hostname = location.hostname
-  const userAgent = navigator.userAgent
+  const { host, hostname } = window.location
 
-	// https://hub.53ai.com/console/
-	// https://hubtest.53ai.com/console/
+  // https://hub.53ai.com/console/
+  // https://hubtest.53ai.com/console/
   const isWorkEnv = ref<boolean>(host === 'hub.53ai.com')
-	const isDevEnv = ref<boolean>(!isWorkEnv.value)
-	const isLocalEnv = ref<boolean>(/(127.0.0.1)|(localhost)|(192.168.\d.\d+)|/.test(hostname))
-	const isOpLocalEnv = ref<boolean>(import.meta.env.VITE_PLATFORM === 'op-local')
+  const isDevEnv = ref<boolean>(!isWorkEnv.value)
+  const isOpLocalEnv = ref<boolean>(import.meta.env.VITE_PLATFORM === 'op-local')
 
   return {
     isWorkEnv,
     isDevEnv,
-		isLocalEnv,
-    isOpLocalEnv,
+    isOpLocalEnv
   }
 }
 

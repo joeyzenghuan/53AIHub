@@ -22,8 +22,14 @@ type Agent struct {
 	UserGroupIds      []int64 `json:"user_group_ids" gorm:"-"`
 	Enable            bool    `json:"enable" gorm:"default:false;comment:enable status"`
 	ConversationCount int64   `json:"conversation_count" gorm:"-"`
+	AgentType         int     `json:"agent_type" gorm:"default:0"`
 	BaseModel
 }
+
+const (
+	AgentTypeApp      = 0
+	AgentTypeWorkflow = 1
+)
 
 func (agent *Agent) Create() error {
 	if agent.Eid == 0 {
@@ -63,7 +69,7 @@ func GetAgentByID(eid int64, agentID int64) (*Agent, error) {
 	return &agent, nil
 }
 
-func GetAgentListWithIDs(eid int64, keyword string, group_id int64, permittedAgentIDs []int64, channel_types []int, offset int, limit int) (count int64, agents []*Agent, err error) {
+func GetAgentListWithIDs(eid int64, keyword string, group_id int64, permittedAgentIDs []int64, channel_types []int, agent_types []int, offset int, limit int) (count int64, agents []*Agent, err error) {
 	db := DB.Model(&Agent{}).Where("eid = ?", eid)
 	if keyword != "" {
 		db = db.Where("name LIKE ?", "%"+keyword+"%")
@@ -75,6 +81,10 @@ func GetAgentListWithIDs(eid int64, keyword string, group_id int64, permittedAge
 
 	if len(channel_types) > 0 {
 		db = db.Where("channel_type IN?", channel_types)
+	}
+
+	if len(agent_types) > 0 {
+		db = db.Where("agent_type IN?", agent_types)
 	}
 
 	if permittedAgentIDs != nil {
@@ -91,9 +101,13 @@ func GetAgentListWithIDs(eid int64, keyword string, group_id int64, permittedAge
 	return count, agents, err
 }
 
-func GetAvailableAgentList(eid int64, offset int, limit int) (count int64, agents []*Agent, err error) {
+func GetAvailableAgentList(eid int64, agent_types []int, offset int, limit int) (count int64, agents []*Agent, err error) {
 	db := DB.Model(&Agent{}).Where("eid = ?", eid).
 		Where("Enable = ?", true)
+
+	if len(agent_types) > 0 {
+		db = db.Where("agent_type IN?", agent_types)
+	}
 
 	db.Count(&count)
 

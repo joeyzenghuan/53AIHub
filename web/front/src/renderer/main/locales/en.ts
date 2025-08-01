@@ -86,7 +86,8 @@ export default {
     expand_more: 'Expand More',
     collapse_more: 'Collapse More',
     or: 'Or',
-    later: 'Later'
+    later: 'Later',
+    allow_to: 'Copied prompt content. Visit "{name}" site'
   },
 
   // Status Prompts
@@ -123,6 +124,7 @@ export default {
     close: 'Close',
     open: 'Open',
     ok: 'OK',
+    allow: 'Allow',
     and: 'and',
     copy: 'Copy',
     upload: 'Upload',
@@ -154,7 +156,18 @@ export default {
     stop: 'Stop',
     pay: 'Pay',
     ok_v2: 'OK',
-    view_more: 'View More'
+    view_more: 'View More',
+    click_upload: 'Click Upload',
+    view: 'View',
+    delete: 'Delete'
+  },
+
+  file: {
+    file_size: 'File size must be less than {size}MB',
+    file_format: 'Supported formats: {format}',
+    file_empty: 'File content cannot be empty',
+    file_exceed: 'File upload size cannot exceed {size}MB ({name} size exceeds)',
+    file_exceed_limit: 'Upload up to {limit} files'
   },
 
   // Form Related
@@ -292,7 +305,8 @@ export default {
     no_available_agent: 'No available agents',
 
     completion_completed: 'Deep thinking completed',
-    completion_thinking: 'Deep thinking...'
+    completion_thinking: 'Deep thinking...',
+    completion_next_action: 'Related scenarios to take the next step'
   },
 
   // Knowledge Base Related
@@ -330,7 +344,8 @@ export default {
     likes_sort: 'Likes Sort',
     views_sort: 'Views Sort',
     content: 'Prompt Content',
-    auth_tip: 'You do not have permission to access this prompt'
+    auth_tip: 'You do not have permission to access this prompt',
+    let_use_prompt: '去使用这个提示词'
   },
 
   toolbox: {

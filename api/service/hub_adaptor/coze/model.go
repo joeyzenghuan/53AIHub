@@ -65,3 +65,36 @@ type StreamResponseV3 struct {
 	ChatId         string      `json:"chat_id"`
 	SectionId      string      `json:"section_id"`
 }
+
+// Workflow related structures
+type WorkflowRequest struct {
+	WorkflowID string                 `json:"workflow_id"`
+	Parameters map[string]interface{} `json:"parameters"`
+}
+
+type WorkflowResponse struct {
+	Code      int         `json:"code"`
+	Msg       string      `json:"msg"`
+	Data      interface{} `json:"data"` // 可能是字符串或对象
+	ExecuteID string      `json:"execute_id"`
+	DebugURL  string      `json:"debug_url"`
+	Token     int         `json:"token"`
+}
+
+type WorkflowExecutionData struct {
+	ExecuteID string                 `json:"execute_id"`
+	Status    string                 `json:"status"`
+	Output    map[string]interface{} `json:"output"`
+	Error     *WorkflowError         `json:"error,omitempty"`
+}
+
+type WorkflowError struct {
+	Code    int    `json:"code"`
+	Message string `json:"message"`
+}
+
+const (
+	WorkflowStatusSuccess = "success"
+	WorkflowStatusFailed  = "failed"
+	WorkflowStatusRunning = "running"
+)

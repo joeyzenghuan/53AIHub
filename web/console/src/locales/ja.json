@@ -42,9 +42,8 @@
     "writer": "コンテンツ作成",
     "aibox": "AIツールボックス",
     "bot": "インテリジェントエージェント",
-    "library": "プライベートデータ",
-    "builtapp": "アプリケーション改善",
-    "chat_bi": "ChatBI",
+    "library": "全部知識庫",
+    "chunk_setting": "語料分割",
     "system": "システム管理",
     "dialogue_digital_employee": "AIスタッフ",
     "dialogue_prompt": "プロンプト",
@@ -57,6 +56,8 @@
     "homepage": "ホームページ",
     "app_management": "アプリケーション管理",
     "agent": "インテリジェントエージェント",
+    "knowledge": "知識管理",
+    "space": "空間管理",
     "agent_search_placeholder": "インテリジェントエージェントを検索",
     "ai_toolbox": "AIツールボックス",
     "ai_toolbox_search_placeholder": "ツールを検索",
@@ -82,6 +83,7 @@
     "website_info_language": "デフォルト言語",
     "website_info_keyword": "キーワード",
     "website_info_keyword_placeholder": "キーワードを入力してください",
+    "website_info_keyword_placeholder_v2": "複数のキーワードを入力できます（各キーワード入力後、Enterキーを押してください）",
     "website_info_desc": "サイト説明",
     "website_info_desc_placeholder": "サイト説明を入力してください",
     "website_info_copyright": "著作権情報",
@@ -115,6 +117,8 @@
     "platform_model_organization_id": "組織ID",
     "platform_model_organization_id_placeholder": "組織IDを入力してください",
     "platform_model_base_url": "API Base",
+    "platform_model_base_url_azure": "API ドメイン",
+    "platform_model_base_url_maxkb": "Base URL",
     "platform_model_base_url_placeholder": "API Baseを入力してください、例：https://api.openai.com",
     "platform_model_base_url_placeholder_53ai": "API Baseを入力してください、例：https://api.53ai.com",
     "platform_model_api_endpoint": "カスタムAPIエンドポイント",
@@ -148,7 +152,7 @@
     "nav_seo_setting": "SEO設定",
     "nav_seo_setting_title": "SEOタイトル",
     "nav_seo_setting_keywords": "SEOキーワード",
-    "nav_seo_setting_keywords_tip": "各キーワードはカンマで区切ってください",
+    "nav_seo_setting_keywords_tip": "キーワードは英語のカンマ（,）で区切ってください",
     "nav_seo_setting_description": "SEO説明",
     "payment": "支払い設定",
     "subscription": "サブスクリプションサービス",
@@ -229,7 +233,7 @@
     "policy": "プライバシーポリシー",
     "account_length": "アカウント長さは4から20文字の間である必要があります",
     "account_format": "アカウントは英字で始まり、英字、数字、および下線のみを含める必要があります",
-    "password_length": "パスワード長さは8から20文字の間である必要があります",
+    "password_length": "パスワードの長さは8～20文字で、英字、数字、記号の組み合わせが可能です",
     "password_format": "パスワードは大文字と小文字の英字と数字を含める必要があります",
     "password_not_match": "2回入力したパスワードが一致しません",
     "reset_password": "パスワードをリセット",
@@ -264,6 +268,7 @@
     "reject": "拒否",
     "refresh_list": "リストを更新",
     "contact_customer_service": "問題がありますか？カスタマーサービスにお問い合わせください",
+    "contact_customer_service_v2": "カスタマーサポートへ連絡",
     "create_site": "サイトを作成",
     "waiting_audit": "審査中",
     "create_success": "作成成功",
@@ -431,6 +436,8 @@
     "bailian": "Alibaba Bailian",
     "volcengine": "Volcengine",
     "fastgpt_agent": "FastGPT",
+    "fastgpt_workflow": "FastGPTアプリケーションインテリジェント",
+    "maxkb_agent": "MaxKB",
     "check_agent_config_tip": "智能体配置が正しいか確認してください"
   },
   "provider_platform": {
@@ -450,7 +457,8 @@
     "bailian": "Alibaba Bailian",
     "volcengine": "Volcengine",
     "yuanqi": "Tencent Yuanqi",
-    "fastgpt": "FastGPT"
+    "fastgpt": "FastGPT",
+    "maxkb": "MaxKB"
   },
   "register_user": {
     "title": "登録ユーザー"
@@ -694,6 +702,10 @@
   "form_url_validator": "正しいURLアドレスを入力してください",
   "form_path_validator": "正しいパスアドレスを入力してください(例:/index)",
   "form_path_same_tip": "すでに同じパスアドレスが存在します。再入力してください",
+  "form_image_validator": "正しい画像をアップロードしてください",
+  "form_variable_validator": "変数名には英字、数字、アンダースコアのみ使用できます。数字で始まることはできません",
+  "form_hide_logo": "技術サポートロゴを非表示",
+  "enterprise_edition": "エンタープライズ版",
   "image_cropper": "画像裁剪",
   "reupload": "再アップロード",
   "wechat": "WeChat",
@@ -828,10 +840,6 @@
   "workspace": "ワークスペース",
   "edit_agent": "エージェントを編集",
   "coze_workflow_link": "Cozeワークフロー\"編集状態\"のリンク",
-  "input_variable": "入力変数",
-  "display_name": "表示名",
-  "variable_type": "変数タイプ",
-  "output_variable": "出力変数",
   "model_name": "モデル名",
   "model_name_placeholder": "モデル名を入力してください",
   "prompt_placeholder": "プロンプトを入力してください",
@@ -903,13 +911,14 @@
   "volcengine_agent_get_tip": "Volcano Engine（{ url }）にアクセス \n手順1：Volcano Arkにログインし、マイアプリケーション（{ my_url }）をクリック\n手順2：既存のアプリケーション（または新規作成）をクリックし、左上のbot-xxxxxx（コピーボタンあり）をコピーして下のフォームに貼り付け\n手順3：右上の「APIコールガイド」をクリックし、API Keyを選択してコピーし、キーを下のフォームに貼り付け",
   "yuanqi_agent_get_tip": "テンセントYuanqi（{ url }）にアクセス \n手順1：テンセントYuanqiにログインし、マイクリエイションに移動。\n手順2：AIエージェントカードの右下にある詳細ボタンをクリックし、API呼び出しをクリック（新規エージェントは審査後に利用可能）。\n手順3：エージェントIDをコピーし、下のフォームに貼り付け。\n手順4：トークンをコピーし、下のフォームに貼り付け。",
   "fastgpt_agent_get_tip": "FastGPT（ {url} ）にアクセス \n手順1：FastGPTにログインし、「ワークスペース」に入り、接続したいアプリケーションを選択。\n手順2：アプリケーションに入り、「配信チャネル」で「APIアクセス」を選択。\n手順3：APIキー管理で新規作成をクリックし、作成後「API KEY」をコピーしてフォームに入力。\n手順4：「APIルートアドレス」をコピーし、フォームに入力。",
+  "maxkb_agent_get_tip": "MaxKB（ {url} ）にアクセス \n手順1：MaxKBクライアントをダウンロード。\n手順2：「アプリケーション」でアクセスしたいアプリケーションをクリック。\n手順3：「APIアクセス資格」でBase URLをコピーし、API Keyを作成してフォームに入力。",
   "tip": "ヒント",
   "auth_required": "{provider_name}未授權，請先前往{provider_name}授權",
   "intelligent_agent_platform": "インテリジェントエージェントプラットフォーム",
   "cloud_computing_platform": "クラウドコンピューティングプラットフォーム",
   "model_platform": "モデルプラットフォーム",
   "local_config_limited_tip": "設定受限提示",
-  "local_config_limited_desc": "現在のシステムアクセスが内部ネットワークアドレス({url})であるため、Coze インテリジェントエージェントとWeChat支払いを追加/設定できません。外部からアクセスできるアドレスにデプロイして設定する必要があります。",
+  "local_config_limited_desc": "現在のシステムアクセスが内部ネットワークアドレス({url})であるため、Coze インテリジェントエージェント、WeChat支払い、Alipay支払いを追加/設定できません。外部からアクセスできるアドレスにデプロイして設定する必要があります。",
   "know_it": "わかった",
   "selected_tip": "選択済み {total} 個",
   "support_image": "画像をサポート",
@@ -956,6 +965,125 @@
     "upgrade_tip": "アップグレードヒント",
     "upgrade": "アップグレードバージョン",
     "not_support": "現在のバージョンはサポートされていません",
-    "agent_limit": "アジェント追加制限、アップグレードして追加してください"
+    "agent_limit": "アジェント追加制限、アップグレードして追加してください",
+    "upgrade_hide_logo": "エンタープライズ版にアップグレードし、技術サポートのロゴを非表示にする機能を有効にします"
+  },
+  "knowledge": {
+    "name": "知識",
+    "short_name": "知識"
+  },
+  "space": {
+    "title": "空間",
+    "search_placeholder": "空間名を入力してください",
+    "name": "空間",
+    "name_placeholder": "空間名を入力してください",
+    "icon": "アイコン",
+    "capacity": "容量",
+    "description": "説明",
+    "description_placeholder": "説明を入力してください",
+    "delete_tip": "現在の空間に{total}個の知識があります。知識を先に削除してから空間を削除してください",
+    "system": "システム",
+    "system_space_delete_tip": "システム空間、削除できません"
+  },
+  "common": {
+    "name": "名前",
+    "short_name": "簡略名",
+    "member": "メンバー",
+    "creator": "作成者",
+    "created_time": "作成日時"
+  },
+  "action": {
+    "create": "作成",
+    "add": "追加",
+    "added": "追加済み",
+    "edit": "編集",
+    "manage": "管理",
+    "delete": "削除",
+    "save": "保存",
+    "operation": "操作",
+    "more": "もっと",
+    "cancel": "キャンセル",
+    "setting": "設定"
+  },
+  "default_links": {
+    "default_setting": "デフォルト設定",
+    "website": "ウェブサイト",
+    "jump_path": "ジャンプパス"
+  },
+  "message_status": {
+    "create_success": "作成済み",
+    "save_success": "保存済み"
+  },
+  "agent": {
+    "name": "エージェント",
+    "base_info": "基礎情報",
+    "input_variable": "入力",
+    "output_variable": "出力",
+    "variable_name": "変数名称",
+    "variable_type": "変数タイプ",
+    "variable_label": "表示名",
+    "variable_desc": "説明",
+    "variable_required": "必須",
+    "variable_max_length": "最大長",
+    "variable_show_word_limit": "単語数表示",
+    "variable_options": "オプション",
+    "coze": {
+      "workspace": "ワークスペース",
+      "workflow_link": "Cozeワークフロー\"編集状態\"のリンク",
+      "agent_type_chat": "会話型アプリケーション",
+      "agent_type_chat_desc": "ユーザーが大模型と対話し、大模型が自主的に判断決定する。シンプルな業務ロジックに適しています。",
+      "agent_type_workflow": "ワークフロー編排会話型アプリケーション",
+      "agent_type_workflow_desc": "ワークフローは一連の実行可能な命令の集合で、業務ロジックや特定のタスクを実現するために使用されます。"
+    },
+    "53ai": {
+      "agent_type_chat": "会話型アプリケーション",
+      "agent_type_chat_desc": "ユーザーが大模型と対話し、大模型が自主的に判断決定する。シンプルな業務ロジックに適しています。",
+      "agent_type_workflow": "ワークフロー編排会話型アプリケーション",
+      "agent_type_workflow_desc": "ワークフローは一連の実行可能な命令の集合で、業務ロジックや特定のタスクを実現するために使用されます。"
+    },
+    "dify": {
+      "agent_type_chat": "会話型アプリケーション",
+      "agent_type_chat_desc": "ユーザーが大模型と対話し、大模型が自主的に判断決定する。シンプルな業務ロジックに適しています。",
+      "agent_type_workflow": "ワークフロー編排会話型アプリケーション",
+      "agent_type_workflow_desc": "ワークフローは一連の実行可能な命令の集合で、業務ロジックや特定のタスクを実現するために使用されます。"
+    },
+    "fastgpt": {
+      "agent_type_chat": "会話型アプリケーション",
+      "agent_type_chat_desc": "ユーザーが大模型と対話し、大模型が自主的に判断決定する。シンプルな業務ロジックに適しています。",
+      "agent_type_workflow": "ワークフロー編排会話型アプリケーション",
+      "agent_type_workflow_desc": "ワークフローは一連の実行可能な命令の集合で、業務ロジックや特定のタスクを実現するために使用されます。"
+    },
+    "relate_app": {
+      "title": "関連シナリオ",
+      "desc": "エージェントの「出力」を関連シナリオエージェントの「入力」にマッピングし、多シナリオタスクの自動化を実現します。",
+      "input_mapping": "入力マッピング",
+      "execution_rule": "実行ルール",
+      "auto_execution": "自動実行",
+      "manual_execution": "手動実行"
+    }
+  },
+  "form": {
+    "input_placeholder": "入力してください",
+    "select_placeholder": "選択してください",
+    "set_variable_placeholder": "｛#変数｝を設定してください"
+  },
+  "file": {
+    "type_limit": "現在、{accept} 形式のファイルのみサポートしています",
+    "size_empty": "ファイルの内容を空にすることはできません",
+    "size_limit": "ファイルのサイズは {size} MB を超えることはできません ({name} のサイズが超過しています)",
+    "upload_limit": "最大 {limit} 個のファイルをアップロードできます"
+  },
+  "variable_type": {
+    "text": "テキスト",
+    "textarea": "テキストエリア",
+    "inputNumber": "数字",
+    "select": "セレクト",
+    "date": "日付",
+    "tag": "タグ",
+    "file": "ファイル",
+    "markdown": "マークダウン",
+    "image": "画像",
+    "audio": "オーディオ",
+    "video": "ビデオ"
   }
 }

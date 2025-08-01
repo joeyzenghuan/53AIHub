@@ -512,11 +512,49 @@ func WechatPayNotify(c *gin.Context) {
 		return
 	}
 
+	// 添加详细的配置信息日志（隐藏敏感信息）
+	xlog.Info("WeChat Pay Config Debug Info:")
+	xlog.Info("- AppID length:", len(wechatConfig.AppID))
+	xlog.Info("- MchID:", wechatConfig.MchID)
+	xlog.Info("- SerialNo:", wechatConfig.SerialNo)
+	xlog.Info("- APIv3Key length:", len(wechatConfig.APIv3Key))
+	xlog.Info("- PrivateKeyPath:", wechatConfig.PrivateKeyPath)
+	xlog.Info("- NotifyURL:", wechatConfig.NotifyURL)
+	xlog.Info("- UseEncryptedConfig:", wechatConfig.UseEncryptedConfig)
+
+	// 检查关键配置是否完整
+	if wechatConfig.AppID == "" {
+		xlog.Error("AppID is empty in payment configuration")
+		c.String(http.StatusInternalServerError, "Payment configuration error: missing AppID")
+		return
+	}
+
+	if wechatConfig.MchID == "" {
+		xlog.Error("MchID is empty in payment configuration")
+		c.String(http.StatusInternalServerError, "Payment configuration error: missing MchID")
+		return
+	}
+
+	// 检查APIv3Key是否正确加载
+	if wechatConfig.APIv3Key == "" {
+		xlog.Error("APIv3Key is empty in payment configuration")
+		c.String(http.StatusInternalServerError, "Payment configuration error: missing APIv3Key")
+		return
+	}
+
+	// 检查APIv3Key长度是否符合要求（应该为32位）
+	if len(wechatConfig.APIv3Key) != 32 {
+		xlog.Error("APIv3Key length is invalid, expected 32, got:", len(wechatConfig.APIv3Key))
+		xlog.Error("APIv3Key content (first 4 and last 4 chars):", wechatConfig.APIv3Key[:4], "...", wechatConfig.APIv3Key[len(wechatConfig.APIv3Key)-4:])
+		c.String(http.StatusInternalServerError, fmt.Sprintf("Payment configuration error: invalid APIv3Key length, expected 32, got %d", len(wechatConfig.APIv3Key)))
+		return
+	}
+
 	// Initialize WeChat client
 	_, err = payment.InitWechatClient(wechatConfig)
 	if err != nil {
 		xlog.Error("Initialize WeChat client error:", err)
-		c.String(http.StatusInternalServerError, "Failed to initialize payment client")
+		c.String(http.StatusInternalServerError, "Failed to initialize payment client: "+err.Error())
 		return
 	}
 
@@ -535,7 +573,10 @@ func WechatPayNotify(c *gin.Context) {
 	xlog.Info("Parsed notification request data:", string(notifyReqJSON))
 
 	// Decrypt payment notification
-	result, err := notifyReq.DecryptPayCipherText(wechatConfig.APIv3Key)
+	// result, err := notifyReq.DecryptPayCipherText(wechatConfig.APIv3Key)
+	// 通用通知解密（推荐此方法）
+	var result wechat.V3DecryptPayResult
+	err = notifyReq.DecryptCipherTextToStruct(wechatConfig.APIv3Key, &result)
 	if err != nil {
 		xlog.Error("Decrypt notification data error:", err)
 		// Log detailed error information
@@ -658,10 +699,49 @@ func QueryOrderStatus(c *gin.Context) {
 		OriginalStatusDesc: "",
 	}
 
+	if order.PayType == model.PayTypeWechat {
+		// Query WeChat payment status
+		status, transactionId, originalStatus, payTime, err := queryWechatOrderStatusWithOriginal(eid, orderId)
+		if err == nil {
+			// Set original status
+			response.OriginalStatus = originalStatus
+			response.OriginalStatusDesc = getTradeStateDesc(originalStatus)
+
+			// Handle different payment states
+			if status == model.OrderStatusPaid {
+				// Payment successful, create or update order with payment time
+				updatedOrder, err := createOrUpdateOrderFromCacheWithTime(eid, orderId, model.OrderStatusPaid, transactionId, payTime)
+				if err == nil {
+					order = updatedOrder
+					xlog.Info("Order updated with payment time:", time.UnixMilli(payTime).Format(time.RFC3339))
+				} else {
+					xlog.Error("Failed to update order:", err)
+				}
+			} else if originalStatus == model.TradeStateUserPaying {
+				// User is paying, record this status but don't mark as paid
+				xlog.Info("User is paying for order:", orderId)
+
+				// If order is not in database yet, create it with pending status
+				if order.ID == 0 {
+					updatedOrder, err := createOrUpdateOrderFromCache(eid, orderId, model.OrderStatusPending, "")
+					if err == nil {
+						order = updatedOrder
+					} else {
+						xlog.Error("Failed to create order record for user paying:", err)
+					}
+				}
+			} else if status == model.OrderStatusPending && order.ID == 0 {
+				// Order still pending and not in database
+				// Keep in cache, do nothing
+			}
+		}
+	}
+
 	// If order status is pending, check payment status
-	if order.Status == model.OrderStatusPending {
+	switch order.Status {
+	case model.OrderStatusPending:
 		// Check if order has expired
-		if time.Now().UnixMilli() > order.ExpiredTime {
+		if order.Status == model.OrderStatusPending && time.Now().UnixMilli() > order.ExpiredTime {
 			// If order is in database, update status
 			if order.ID > 0 {
 				model.UpdateOrderStatus(eid, orderId, model.OrderStatusExpired)
@@ -672,54 +752,17 @@ func QueryOrderStatus(c *gin.Context) {
 
 			// Remove from cache
 			removeCachedOrder(orderId)
-		} else if order.PayType == model.PayTypeWechat {
-			// Query WeChat payment status
-			status, transactionId, originalStatus, payTime, err := queryWechatOrderStatusWithOriginal(eid, orderId)
-			if err == nil {
-				// Set original status
-				response.OriginalStatus = originalStatus
-				response.OriginalStatusDesc = getTradeStateDesc(originalStatus)
-
-				// Handle different payment states
-				if status == model.OrderStatusPaid {
-					// Payment successful, create or update order with payment time
-					updatedOrder, err := createOrUpdateOrderFromCacheWithTime(eid, orderId, model.OrderStatusPaid, transactionId, payTime)
-					if err == nil {
-						order = updatedOrder
-						xlog.Info("Order updated with payment time:", time.UnixMilli(payTime).Format(time.RFC3339))
-					} else {
-						xlog.Error("Failed to update order:", err)
-					}
-				} else if originalStatus == model.TradeStateUserPaying {
-					// User is paying, record this status but don't mark as paid
-					xlog.Info("User is paying for order:", orderId)
-
-					// If order is not in database yet, create it with pending status
-					if order.ID == 0 {
-						updatedOrder, err := createOrUpdateOrderFromCache(eid, orderId, model.OrderStatusPending, "")
-						if err == nil {
-							order = updatedOrder
-						} else {
-							xlog.Error("Failed to create order record for user paying:", err)
-						}
-					}
-				} else if status == model.OrderStatusPending && order.ID == 0 {
-					// Order still pending and not in database
-					// Keep in cache, do nothing
-				}
-			}
 		}
-	} else if order.Status == model.OrderStatusPaid {
+	case model.OrderStatusPaid:
 		response.OriginalStatus = model.TradeStateSuccess
 		response.OriginalStatusDesc = "Payment Successful"
-	} else if order.Status == model.OrderStatusExpired {
-		response.OriginalStatus = model.TradeStateClosed
-		response.OriginalStatusDesc = "Order Expired"
-	} else if order.Status == model.OrderStatusConfirming {
+	// case model.OrderStatusExpired:
+	// 	response.OriginalStatus = model.TradeStateClosed
+	// 	response.OriginalStatusDesc = "Order Expired"
+	case model.OrderStatusConfirming:
 		response.OriginalStatus = "CONFIRMING"
 		response.OriginalStatusDesc = "Waiting for Confirmation"
 	}
-
 	// Update order information in response
 	response.Order = order
 

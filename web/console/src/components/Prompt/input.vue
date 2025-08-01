@@ -1,3 +1,24 @@
+<template>
+  <Codemirror
+    ref="codemirrorRef"
+    v-model="prompt"
+    :disabled="disabled"
+    class="w-full prompt-code"
+    :class="[showLine ? '' : 'prompt-line--hidden']"
+    :placeholder="placeholder"
+    :indent-with-tab="false"
+    :tab-size="2"
+    :extensions="extensions"
+    :style="$attrs.style"
+    @change="onChange"
+    @focus="emits('focus')"
+    @blur="emits('blur')"
+  />
+  <!-- v-bind="{ ...$attrs }" -->
+
+  <div v-if="showToken" class="px-2 py-px text-right text-[#182B50] text-opacity-60 text-xs">{{ token }}个token</div>
+</template>
+
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { Codemirror } from 'vue-codemirror'
@@ -6,30 +27,33 @@ import type { DecorationSet, Tooltip } from '@codemirror/view'
 import { Decoration, EditorView, MatchDecorator, ViewPlugin, WidgetType, keymap, showTooltip } from '@codemirror/view'
 import { StateEffect, StateField } from '@codemirror/state'
 
-const props = withDefaults(defineProps<{
-  modelValue: string
-  placeholder?: string
-  disabled?: boolean
-  // 左边显示的行号
-  showLine?: boolean
-  showToken?: boolean
-  variables?: {
-    label: string
-    children: {
+const props = withDefaults(
+  defineProps<{
+    modelValue: string
+    placeholder?: string
+    disabled?: boolean
+    // 左边显示的行号
+    showLine?: boolean
+    showToken?: boolean
+    variables?: {
       label: string
-      value: string
+      children: {
+        label: string
+        value: string
+      }[]
     }[]
-  }[]
-  wordWrap?: boolean
-}>(), {
-  modelValue: '',
-  disabled: false,
-  placeholder: 'form_input_placeholder',
-  showLine: false,
-  showToken: false,
-  variables: () => [],
-  wordWrap: true,
-})
+    wordWrap?: boolean
+  }>(),
+  {
+    modelValue: '',
+    disabled: false,
+    placeholder: window.$t('form.input_placeholder'),
+    showLine: false,
+    showToken: false,
+    variables: () => [],
+    wordWrap: false,
+  }
+)
 
 const emits = defineEmits<{
   (e: 'change', data: any): void
@@ -47,16 +71,17 @@ const token = ref(0)
 const prompt = ref('')
 const selectedIndex = ref(-1)
 
-// 添加 tooltip 状态管理
-const addTooltip = StateEffect.define<{ pos: number }>()
-const tooltipField = StateField.define<readonly Tooltip[]>({
-  create() { return null },
-  update(tooltips, tr) {
+// 修复 tooltip 状态管理
+const addTooltip = StateEffect.define<{ pos: number; above?: boolean; create: () => { dom: HTMLElement } } | null>()
+const tooltipField = StateField.define<Tooltip | null>({
+  create() {
+    return null
+  },
+  update(tooltip, tr) {
     for (const e of tr.effects) {
-      if (e.is(addTooltip))
-        return e.value
+      if (e.is(addTooltip)) return e.value
     }
-    return tooltips
+    return tooltip
   },
   provide: f => showTooltip.from(f),
 })
@@ -64,14 +89,16 @@ const tooltipField = StateField.define<readonly Tooltip[]>({
 const findVariableByValue = (value: string) => {
   for (const group of props.variables) {
     const found = group.children.find(item => item.value === value)
-    if (found)
-      return { ...found, group: group.label }
+    if (found) return { ...found, group: group.label }
   }
   return null
 }
+
 class VariableWidget extends WidgetType {
   name: string
+
   value: string
+
   constructor(name: string, value: string) {
     super()
     this.name = name
@@ -95,50 +122,53 @@ class VariableWidget extends WidgetType {
     return false
   }
 }
+
 const variableMatcher = new MatchDecorator({
   regexp: /(\{\#(\S+?)\#\}|\{\{(\S+?)\}\})/g,
-  decoration: (match) => {
+  decoration: match => {
     const variable = findVariableByValue(match[0])
     if (variable) {
       return Decoration.replace({
         widget: new VariableWidget(variable?.label, match[1]),
       })
     }
-    else {
-      return ''
-    }
+    return null
   },
 })
 
-const variablePlugin = ViewPlugin.fromClass(class {
-  variablePlugin: DecorationSet
-  constructor(view: any) {
-    this.variablePlugin = variableMatcher.createDeco(view)
-  }
+const variablePlugin = ViewPlugin.fromClass(
+  class {
+    variablePlugin: DecorationSet
 
-  update(update) {
-    this.variablePlugin = variableMatcher.updateDeco(update, this.variablePlugin)
+    constructor(view: any) {
+      this.variablePlugin = variableMatcher.createDeco(view)
+    }
+
+    update(update: any) {
+      this.variablePlugin = variableMatcher.updateDeco(update, this.variablePlugin)
+    }
+  },
+  {
+    decorations: instance => instance.variablePlugin,
+    provide: plugin =>
+      EditorView.atomicRanges.of(view => {
+        return view.plugin(plugin)?.variablePlugin || Decoration.none
+      }),
   }
-}, {
-  decorations: instance => instance.variablePlugin,
-  provide: plugin => EditorView.atomicRanges.of((view) => {
-    return view.plugin(plugin)?.variablePlugin || Decoration.none
-  }),
-})
+)
 
 let _tokenTimer: any
 const calcToken = () => {
-	if (!props.showToken)
-		return
+  if (!props.showToken) return
 
-	clearTimeout(_tokenTimer)
-	_tokenTimer = setTimeout(() => {
-		const content_html = prompt.value
-		const encoding = get_encoding('cl100k_base')
-		const tokens = encoding.encode(content_html)
-		encoding.free()
-		token.value = content_html.trim() ? tokens.length : 0
-	}, 200)
+  clearTimeout(_tokenTimer)
+  _tokenTimer = setTimeout(() => {
+    const content_html = prompt.value
+    const encoding = get_encoding('cl100k_base')
+    const tokens = encoding.encode(content_html)
+    encoding.free()
+    token.value = content_html.trim() ? tokens.length : 0
+  }, 200)
 }
 
 const onChange = () => {
@@ -146,12 +176,12 @@ const onChange = () => {
     emits('update:modelValue', prompt.value)
     emits('change', prompt.value)
     emits('input', prompt.value)
-	})
-	calcToken()
+  })
+  calcToken()
 }
 
 const insertContent = (from: number, to: number, content: string) => {
-  editorView.value.dispatch({
+  editorView.value?.dispatch({
     changes: {
       from, // 保留已输入的 /
       to,
@@ -161,28 +191,19 @@ const insertContent = (from: number, to: number, content: string) => {
 }
 
 const updateSelectedItem = () => {
-  const items = tooltipRef.value.querySelectorAll('.tooltip-item')
-  items.forEach((item: HTMLElement, index) => {
+  const items = tooltipRef.value?.querySelectorAll('.tooltip-item')
+  items?.forEach((item: any, index) => {
     if (index === selectedIndex.value) {
       item.classList.add('selected')
       item.scrollIntoView({ block: 'nearest' })
-    }
-    else {
+    } else {
       item.classList.remove('selected')
     }
   })
 }
-const hideTooltip = () => {
-  if (editorView.value) {
-    editorView.value.dispatch({
-      effects: addTooltip.of(null),
-    })
-  }
-  document.removeEventListener('keydown', handleKeyDown, true)
-}
-const handleKeyDown = (event: KeyboardEvent) => {
-  if (!tooltipRef.value)
-    return
+
+function handleKeyDown(event: KeyboardEvent) {
+  if (!tooltipRef.value) return
 
   const items = tooltipRef.value.querySelectorAll('.tooltip-item')
   switch (event.key) {
@@ -198,12 +219,21 @@ const handleKeyDown = (event: KeyboardEvent) => {
       event.preventDefault()
       event.stopPropagation()
       if (selectedIndex.value >= 0) {
-        const node = items[selectedIndex.value]
+        const node = items[selectedIndex.value] as HTMLElement
         node.click()
         hideTooltip()
       }
       break
   }
+}
+
+function hideTooltip() {
+  if (editorView.value) {
+    editorView.value.dispatch({
+      effects: addTooltip.of(null),
+    })
+  }
+  document.removeEventListener('keydown', handleKeyDown, true)
 }
 
 const showVarTooltip = (pos: number, to: number) => {
@@ -212,13 +242,13 @@ const showVarTooltip = (pos: number, to: number) => {
   dom.className = 'variable-tooltip'
   tooltipRef.value = dom
 
-  props.variables.forEach((group) => {
+  props.variables.forEach(group => {
     const groupTitle = document.createElement('div')
     groupTitle.className = 'tooltip-title'
     groupTitle.textContent = group.label
     dom.appendChild(groupTitle)
 
-    group.children.forEach((variable) => {
+    group.children.forEach(variable => {
       const item = document.createElement('div')
       item.className = 'tooltip-item'
       item.textContent = variable.label
@@ -232,11 +262,13 @@ const showVarTooltip = (pos: number, to: number) => {
   })
 
   // 显示 tooltip
-  editorView.value.dispatch({
+  editorView.value?.dispatch({
     effects: addTooltip.of({
       pos,
       above: true,
-      create: () => ({ dom }),
+      create: () => {
+        return { dom }
+      },
     }),
   })
 
@@ -250,9 +282,8 @@ const showVarTooltip = (pos: number, to: number) => {
 
 const extensions = computed(() => {
   const options = [
-    EditorView.updateListener.of((update) => {
+    EditorView.updateListener.of(update => {
       editorView.value = update.view
-
       // 在输入其他内容时关闭 tooltip
       if (update.docChanged) {
         update.view.dispatch({
@@ -261,28 +292,32 @@ const extensions = computed(() => {
       }
     }),
   ]
-  if (props.wordWrap)
-    options.push(EditorView.lineWrapping)
+  if (props.wordWrap) options.push(EditorView.lineWrapping)
 
   if (props.variables && props.variables.length) {
-    options.push(...[
-      variablePlugin,
-      tooltipField,
-      keymap.of([{
-        key: '/',
-        run(view) {
-          const pos = view.state.selection.main.head
+    options.push(
+      ...[
+        variablePlugin,
+        tooltipField,
+        keymap.of([
+          {
+            key: '/',
+            run(view) {
+              const pos = view.state.selection.main.head
 
-          // 延迟显示 tooltip
-          setTimeout(() => {
-            if (view.state.selection.main.head === pos + 1) { // 确保用户没有继续输入
-              showVarTooltip(pos, pos + 1)
-            }
-          }, 200) // 200ms 延迟
-          return false
-        },
-      }]),
-    ])
+              // 延迟显示 tooltip
+              setTimeout(() => {
+                if (view.state.selection.main.head === pos + 1) {
+                  // 确保用户没有继续输入
+                  showVarTooltip(pos, pos + 1)
+                }
+              }, 200) // 200ms 延迟
+              return false
+            },
+          },
+        ]),
+      ]
+    )
   }
   return options
 })
@@ -300,25 +335,32 @@ const scrollToBottom = () => {
   })
 }
 
-watch(() => props.modelValue, () => {
-  prompt.value = props.modelValue
-	calcToken()
-}, { immediate: true })
+watch(
+  () => props.modelValue,
+  () => {
+    prompt.value = props.modelValue
+    calcToken()
+  },
+  { immediate: true }
+)
 
-watch(() => props.variables, () => {
-  if (codemirrorRef.value) {
-    setTimeout(async () => {
-      const oldPrompt = prompt.value
-      prompt.value = ''
-      await nextTick()
-      prompt.value = oldPrompt
-    }, 200)
-  }
-}, { deep: true })
+watch(
+  () => props.variables,
+  () => {
+    if (codemirrorRef.value) {
+      setTimeout(async () => {
+        const oldPrompt = prompt.value
+        prompt.value = ''
+        await nextTick()
+        prompt.value = oldPrompt
+      }, 200)
+    }
+  },
+  { deep: true }
+)
 // 新增：处理全局点击的方法
 const handleGlobalClick = (event: MouseEvent) => {
-  if (tooltipRef.value && !tooltipRef.value.contains(event.target as Node))
-    hideTooltip()
+  if (tooltipRef.value && !tooltipRef.value.contains(event.target as Node)) hideTooltip()
 }
 
 // 设置和清理全局点击事件监听器
@@ -332,11 +374,11 @@ onUnmounted(() => {
 
 defineExpose({
   showTooltip() {
-    const pos = Math.max(editorView.value.state.doc.length, 0)
+    const pos = editorView.value?.state.selection.main.head ?? 0
     showVarTooltip(pos, pos)
   },
   insertContent(content: string) {
-    const pos = Math.max(editorView.value.state.doc.length, 0)
+    const pos = editorView.value?.state.selection.main.head ?? 0
     insertContent(pos, pos, content)
   },
   forceUpdate(text = '') {
@@ -346,29 +388,6 @@ defineExpose({
 })
 </script>
 
-<template>
-  <Codemirror
-    ref="codemirrorRef"
-    v-model="prompt"
-    :disabled="disabled"
-    class="w-full prompt-code"
-    :class="[showLine ? '' : 'prompt-line--hidden']"
-    :placeholder="$t(placeholder)"
-    :indent-with-tab="false"
-    :tab-size="2"
-    :extensions="extensions"
-    :style="$attrs.style"
-    @change="onChange"
-    @focus="emits('focus')"
-    @blur="emits('blur')"
-  />
-  <!-- v-bind="{ ...$attrs }" -->
-
-  <div v-if="showToken" class="px-2 py-px text-right text-[#182B50] text-opacity-60 text-xs">
-    {{ token }}个token
-  </div>
-</template>
-
 <style>
 .cm-focused {
   outline: none !important;
@@ -377,12 +396,11 @@ defineExpose({
   display: none !important;
 }
 .ͼ1 .cm-placeholder {
-
 }
 .ͼ1 .cm-scroller {
   font-family: Arial, Helvetica, sans-serif;
   font-size: 14px;
-  color: #182B50;
+  color: #182b50;
 }
 .ͼ2 .cm-activeLine {
   background: none !important;
@@ -395,7 +413,7 @@ defineExpose({
   background-color: white !important;
   padding: 4px 4px;
   border-radius: 4px !important;
-  box-shadow: 0 2px 8px rgba(0,0,0,0.15);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
   z-index: 1000;
 }
 
@@ -403,7 +421,7 @@ defineExpose({
   height: 24px;
   line-height: 24px;
   font-size: 12px;
-  color: #182B50;
+  color: #182b50;
   opacity: 0.6;
   cursor: default;
   padding: 0px 8px;
@@ -416,7 +434,7 @@ defineExpose({
   line-height: 24px;
   cursor: pointer;
   font-size: 12px;
-  color: #2563EB;
+  color: #2563eb;
   border-radius: 4px;
   transition: background-color 0.2s;
 }

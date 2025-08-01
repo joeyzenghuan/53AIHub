@@ -1,7 +1,7 @@
 <template>
   <div :class="[showChannelConfig ? '' : 'py-7']">
     <template v-if="showChannelConfig">
-      <div class="flex items-center justify-between">
+      <div class="flex items-center justify-between mb-3">
         <div class="flex items-center gap-1">
           <h3 class="text-base text-[#1D1E1F]">
             {{ $t('agent_app.fastgpt_agent') }}
@@ -10,61 +10,72 @@
             <template #reference>
               <div class="flex-center text-[#9A9A9A] gap-1 ml-1">
                 <svg-icon name="help" width="14" color="#999" />
-                <span class="text-sm ">{{ $t('how_get') }}</span>
+                <span class="text-sm">{{ $t('how_get') }}</span>
               </div>
             </template>
             <div
               class="whitespace-pre-wrap text-sm text-[#333] leading-6"
-              v-html="$t('fastgpt_agent_get_tip', { url: `<a class='text-[#5A6D9E] underline' href='https://cloud.fastgpt.cn/login' target='_blank'>https://cloud.fastgpt.cn/login</a>` })"
+              v-html="
+                $t('fastgpt_agent_get_tip', {
+                  url: `<a class='text-[#5A6D9E] underline' href='https://cloud.fastgpt.cn/login' target='_blank'>https://cloud.fastgpt.cn/login</a>`,
+                })
+              "
             />
           </ElPopover>
         </div>
       </div>
+      <AgentType v-model="store.agent_type" :disabled="store.agent_id" :options="agentTypeOptions" />
       <ElForm ref="channelFormRef" :model="channelForm" label-position="top" class="mt-3">
-        <ElFormItem
-          :label="$t('ap_host_fastgpt')" prop="base_url"
-          :rules="generateInputRules({ message: 'form_input_placeholder', validator: ['text', 'link'] })"
-        >
-          <ElInput
-            v-model="channelForm.base_url" size="large" :placeholder="$t('form_input_placeholder')"
-          />
-        </ElFormItem>
-        <ElFormItem
-          :label="$t('api_key')" prop="key"
-          :rules="generateInputRules({ message: 'form_input_placeholder' })"
-        >
-          <ElInput
-            v-model="channelForm.key" size="large" :placeholder="$t('form_input_placeholder')"
-          />
-        </ElFormItem>
-        <ElFormItem
-          :label="$t('agent_type')" prop="config.agent_type"
-          :rules="generateInputRules({ message: 'form_input_placeholder' })"
-        >
-          <ElSelect
-            v-model="channelForm.config.agent_type" class="max-w-[360px]" size="large"
-            :placeholder="$t('form_select_placeholder')" :disabled="channelEditable"
+        <div class="flex items-center gap-4">
+          <ElFormItem
+            class="flex-1"
+            :label="$t('ap_host_fastgpt')"
+            prop="base_url"
+            :rules="generateInputRules({ message: 'form_input_placeholder', validator: ['text', 'link'] })"
           >
-            <ElOption value="chat" :label="$t('agent_type_chat')" />
-            <!-- <ElOption value="completion" :label="$t('agent_type_completion')" />
-						<ElOption value="workflow" :label="$t('agent_type_workflow')" /> -->
-          </ElSelect>
-        </ElFormItem>
+            <ElInput v-model="channelForm.base_url" size="large" :placeholder="$t('form_input_placeholder')" />
+          </ElFormItem>
+          <ElFormItem
+            class="flex-1"
+            :label="$t('api_key')"
+            prop="key"
+            :rules="generateInputRules({ message: 'form_input_placeholder' })"
+          >
+            <ElInput v-model="channelForm.key" size="large" :placeholder="$t('form_input_placeholder')" />
+          </ElFormItem>
+        </div>
       </ElForm>
     </template>
 
-    <ElForm
-      ref="agentFormRef" :model="agentFormStore.form_data" label-width="104px" label-position="top"
-    >
+    <ElForm ref="agentFormRef" :model="store.form_data" label-width="104px" label-position="top">
       <template v-if="showChannelConfig">
         <div class="text-base text-[#1D1E1F] font-medium mt-6 mb-4">
           {{ $t('basic_info') }}
         </div>
-        <AgentInfo v-model="agentFormStore.form_data" />
+        <AgentInfo v-model="store.form_data" />
       </template>
       <template v-else>
-        <BaseConfig />
-        <ExpandConfig />
+        <template v-if="store.agent_type === AGENT_TYPES.FASTGPT_WORKFLOW">
+          <FieldInput
+            v-model:list="store.form_data.settings.input_fields"
+            :title="$t('agent.input_variable')"
+            allow-add
+            type="input"
+            :agent-type="store.agent_type"
+          />
+          <FieldInput
+            v-model:list="store.form_data.settings.output_fields"
+            :title="$t('agent.output_variable')"
+            allow-add
+            type="output"
+            :agent-type="store.agent_type"
+          />
+          <RelateApp />
+        </template>
+        <template v-else>
+          <BaseConfig />
+          <ExpandConfig />
+        </template>
         <UseScope />
       </template>
     </ElForm>
@@ -76,6 +87,8 @@ import { inject, reactive, ref, watch } from 'vue'
 import AgentInfo from '../components/agent-info.vue'
 import BaseConfig from '../components/base-config.vue'
 import ExpandConfig from '../components/expand-config.vue'
+import FieldInput from '../components/field-input.vue'
+import RelateApp from '../components/relate-agents.vue'
 import UseScope from '../components/use-scope.vue'
 // import LimitConfig from '../components/limit-config.vue'
 
@@ -83,15 +96,17 @@ import { useAgentFormStore } from '../store'
 import { generateInputRules } from '@/utils/form-rule'
 import { channelApi } from '@/api/modules/channel'
 import md5 from '@/utils/md5'
+import AgentType from '../components/agent-type.vue'
+import { AGENT_TYPES } from '@/constants/platform/config'
 
-const props = defineProps({
+defineProps({
   showChannelConfig: {
     type: Boolean,
     default: false,
   },
 })
 
-const agentFormStore = useAgentFormStore()
+const store = useAgentFormStore()
 
 const channelInfo = inject('channelConfig') || {}
 const channelFormRef = ref()
@@ -106,10 +121,24 @@ const channelForm = reactive({
 })
 const agentFormRef = ref()
 
+const agentTypeOptions = [
+  {
+    icon: 'agent',
+    label: window.$t('agent.fastgpt.agent_type_chat'),
+    description: window.$t('agent.fastgpt.agent_type_chat_desc'),
+    value: AGENT_TYPES.FASTGPT_AGENT,
+  },
+  {
+    icon: 'workflow',
+    label: window.$t('agent.fastgpt.agent_type_workflow'),
+    description: window.$t('agent.fastgpt.agent_type_workflow_desc'),
+    value: AGENT_TYPES.FASTGPT_WORKFLOW,
+  },
+]
+
 const onChannelSave = async () => {
   const valid = await channelFormRef.value.validate()
-  if (!valid)
-    return
+  if (!valid) return
   const models = [md5(`${channelForm.key}_${channelForm.base_url}`)]
   const name = 'fastgpt_agent'
   const saveData = {
@@ -124,32 +153,34 @@ const onChannelSave = async () => {
     data: saveData,
   })
   Object.assign(channelInfo.value, resultData)
-  if (!saveData.channel_id)
-    saveData.channel_id = resultData.channel_id
-  agentFormStore.form_data.custom_config.channel_config = saveData
-  agentFormStore.form_data.model = models[0]
+  if (!saveData.channel_id) saveData.channel_id = resultData.channel_id
+  store.form_data.custom_config.channel_config = saveData
+  store.form_data.model = models[0]
   ElMessage.success(window.$t('action_save_success'))
   channelEditable.value = true
 }
 
 const validateForm = async () => {
   channelFormRef.value && channelFormRef.value.validate()
-  if (agentFormRef.value)
-    await agentFormRef.value.validate()
+  if (agentFormRef.value) await agentFormRef.value.validate()
   return true
 }
 
-watch(() => agentFormStore.agent_data, ({ channel_config = {} } = {}) => {
-  channelEditable.value = !!+channel_config.channel_id
-  channelInfo.value.channel_id = +channel_config.channel_id || 0
-  channelInfo.value.key = channelForm.key = channel_config.key || ''
-  channelInfo.value.base_url = channelForm.base_url = channel_config.base_url || 'https://cloud.fastgpt.cn/api'
-  channelInfo.value.models = channelForm.models = channel_config.models || []
-  channelInfo.value.config = channelForm.config = {
-    ...(channel_config.config || {}),
-    agent_type: channel_config.config?.agent_type || 'chat',
-  }
-}, { immediate: true, deep: true })
+watch(
+  () => store.agent_data,
+  ({ channel_config = {} } = {}) => {
+    channelEditable.value = !!+channel_config.channel_id
+    channelInfo.value.channel_id = +channel_config.channel_id || 0
+    channelInfo.value.key = channelForm.key = channel_config.key || ''
+    channelInfo.value.base_url = channelForm.base_url = channel_config.base_url || 'https://cloud.fastgpt.cn/api'
+    channelInfo.value.models = channelForm.models = channel_config.models || []
+    channelInfo.value.config = channelForm.config = {
+      ...(channel_config.config || {}),
+      agent_type: channel_config.config?.agent_type || 'chat',
+    }
+  },
+  { immediate: true, deep: true }
+)
 
 defineExpose({
   validateForm,
@@ -157,8 +188,4 @@ defineExpose({
 })
 </script>
 
-<style scoped>
-::v-deep(.el-input-number--large) {
-	width: 60px;
-}
-</style>
+<style scoped></style>

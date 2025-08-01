@@ -1,69 +1,7 @@
-<script setup lang="ts">
-import { ref, reactive, getCurrentInstance, computed, onMounted } from 'vue'
-import { useEnterpriseStore, useUserStore } from '@/stores'
-import { generateInputRules } from '@/utils/form-rule'
-import { templateStyleApi, TEMPLATE_STYLE_TYPE_WEBSITE, TEMPLATE_STYLE_TYPE_SOFTWARE, TEMPLATE_STYLE_TYPE_LABEL_MAP, TEMPLATE_STYLE_TYPE_DEMO_MAP } from '@/api/modules/template-style'
-
-const { proxy: _this } = getCurrentInstance()
-
-const enterprise_store = useEnterpriseStore()
-const user_store = useUserStore()
-
-const form_ref = ref()
-const loading = ref(true)
-const submitting = ref(false)
-const enterprise_info = computed(() => enterprise_store.info)
-const enterprise_logo = computed(() => enterprise_store.info.logo || '')
-const enterprise_ico = computed(() => enterprise_store.info.ico || enterprise_logo.value)
-const enterprise_name = computed(() => enterprise_store.info.display_name || '')
-
-const form = reactive({
-	style_type: TEMPLATE_STYLE_TYPE_WEBSITE,
-	theme_color: '#2563eb',
-	text_color: '#333333',
-	nav_bg_color: '#ffffff',
-	nav_text_color: '#333333',
-	page_footer_bg_color: '#18191f',
-	page_footer_text_color: '#f2f2f2',
-})
-const rules = reactive({
-})
-const handleSave = async () => {
-	const valid = await form_ref.value.validate()
-	if (!valid) return
-	submitting.value = true
-	await templateStyleApi.saveTemplateStyle({
-		...form
-	}).finally(() => {
-		submitting.value = false
-	})
-	ElMessage.success(window.$t('action_save_success'))
-	fetchTemplateStyleData()
-}
-const fetchTemplateStyleData = async () => {
-	loading.value = true
-	const data = await templateStyleApi.getTemplateStyle().finally(() => {
-		loading.value = false
-	})
-	form.style_type = data.style_type || TEMPLATE_STYLE_TYPE_WEBSITE
-	if (![TEMPLATE_STYLE_TYPE_WEBSITE, TEMPLATE_STYLE_TYPE_SOFTWARE].includes(form.style_type)) form.style_type = TEMPLATE_STYLE_TYPE_WEBSITE
-	form.theme_color = data.theme_color || '#3664EF'
-	form.text_color = data.text_color || '#333333'
-	form.nav_bg_color = data.nav_bg_color || '#ffffff'
-	form.nav_text_color = data.nav_text_color || '#333333'
-	form.page_footer_bg_color = data.page_footer_bg_color || '#18191F'
-	form.page_footer_text_color = data.page_footer_text_color || '#F2F2F2'
-}
-
-onMounted(() => {
-	fetchTemplateStyleData()
-})
-</script>
-
 <template>
 	<Layout class="px-[60px] py-8">
 		<Header :title="$t('module.template_style')"></Header>
-		<div class="mt-5 flex-1 flex flex-col gap-4 bg-white py-6 px-8 box-border" v-loading="loading">
+		<div v-loading="loading" class="mt-5 flex-1 flex flex-col gap-4 bg-white py-6 px-8 box-border">
 			<h4 class="text-[#1D1E1F] font-semibold">{{ $t('action_preview') }}</h4>
 			<div class="w-full relative shadow-md overflow-auto">
 				<div class="w-full relative flex items-center justify-between bg-[#F0F0F0] min-w-[720px]">
@@ -97,12 +35,12 @@ onMounted(() => {
 				label-position="top">
 				<ElFormItem :label="$t('template_style.website_style')">
 					<ul class="flex flex-wrap gap-4">
-						<li v-for="value in [TEMPLATE_STYLE_TYPE_WEBSITE, TEMPLATE_STYLE_TYPE_SOFTWARE]" :key="value"
+						<li v-for="value in [WEBSITE_STYLE.WEBSITE, WEBSITE_STYLE.SOFTWARE]" :key="value"
 							class="w-[172px] p-1.5 bg-[#F5F5F5] flex flex-col cursor-pointer items-center gap-2 border rounded box-border overflow-hidden text-sm hover:border-[#3664EF] hover:text-[#3664EF]"
 							:class="[form.style_type === value ? 'border-[#3664EF] text-[#3664EF]' : 'text-[#4F5052]']"
 							@click.stop="form.style_type = value">
-							<div class="text-sm p-1.5">{{ $t(TEMPLATE_STYLE_TYPE_LABEL_MAP.get(value)) }}</div>
-							<ElImage class="w-full" :src="$getRealPath({ url: TEMPLATE_STYLE_TYPE_DEMO_MAP.get(value) })"
+							<div class="text-sm p-1.5">{{ $t(WEBSITE_STYLE_LABEL_MAP.get(value)) }}</div>
+							<ElImage class="w-full" :src="$getRealPath({ url: WEBSITE_STYLE_DEMO_MAP.get(value) })"
 								fit="contain" />
 						</li>
 					</ul>
@@ -144,6 +82,67 @@ onMounted(() => {
 		</div>
 	</Layout>
 </template>
+
+<script setup lang="ts">
+import { ref, reactive, getCurrentInstance, computed, onMounted } from 'vue'
+import { useEnterpriseStore } from '@/stores'
+import { templateStyleApi } from '@/api/modules/template-style'
+import { WEBSITE_STYLE, WEBSITE_STYLE_LABEL_MAP, WEBSITE_STYLE_DEMO_MAP } from '@/constants/enterprise'
+
+
+const { proxy: _this } = getCurrentInstance()
+
+const enterprise_store = useEnterpriseStore()
+
+const form_ref = ref()
+const loading = ref(true)
+const submitting = ref(false)
+const enterprise_logo = computed(() => enterprise_store.info.logo || '')
+const enterprise_ico = computed(() => enterprise_store.info.ico || enterprise_logo.value)
+const enterprise_name = computed(() => enterprise_store.info.display_name || '')
+
+const form = reactive({
+	style_type: WEBSITE_STYLE.WEBSITE,
+	theme_color: '#2563eb',
+	text_color: '#333333',
+	nav_bg_color: '#ffffff',
+	nav_text_color: '#333333',
+	page_footer_bg_color: '#18191f',
+	page_footer_text_color: '#f2f2f2',
+})
+const rules = reactive({
+})
+const handleSave = async () => {
+	const valid = await form_ref.value.validate()
+	if (!valid) return
+	submitting.value = true
+	await templateStyleApi.saveTemplateStyle({
+		...form
+	}).finally(() => {
+		submitting.value = false
+	})
+	ElMessage.success(window.$t('action_save_success'))
+	fetchTemplateStyleData()
+}
+const fetchTemplateStyleData = async () => {
+	loading.value = true
+	const data = await templateStyleApi.getTemplateStyle().finally(() => {
+		loading.value = false
+	})
+	form.style_type = data.style_type || WEBSITE_STYLE.WEBSITE
+	if (![WEBSITE_STYLE.WEBSITE, WEBSITE_STYLE.SOFTWARE].includes(form.style_type)) form.style_type = WEBSITE_STYLE.WEBSITE
+	form.theme_color = data.theme_color || '#3664EF'
+	form.text_color = data.text_color || '#333333'
+	form.nav_bg_color = data.nav_bg_color || '#ffffff'
+	form.nav_text_color = data.nav_text_color || '#333333'
+	form.page_footer_bg_color = data.page_footer_bg_color || '#18191F'
+	form.page_footer_text_color = data.page_footer_text_color || '#F2F2F2'
+}
+
+onMounted(() => {
+	fetchTemplateStyleData()
+})
+</script>
 
 <style scoped>
 </style>

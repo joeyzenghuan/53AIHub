@@ -16,19 +16,27 @@
         <el-empty :description="$t('agent.no_data')" :image="$getPublicPath('/images/chat/completion_empty.png')" />
       </div>
     </template>
-    <template v-else v-for="item in showList" :key="item.agent_id">
+    <template v-for="item in showList" v-else :key="item.agent_id">
       <div
         class="relative flex items-start p-4 rounded-lg overflow-hidden bg-cover cursor-pointer border border-[#ECECEC] hover:shadow-md transition-all duration-300 bg-white"
-        @click="() => {
-          router.push({ name: route.path.includes('/index') ? 'HomeChat' : 'Chat', query: { agent_id: item.agent_id } })
-        }">
+        @click="
+          () => {
+            router.push({ name: route.path.includes('/index') ? 'HomeChat' : 'Chat', query: { agent_id: item.agent_id } })
+          }
+        "
+      >
         <el-image class="flex-none size-[50px] mr-4 rounded-full" :src="item.logo" fit="contain" />
         <div class="flex-1 overflow-hidden">
-          <h3 class="text-base font-medium mb-1 mt-1 line-clamp-1 text-primary" :title="item.name"
-            v-html="item.name.replace(keyword, `<span class='text-theme'>${keyword}</span>`)">
-          </h3>
-          <p class="text-sm text-opacity-60 line-clamp-2 text-regular" :title="item.description"
-            v-html="item.description.replace(keyword, `<span class='text-theme'>${keyword}</span>`)" />
+          <h3
+            class="text-base font-medium mb-1 mt-1 line-clamp-1 text-primary"
+            :title="item.name"
+            v-html="item.name.replace(keyword, `<span class='text-theme'>${keyword}</span>`)"
+          ></h3>
+          <p
+            class="text-sm text-opacity-60 line-clamp-2 text-regular"
+            :title="item.description"
+            v-html="item.description.replace(keyword, `<span class='text-theme'>${keyword}</span>`)"
+          />
           <div class="mt-3 flex items-center justify-between">
             <div class="flex items-center text-sm text-placeholder">
               <div class="size-[14px] flex-center">
@@ -47,28 +55,30 @@
 
 <script setup lang="ts">
 import { computed } from 'vue'
-import { useUserStore } from '@/stores/modules/user'
 import { useRouter, useRoute } from 'vue-router'
+import { useUserStore } from '@/stores/modules/user'
 
-const props = withDefaults(defineProps<{
-  list: Agent.State[]
-  loading?: boolean
-  keyword?: string
-}>(), {
-  list: [],
-  loading: false,
-  keyword: ''
-})
+const props = withDefaults(
+  defineProps<{
+    list: Agent.State[]
+    loading?: boolean
+    keyword?: string
+  }>(),
+  {
+    list: [],
+    loading: false,
+    keyword: ''
+  }
+)
 
 const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 const showList = computed(() => {
   if (!props.keyword) return props.list
-
-  return props.list.filter(item => {
-    return item.name.toLowerCase().includes(props.keyword.toLowerCase()) ||
-      item.description.toLowerCase().includes(props.keyword.toLowerCase())
+  const filteredList = props.list.filter((item) => item.user_group_ids.length > 0)
+  return filteredList.filter((item) => {
+    return item.name.toLowerCase().includes(props.keyword.toLowerCase()) || item.description.toLowerCase().includes(props.keyword.toLowerCase())
   })
 })
 </script>

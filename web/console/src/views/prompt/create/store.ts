@@ -13,8 +13,9 @@ const DEFAULT_FORM_DATA = {
   sort: 0,
   status: 1,
   custom_config: {
-    use_cases: [],
+    use_cases: []
   },
+  ai_links: []
 }
 const formData = ref(JSON.parse(JSON.stringify(DEFAULT_FORM_DATA)))
 const detailData = ref({})
@@ -29,18 +30,21 @@ export const useFormDataStore = () => {
   const set = (data = {}) => {
     formData.value = {
       ...formData.value,
-      ...data,
+      ...data
     }
   }
   const get = () => formData.value
   const save = async ({ prompt_id } = {}) => {
+    const data = {
+      ...formData.value,
+      prompt_id: prompt_id || formData.value.prompt_id || detailData.value.prompt_id || 0
+    }
     submitting.value = true
-    prompt_id = prompt_id || formData.value.prompt_id || detailData.value.prompt_id || 0
-    const data = await promptApi.save({ ...formData.value }).finally(() => {
+    const res = await promptApi.save({ ...data }).finally(() => {
       submitting.value = false
     })
     ElMessage.success(window.$t('action_save_success'))
-    return data
+    return res
   }
   const fetchDetail = async ({ prompt_id } = {}) => {
     prompt_id = prompt_id || formData.value.prompt_id
@@ -50,18 +54,25 @@ export const useFormDataStore = () => {
     })
     try {
       data.custom_config = JSON.parse(data.custom_config)
-    }
-    catch (error) {
+    } catch (error) {
       data.custom_config = {}
     }
-    if (!data.custom_config)
-      data.custom_config = {}
-    if (!data.custom_config.use_cases)
-      data.custom_config.use_cases = []
+    try {
+      data.ai_links = JSON.parse(data.ai_links).map((item) => {
+        return {
+          ai_link: { ...item },
+          delete: false
+        }
+      })
+    } catch (error) {
+      data.ai_links = []
+    }
+    if (!data.custom_config) data.custom_config = {}
+    if (!data.custom_config.use_cases) data.custom_config.use_cases = []
     detailData.value = data
     formatFormData()
   }
-  const formatFormData = (data) => {
+  const formatFormData = (data?: any) => {
     data = data || detailData.value || {}
     set({
       prompt_id: data.prompt_id || 0,
@@ -74,6 +85,7 @@ export const useFormDataStore = () => {
       sort: data.sort || 0,
       status: data.status,
       custom_config: data.custom_config,
+      ai_links: data.ai_links
     })
   }
 
@@ -87,6 +99,6 @@ export const useFormDataStore = () => {
     get,
     save,
     fetchDetail,
-    formatFormData,
+    formatFormData
   }
 }

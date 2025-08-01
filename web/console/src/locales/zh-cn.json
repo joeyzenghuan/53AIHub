@@ -43,10 +43,9 @@
     "aibox": "AI百宝箱",
     "bot": "智能体",
     "prompt": "提示词",
-    "library": "私有数据",
-    "builtapp": "应用智改",
-    "chat_bi": "ChatBI",
     "system": "系统管理",
+    "library": "全部知识库",
+    "chunk_setting": "语料拆分",
     "dialogue_digital_employee": "AI员工",
     "dialogue_prompt": "提示词",
     "dialogue_large_model": "大模型",
@@ -58,6 +57,8 @@
     "homepage": "首页",
     "app_management": "应用管理",
     "agent": "智能体",
+    "knowledge": "知识管理",
+    "space": "团队空间",
     "agent_search_placeholder": "搜索智能体",
     "ai_toolbox": "AI工具",
     "ai_toolbox_search_placeholder": "搜索工具",
@@ -83,6 +84,7 @@
     "website_info_language": "默认语言",
     "website_info_keyword": "关键词",
     "website_info_keyword_placeholder": "请输入关键词",
+    "website_info_keyword_placeholder_v2": "可输入多个关键词，每个关键词输入后按回车即可",
     "website_info_desc": "站点描述",
     "website_info_desc_placeholder": "请输入站点描述",
     "website_info_copyright": "版权信息",
@@ -117,6 +119,7 @@
     "platform_model_organization_id_placeholder": "输入您的组织 ID",
     "platform_model_base_url": "API Base",
     "platform_model_base_url_azure": "API 域名",
+    "platform_model_base_url_maxkb": "Base URL",
     "platform_model_base_url_azure_placeholder": "在此输入您的 API 域名，如：https://example.com/xxx",
     "platform_model_name": "部署名称",
     "platform_model_name_placeholder": "在此输入您的部署名称，与 Azure 部署名称匹配",
@@ -157,7 +160,7 @@
     "nav_seo_setting": "SEO设置",
     "nav_seo_setting_title": "Title",
     "nav_seo_setting_keywords": "Keywords",
-    "nav_seo_setting_keywords_tip": "每个关键词请用逗号隔开",
+    "nav_seo_setting_keywords_tip": "每个关键词请用英文逗号隔开",
     "nav_seo_setting_description": "Description",
     "payment": "支付配置",
     "subscription": "订阅设置",
@@ -238,7 +241,7 @@
     "policy": "隐私政策",
     "account_length": "账号长度必须在 4-20 个字符之间",
     "account_format": "账号必须以字母开头，只能包含字母、数字和下划线",
-    "password_length": "密码长度必须在 8-20 个字符之间",
+    "password_length": "密码长度需在 8-20 个字符之间，可以是字母、数字、符号组合",
     "password_format": "密码必须包含大小写字母和数字",
     "password_not_match": "两次输入的密码不一致",
     "reset_password": "重置密码",
@@ -273,6 +276,7 @@
     "reject": "已拒绝",
     "refresh_list": "刷新列表",
     "contact_customer_service": "遇到问题？联系客服解答",
+    "contact_customer_service_v2": "联系客服",
     "create_site": "创建站点",
     "waiting_audit": "等待审核",
     "create_success": "创建成功",
@@ -441,6 +445,8 @@
     "bailian": "阿里百炼",
     "volcengine": "火山方舟",
     "fastgpt_agent": "FastGPT",
+    "fastgpt_workflow": "FastGPT工作流",
+    "maxkb_agent": "MaxKB",
     "check_agent_config_tip": "请检查智能体配置是否正确"
   },
   "provider_platform": {
@@ -460,7 +466,8 @@
     "bailian": "阿里百炼",
     "volcengine": "火山方舟",
     "yuanqi": "腾讯元器",
-    "fastgpt": "FastGPT"
+    "fastgpt": "FastGPT",
+    "maxkb": "MaxKB"
   },
   "register_user": {
     "title": "注册用户"
@@ -704,6 +711,10 @@
   "form_url_validator": "请输入正确格式的URL地址",
   "form_path_validator": "请输入正确格式的路径地址 (如:/index) ",
   "form_path_same_tip": "已存在相同路径地址, 请重新输入",
+  "form_image_validator": "请上传正确格式的图片",
+  "form_variable_validator": "变量名只能包含字母、数字和下划线，且不能以数字开头",
+  "form_hide_logo": "隐藏技术支持Logo",
+  "enterprise_edition": "企业版",
   "image_cropper": "图片裁剪",
   "reupload": "重新上传",
   "wechat": "微信",
@@ -839,10 +850,6 @@
   "workspace": "工作空间",
   "edit_agent": "编辑智能体",
   "coze_workflow_link": "Coze工作流“编辑状态”的链接",
-  "input_variable": "输入变量",
-  "display_name": "显示名称",
-  "variable_type": "变量类型",
-  "output_variable": "输出变量",
   "model_name": "模型名称",
   "model_name_placeholder": "请输入模型名称",
   "prompt_placeholder": "请输入提示词",
@@ -912,13 +919,14 @@
   "bailian_agent_get_tip": "前往阿里百炼并登录（{ url }）\n第一步：登录阿里百炼，去到应用 - 应用管理页。\n第二步：选择一个应用，复制应用卡片中的“应用ID”粘贴到下面表单。\n第三步：点应用卡片下的发布，获取API-KEY，复制粘贴到下面表单。",
   "yuanqi_agent_get_tip": "前往腾讯元器（{ url }） \n第一步：登录腾讯元器，去到我的创建。\n第二步：选择一个智能体卡片的右下角更多按钮，点击调用API（新建智能体要等审核通过才有）。\n第三步：点击复制智能体ID，粘贴到下面表单。\n第四步：点击复制Token，粘贴到下面表单。",
   "fastgpt_agent_get_tip": "前往 FastGPT（ {url} ） \n第一步：登录FastGPT，点击进入「工作台」,点击选择要接入的应用；\n第二步：进入应用，在「发布渠道」下选择\"API 访问\"；\n第三步：在API密钥管理下，点击新建，新建成功后复制\"API KEY\"填入表单；\n第四步：复制\"API 根地址\",填入表单；",
+  "maxkb_agent_get_tip": "前往 MaxKB（ {url} ） \n第一步：下载MaxKB客户端；\n第二步：在「应用」下，点击要接入的应用；\n第三步：在\"API 访问凭据\"下复制Base URL，创建并复制API Key，填入下列表单；",
   "tip": "提示",
   "auth_required": "{provider_name}未授权，请先前往{provider_name}授权",
   "intelligent_agent_platform": "智能体平台",
   "cloud_computing_platform": "云计算平台",
   "model_platform": "大模型平台",
   "local_config_limited_tip": "配置受限提示",
-  "local_config_limited_desc": "由于当前系统访问为内网地址({url})，无法添加/配置Coze 智能体和微信支付，需要部署到外网能访问的地址访问再配置。",
+  "local_config_limited_desc": "由于当前系统访问为内网地址({url})，无法添加/配置Coze 智能体、微信支付、支付宝支持，需要部署到外网能访问的地址访问再配置。",
   "know_it": "知道了",
   "selected_tip": "已选择 {total} 个",
   "support_image": "支持图片",
@@ -965,6 +973,129 @@
     "upgrade_tip": "升级提示",
     "upgrade": "升级版本",
     "not_support": "当前版本不支持",
-    "agent_limit": "智能体添加数量达上限，请升级后尝试添加"
+    "agent_limit": "智能体添加数量达上限，请升级后尝试添加",
+    "upgrade_hide_logo": "升级至企业版，开启隐藏技术支持Logo"
+  },
+  "knowledge": {
+    "name": "知识库",
+    "short_name": "知识"
+  },
+
+  "space": {
+    "title": "团队空间",
+    "search_placeholder": "输入空间名称",
+    "name": "团队空间名",
+    "name_placeholder": "请输入空间名称",
+    "icon": "图标",
+    "capacity": "容量",
+    "description": "简介",
+    "description_placeholder": "请输入简介",
+    "delete_tip": "当前空间中有{total}个知识库，请先清空知识库后再删除空间",
+    "delete_confirm": "确定删除空间吗",
+    "delete_confirm_tip": "请注意！本操作将清空该空间里的所有内容。<br>请输入需要删除的空间名称：{name}",
+    "delete_confirm_tip_placeholder": "请输入要删除的空间名称",
+    "system": "系统",
+    "system_space_delete_tip": "系统空间，无法删除"
+  },
+  "common": {
+    "name": "名称",
+    "short_name": "简称",
+    "member": "成员",
+    "creator": "创建人",
+    "created_time": "创建时间"
+  },
+  "action": {
+    "create": "创建",
+    "add": "添加",
+    "added": "已添加",
+    "edit": "编辑",
+    "manage": "管理",
+    "delete": "删除",
+    "save": "保存",
+    "operation": "操作",
+    "more": "更多",
+    "cancel": "取消",
+    "setting": "设置"
+  },
+  "default_links": {
+    "default_setting": "默认设置",
+    "website": "网站",
+    "jump_path": "跳转地址"
+  },
+  "message_status": {
+    "create_success": "已创建",
+    "save_success": "已保存"
+  },
+  "agent": {
+    "name": "智能体",
+    "base_info": "基础信息",
+    "input_variable": "输入",
+    "output_variable": "输出",
+    "variable_name": "变量名称",
+    "variable_type": "变量类型",
+    "variable_label": "显示名称",
+    "variable_desc": "描述",
+    "variable_required": "是否必填",
+    "variable_max_length": "最大输入字数",
+    "variable_show_word_limit": "是否展示字数",
+    "variable_options": "选项",
+    "coze": {
+      "workspace": "工作空间",
+      "workflow_link": "扣子工作流\"编辑状态\"的链接",
+      "agent_type_chat": "对话型（智能体）",
+      "agent_type_chat_desc": "用户与大模型进行对话，由一个大模型自主思考决策，适用于较为简单的业务逻辑。",
+      "agent_type_workflow": "应用型（工作流）",
+      "agent_type_workflow_desc": "工作流是一系列可执行指令的集合，用于实现业务逻辑或完成特定任务。"
+    },
+    "53ai": {
+      "agent_type_chat": "对话型（智能问答）",
+      "agent_type_chat_desc": "用户与大模型进行对话，由一个大模型自主思考决策，适用于较为简单的业务逻辑。",
+      "agent_type_workflow": "应用型（应用智改）",
+      "agent_type_workflow_desc": "用户在表单录入需求，由大模型依据要求思考输出，适用于复杂业务逻辑的智能改造场景 。"
+    },
+    "dify": {
+      "agent_type_chat": "对话型 （聊天助手/Agent/Chatflow）",
+      "agent_type_chat_desc": "用户与大模型进行对话，由一个大模型自主思考决策，适用于较为简单的业务逻辑。",
+      "agent_type_workflow": "应用型（工作流/文本生成应用）",
+      "agent_type_workflow_desc": "工作流是一系列可执行指令的集合，用于实现业务逻辑或完成特定任务。 "
+    },
+    "fastgpt": {
+      "agent_type_chat": "简易应用",
+      "agent_type_chat_desc": "用户与大模型进行对话，由一个大模型自主思考决策，适用于较为简单的业务逻辑。",
+      "agent_type_workflow": "工作流",
+      "agent_type_workflow_desc": "工作流是一系列可执行指令的集合，用于实现业务逻辑或完成特定任务。 "
+    },
+    "relate_app": {
+      "title": "关联场景",
+      "desc": "将智能体的“输出”赋值给关联场景智能体的“输入”，实现多场景任务的自动化流转。",
+      "input_mapping": "传参映射",
+      "execution_rule": "执行规则",
+      "auto_execution": "自动执行",
+      "manual_execution": "手动执行"
+    }
+  },
+  "form": {
+    "input_placeholder": "请输入",
+    "select_placeholder": "请选择",
+    "set_variable_placeholder": "请设置｛#变量｝"
+  },
+  "file": {
+    "type_limit": "目前支持仅{accept}格式文件",
+    "size_empty": "文件内容不能为空",
+    "size_limit": "文件上传大小不能超过{size}MB({name}大小已超出)",
+    "upload_limit": "最多上传{limit}个文件"
+  },
+  "variable_type": {
+    "text": "单行文本",
+    "textarea": "多行文本",
+    "inputNumber": "数字",
+    "select": "选项",
+    "date": "日期",
+    "tag": "标签",
+    "file": "文件",
+    "markdown": "Markdown",
+    "image": "图片",
+    "audio": "音频",
+    "video": "视频"
   }
 }

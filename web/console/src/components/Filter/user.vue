@@ -1,8 +1,24 @@
-<script setup lang="ts">
-import { computed, ref } from 'vue'
-import { ArrowDown } from '@element-plus/icons-vue'
+<template>
+  <DeptMemberPicker v-model="user" :multiple="multiple" :default-first-value="defaultFirstValue" v-bind="{ ...$attrs }" @confirm="handleUserAddConfirm">
+    <template #trigger>
+      <div
+        class="border rounded h-10 min-w-44 flex items-center px-5 gap-1.5 text-xs text-[#1D1E1F] overflow-hidden cursor-pointer"
+      >
 
-const props = withDefaults(defineProps<{
+        <p class="flex-1 text-xs text-[#1D1E1F] truncate">{{ label }}</p>
+        <ElIcon size="14" color="#9EA5B6">
+          <ArrowDown />
+        </ElIcon>
+      </div>
+    </template>
+  </DeptMemberPicker>
+</template>
+
+<script setup lang="ts">
+import { computed, ref } from 'vue';
+import { ArrowDown } from '@element-plus/icons-vue';
+
+withDefaults(defineProps<{
   modelValue: string | number | null | any[]
   multiple?: boolean
   defaultFirstValue?: boolean
@@ -29,22 +45,6 @@ const handleUserAddConfirm = (data: any) => {
   emit('change', data.value)
 }
 </script>
-
-<template>
-  <DeptMemberPicker v-model="user" :multiple="multiple" :default-first-value="defaultFirstValue" v-bind="{ ...$attrs }" @confirm="handleUserAddConfirm">
-    <template #trigger>
-      <div
-        class="!border-none !outline-none h-9 flex-center px-5 gap-1.5 rounded-2xl bg-[#F6F7F8] text-xs text-[#1D1E1F] cursor-pointer"
-      >
-        {{ label }}
-        <!-- {{ $t('all') }} -->
-        <ElIcon size="14" color="#9EA5B6">
-          <ArrowDown />
-        </ElIcon>
-      </div>
-    </template>
-  </DeptMemberPicker>
-</template>
 
 <style>
 

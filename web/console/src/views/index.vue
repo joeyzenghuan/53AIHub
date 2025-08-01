@@ -19,6 +19,7 @@
           {{ enterpriseInfo.description || '' }}
         </div>
         <div class="mt-10 flex flex-col gap-6">
+          <!-- #ifndef KM -->
           <div class="flex items-center gap-8">
             <div class="flex-none w-[64px] text-base text-[#9A9A9A]">
               {{ isOpLocalEnv ? $t('website_home') : $t('website_domain') }}
@@ -42,6 +43,25 @@
               />
             </div>
           </div>
+          <!-- #endif -->
+          <!-- #ifdef KM -->
+          <div class="flex items-center gap-8">
+            <div class="flex-none w-[64px] text-base text-[#9A9A9A]">
+              {{ $t('website_home') }}
+            </div>
+            <div v-if="isSaasLogin || isOpLocalEnv" class="flex items-center gap-2">
+              <ElLink
+                style="--el-link-text-color: #1d1e1f; --el-link-font-size: 16px"
+                target="_blank"
+                :href="`${defaultDomain}`"
+              >
+                {{ defaultDomain }}
+                <SvgIcon class="cursor-pointer ml-1" name="blank" width="16" color="#2563EB" />
+              </ElLink>
+            </div>
+          </div>
+          <!-- #endif -->
+
           <div v-if="isSaasLogin" class="flex items-center gap-8">
             <div class="flex-none w-[64px] text-base text-[#9A9A9A]">
               {{ $t('version.title') }}
@@ -174,7 +194,8 @@ const service = ref({
 const userInfo = computed(() => userStore.info)
 const enterpriseInfo = computed(() => enterpriseStore.info)
 const isSaasLogin = computed(() => userStore.is_saas_login)
-const domainUrl = computed(() => (isOpLocalEnv.value ? `${window.location.origin}/#/index` : enterpriseInfo.value.domain))
+const defaultDomain = computed(() => `${window.location.origin  }/#/index`)
+const domainUrl = computed(() => (isOpLocalEnv.value ? defaultDomain.value : enterpriseInfo.value.domain))
 
 const formatNumber = (num = 0) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')
 

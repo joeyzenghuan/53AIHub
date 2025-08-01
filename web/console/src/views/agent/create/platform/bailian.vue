@@ -167,7 +167,5 @@ defineExpose({
 </template>
 
 <style scoped>
-::v-deep(.el-input-number--large) {
-	width: 60px;
-}
+
 </style>

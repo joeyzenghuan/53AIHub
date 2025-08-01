@@ -1,21 +1,48 @@
 <template>
-  <Layout class="px-[60px] py-8">
+  <Layout class="px-15 py-8">
     <Header :title="$t('module.system_log')" />
-    <div class="flex-1 flex flex-col bg-white p-6 mt-3 box-border  max-h-[calc(100vh-100px)] overflow-auto">
+    <div class="flex-1 flex flex-col bg-white p-6 mt-3 box-border max-h-[calc(100vh-100px)] overflow-auto">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <FilterDateRange v-model="filter_form.time" size="large" :value-format="date => new Date(date).getTime()" @change="onRefresh" />
-
-          <FilterSelect v-model="filter_form.action" show-all :options="actions" :prop="{ value: 'value', label: 'text' }" @change="onRefresh" />
-          <FilterSelect v-model="filter_form.module" show-all :options="modules" :prop="{ value: 'value', label: 'text' }" @change="onRefresh" />
-          <FilterUser v-model="filter_form.user_id" type="user" @change="onRefresh" />
-          <!-- <DeptMemberPicker @confirm="handleUserAddConfirm">
-            <template #trigger>
-              <ElButton class="min-w-[100px]" type="primary" size="large">
-                + {{ $t('action_add') }}
-              </ElButton>
+          <div class="flex-none ">
+            <FilterDateRange
+              v-model="selectDate"
+              size="large"
+              :value-format="date => new Date(date).getTime()"
+              @change="onRefresh"
+            />
+          </div>
+          <ElSelect
+            v-model="filterForm.action"
+            size="large"
+            class="flex-none max-w-[180px]"
+            clearable
+            @change="onRefresh"
+          >
+            <template #prefix>
+              {{ $t('system_log.log_action') }}:
             </template>
-          </DeptMemberPicker> -->
+            <ElOption v-for="item in actions" :key="item.value" :label="item.text" :value="item.value" />
+          </ElSelect>
+          <ElSelect
+            v-model="filterForm.module"
+            size="large"
+            class="flex-none max-w-[180px]"
+            clearable
+            @change="onRefresh"
+          >
+            <template #prefix>
+              {{ $t('system_log.log_module') }}:
+            </template>
+            <ElOption v-for="item in modules" :key="item.value" :label="item.text" :value="item.value" />
+          </ElSelect>
+
+          <FilterUser
+            v-model="userList"
+            class="flex-none max-w-[180px]"
+            type="user"
+            @change="onRefresh"
+          />
         </div>
       </div>
 
@@ -58,112 +85,124 @@
               </span>
             </template>
           </ElTableColumn>
-
-          <!-- <ElTableColumn :label="$t('operation')" width="100" fixed="right" align="right">
-						<template #default="{ row }">
-							<template v-if="ORDER_PAYMENT_TYPE_MANUAL === row.payment_type">
-								<ElButton class="text-[#5A6D9E]" type="text" @click="handleAdd({ data: row })">
-									{{ $t('action_edit') }}
-								</ElButton>
-								<ElButton class="text-[#5A6D9E]" type="text" @click="handleDelete({ data: row })">
-									{{ $t('action_delete') }}
-								</ElButton>
-							</template>
-							<span v-else class="text-[#9B9B9B]">
-								--
-							</span>
-						</template>
-					</ElTableColumn> -->
         </TablePlus>
       </div>
     </div>
   </Layout>
-  <OrderAddDialog ref="add_ref" />
 </template>
 
 <script setup lang="ts">
 import { onMounted, reactive, ref } from 'vue'
 
-import FilterSelect from '@/components/Filter/select.vue'
 import FilterDateRange from '@/components/Filter/date-range.vue'
 import FilterUser from '@/components/Filter/user.vue'
 
-import { systemLogApi } from '@/api/modules/system-log'
+import { systemLogApi, type SystemLogItem, type ActionItem, type ModuleItem, type SystemLogListRequest } from '@/api/modules/system-log'
 import { getSimpleDateFormatString } from '@/utils/moment'
 
-const add_ref = ref()
-const filter_form = reactive({
+
+type UserItem = {
+  user_id: number
+  nickname: string
+}
+
+type SystemLogDisplayItem = Omit<SystemLogItem, 'action_time'> & {
+  action_time: string
+}
+
+// 响应式数据
+const userList = ref<UserItem[]>([])
+const selectDate = ref([])
+const filterForm = reactive<SystemLogListRequest>({
   action: null,
   module: null,
-  time: [],
+  start_time: null,
+  end_time: null,
   offset: 0,
   limit: 10,
-  user_id: [],
+  user_id: null,
 })
 
-const actions = ref([])
-const modules = ref([])
-
-const tableData = ref([])
+const actions = ref<ActionItem[]>([])
+const modules = ref<ModuleItem[]>([])
+const tableData = ref<SystemLogDisplayItem[]>([])
 const tableTotal = ref(0)
 const tableLoading = ref(false)
 
-const loadList = async () => {
-  const params = { ...filter_form }
-  if (params.time && params.time.length) {
-    params.start_time = params.time[0]
-    params.end_time = params.time[1]
-    delete params.time
-  }
-  if (params.user_id.length)
-    params.user_id = params.user_id.map(item => item.user_id).join(',')
+// 数据加载方法
+const loadList = async (): Promise<void> => {
+  try {
+    const params = {
+      ...filterForm,
+      start_time: selectDate.value[0],
+      end_time: selectDate.value[1],
+      user_id: userList.value.length
+        ? userList.value.map(item => item.user_id).join(',')
+        : undefined,
+    }
 
-  const { data = {} } = await systemLogApi.list(params)
-  tableData.value = data.system_logs.map((item) => {
-    item.action_time = getSimpleDateFormatString({ date: item.action_time, format: 'YYYY-MM-DD hh:mm' })
-    return item
-  })
-  tableTotal.value = data.count
+    const data = await systemLogApi.list(params)
+    tableData.value = (data.system_logs || []).map((item) => ({
+      ...item,
+      action_time: getSimpleDateFormatString({
+        date: item.action_time,
+        format: 'YYYY-MM-DD hh:mm'
+      })
+    }))
+    tableTotal.value = data.count || 0
+  } catch (error) {
+    console.error('加载系统日志失败:', error)
+    tableData.value = []
+    tableTotal.value = 0
+  }
 }
 
-const loadActions = async () => {
-  const { data = [] } = await systemLogApi.actions()
+const loadActions = async (): Promise<void> => {
+  const data = await systemLogApi.actions()
   actions.value = data
 }
 
-const loadModules = async () => {
-  const { data = [] } = await systemLogApi.modules()
+const loadModules = async (): Promise<void> => {
+  const data = await systemLogApi.modules()
   modules.value = data
 }
 
-const getActionLabel = (action: number) => {
-  return actions.value.find(item => item.value === action)?.text || action
-}
-const getModuleLabel = (module: number) => {
-  return modules.value.find(item => item.value === module)?.text || module
+// 工具方法
+const getActionLabel = (action: number): string => {
+  return actions.value.find(item => item.value === action)?.text || String(action)
 }
 
-const onRefresh = () => {
-  filter_form.offset = 0
+const getModuleLabel = (module: number): string => {
+  return modules.value.find(item => item.value === module)?.text || String(module)
+}
+
+// 事件处理方法
+const onRefresh = (): void => {
+  filterForm.offset = 0
   loadList()
 }
 
-const handleSizeChange = (size: number) => {
-  filter_form.limit = size
+const handleSizeChange = (size: number): void => {
+  filterForm.limit = size
   onRefresh()
 }
-const handleCurrentChange = (page: number) => {
-  filter_form.offset = (page - 1) * filter_form.limit
+
+const handleCurrentChange = (page: number): void => {
+  filterForm.offset = (page - 1) * filterForm.limit
   loadList()
 }
+// 生命周期
 onMounted(async () => {
   tableLoading.value = true
-  await loadList().finally(() => {
+  try {
+    await Promise.all([
+      loadList(),
+      loadActions(),
+      loadModules()
+    ])
+  } finally {
     tableLoading.value = false
-  })
-  loadActions()
-  loadModules()
-  // await Promise.all([])
+  }
 })
 </script>
 

@@ -26,8 +26,9 @@ const (
 	ChannelApiVolcengine = 1004
 	ChannelApiAppBuilder = 1005
 	ChannelApiYuanqi     = 1006
-	// FastGpt Reconstruction， Support dialogue id and user id
+	// FastGpt 不是新的渠道，数据库里面还是 22，这里是为了替代 apitype 为0 只能走默认 openai 的问题
 	ChannelApiTypeFastGpt = 1007
+	ChannelApiTypeMaxKB   = 1008
 )
 
 // ChannelDescription 渠道描述结构体
@@ -253,7 +254,7 @@ func GetFirstChannelByEidAndProviderType(eid int64, providerType int64) (*Channe
 }
 
 func StandardizationBotId(botId string) string {
-	if !strings.HasPrefix(botId, "bot-") {
+	if !strings.HasPrefix(botId, "bot-") && !strings.HasPrefix(botId, "workflow-") {
 		return "bot-" + botId
 	}
 	return botId
@@ -261,7 +262,7 @@ func StandardizationBotId(botId string) string {
 
 func StandardizationBotIdByChannelType(botId string, channelType int) string {
 	switch channelType {
-	case ChannelApiDify, ChannelApi53AI, ChannelApiBailian, ChannelApiVolcengine, ChannelApiAppBuilder, ChannelApiYuanqi, ChannelApiTypeFastGpt:
+	case ChannelApiDify, ChannelApi53AI, ChannelApiBailian, ChannelApiVolcengine, ChannelApiAppBuilder, ChannelApiYuanqi, ChannelApiTypeFastGpt, ChannelApiTypeMaxKB:
 		return StandardizationBotId(botId)
 	}
 	return botId
@@ -279,4 +280,23 @@ func ProcessModelNames(models string, channelType int) string {
 	}
 
 	return strings.Join(newModels, ",")
+}
+
+func (channel *Channel) GetAddModelString(model string) string {
+	existingModels := make(map[string]bool)
+	for _, m := range strings.Split(channel.Models, ",") {
+		existingModels[m] = true
+	}
+
+	// 如果新模型不存在，则添加
+	if !existingModels[model] {
+		existingModels[model] = true
+	}
+
+	// 将map转换回切片
+	var models []string
+	for m := range existingModels {
+		models = append(models, m)
+	}
+	return strings.Join(models, ",")
 }

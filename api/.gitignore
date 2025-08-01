@@ -21,3 +21,8 @@ bin/*hub
 docs/*
 saas/
 build-restart-develop.sh
+send-build-msg.sh
+.envkm
+.envhub
+53AIHub
+AI_TASK.txt

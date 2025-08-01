@@ -1,10 +1,86 @@
+<template>
+	<ElDrawer v-model="visible" size="700px" :title="$t(editable ? 'action_edit' : 'action_create')"
+		:close-on-click-modal="false" append-to-body destroy-on-close @close="close">
+		<ElForm ref="formRef" class="px-4" :model="formData" label-position="top">
+			<h1 class="font-semibold text-[#1D1E1F] mb-6">{{ $t('basic_info') }}</h1>
+			<ElFormItem :label="$t('type')">
+				<ElRadioGroup v-model="formData.type" size="large" @change="handleTypeChange">
+					<ElRadio v-for="value in [NAVIGATION_TYPE.SYSTEM, NAVIGATION_TYPE.EXTERNAL, NAVIGATION_TYPE.CUSTOM]"
+						:key="value" :value="value"
+						:disabled="formData.type === NAVIGATION_TYPE.SYSTEM || value === NAVIGATION_TYPE.SYSTEM || editable">
+						{{ $t(NAVIGATION_TYPE_LABEL_MAP.get(value)) }}
+					</ElRadio>
+				</ElRadioGroup>
+			</ElFormItem>
+			<ElFormItem :label="$t('name')" prop="name" :rules="[{ required: true, message: $t('form_input_placeholder') }]">
+				<ElInput v-model="formData.name" size="large" :maxlength="20" show-word-limit
+					:placeholder="$t('form_input_placeholder')" />
+			</ElFormItem>
+			<ElFormItem class="is-required" :label="$t('jump_path')" prop="jump_path"
+				:rules="[
+					...generateInputRules({ message: 'form_input_placeholder', validator: ['text', formData.type === NAVIGATION_TYPE.EXTERNAL ? 'url' : 'path'] }),
+					{
+						validator: (rule, value, callback) => {
+							if (formData.type == NAVIGATION_TYPE.CUSTOM && navigationList.some(item => item.jump_path === value && item.navigation_id !== originData.navigation_id)) {
+								return callback(new Error($t('form_path_same_tip')))
+							}
+							callback()
+						},
+						trigger: 'blur'
+					}
+				]">
+				<ElInput v-if="formData.type === NAVIGATION_TYPE.SYSTEM" :model-value="domainUrl + formData.jump_path"
+					size="large" :placeholder="$t('form_input_placeholder')" disabled />
+				<ElInput v-else-if="formData.type === NAVIGATION_TYPE.EXTERNAL" v-model="formData.jump_path" size="large"
+					:placeholder="$t('form_input_placeholder')" />
+				<ElInput v-else v-model="formData.jump_path" size="large" :placeholder="$t('form_input_placeholder')">
+					<template #prepend>{{ domainUrl }}</template>
+				</ElInput>
+			</ElFormItem>
+			<ElFormItem :label="$t('open_method')" prop="target">
+				<ElRadioGroup v-model="formData.target" size="large">
+					<ElRadio v-for="value in [NAVIGATION_TARGET.SELF, NAVIGATION_TARGET.BLANK]" :key="value" :value="value">
+						{{ $t(NAVIGATION_TARGET_LABEL_MAP.get(value)) }}
+					</ElRadio>
+				</ElRadioGroup>
+			</ElFormItem>
+			<ElDivider />
+			<h1 class="font-semibold text-[#1D1E1F] mb-6">{{ $t('module.nav_seo_setting') }}</h1>
+			<ElFormItem :label="$t('module.nav_seo_setting_title')">
+				<ElInput v-model="formData.seo_title" maxlength="60" show-word-limit size="large"
+					:placeholder="$t('form_input_placeholder')" />
+			</ElFormItem>
+			<ElFormItem :label="$t('module.nav_seo_setting_keywords')">
+				<ElInput v-model="formData.seo_keywords" size="large" :placeholder="$t('form_input_placeholder')" />
+				<div class="mt-2 text-xs text-[#999]">{{ $t('module.nav_seo_setting_keywords_tip') }}</div>
+			</ElFormItem>
+			<ElFormItem :label="$t('module.nav_seo_setting_description')">
+				<ElInput v-model="formData.seo_description" type="textarea" :rows="5" maxlength="100" show-word-limit
+					size="large" resize="none" :placeholder="$t('form_input_placeholder')" />
+			</ElFormItem>
+		</ElForm>
+		<template #footer>
+			<div class="flex border-t pt-5 justify-end w-full">
+				<ElButton size="large" @click="close">
+					{{ $t('action_cancel') }}
+				</ElButton>
+				<ElButton type="primary" size="large" :loading="submitting" @click="handleSave">
+					{{ $t('action_save') }}
+				</ElButton>
+			</div>
+		</template>
+	</ElDrawer>
+</template>
+
 <script setup lang="ts">
 import { ref, reactive, nextTick, computed } from 'vue'
-import { navigationApi, NAVIGATION_TYPE, NAVIGATION_TYPE_LABEL_MAP, NAVIGATION_TARGET, NAVIGATION_TARGET_LABEL_MAP } from '@/api/modules/navigation'
-import { generateInputRules } from '@/utils/form-rule'
-import { useEnterpriseStore, useUserStore } from '@/stores'
-import { useEnv } from '@/hooks/useEnv'
 import { useRouter } from 'vue-router'
+import { navigationApi } from '@/api/modules/navigation'
+import { generateInputRules } from '@/utils/form-rule'
+import { useEnterpriseStore } from '@/stores'
+import { useEnv } from '@/hooks/useEnv'
+
+import { NAVIGATION_TYPE, NAVIGATION_TYPE_LABEL_MAP, NAVIGATION_TARGET, NAVIGATION_TARGET_LABEL_MAP } from '@/constants/navigation'
 
 const enterpriseStore = useEnterpriseStore()
 const router = useRouter()
@@ -102,79 +178,5 @@ defineExpose({
 	reset
 })
 </script>
-
-<template>
-	<ElDrawer size="700px" :title="$t(editable ? 'action_edit' : 'action_create')" :close-on-click-modal="false"
-		append-to-body destroy-on-close v-model="visible" @close="close">
-		<ElForm ref="formRef" class="px-4" :model="formData" label-position="top">
-			<h1 class="font-semibold text-[#1D1E1F] mb-6">{{ $t('basic_info') }}</h1>
-			<ElFormItem :label="$t('type')">
-				<ElRadioGroup v-model="formData.type" size="large" @change="handleTypeChange">
-					<ElRadio v-for="value in [NAVIGATION_TYPE.SYSTEM, NAVIGATION_TYPE.EXTERNAL, NAVIGATION_TYPE.CUSTOM]"
-						:key="value" :value="value"
-						:disabled="formData.type === NAVIGATION_TYPE.SYSTEM || value === NAVIGATION_TYPE.SYSTEM || editable">
-						{{ $t(NAVIGATION_TYPE_LABEL_MAP.get(value)) }}
-					</ElRadio>
-				</ElRadioGroup>
-			</ElFormItem>
-			<ElFormItem :label="$t('name')" prop="name" :rules="[{ required: true, message: $t('form_input_placeholder') }]">
-				<ElInput v-model="formData.name" size="large" :maxlength="20" show-word-limit
-					:placeholder="$t('form_input_placeholder')" />
-			</ElFormItem>
-			<ElFormItem class="is-required" :label="$t('jump_path')" prop="jump_path"
-				:rules="[
-					...generateInputRules({ message: 'form_input_placeholder', validator: ['text', formData.type === NAVIGATION_TYPE.EXTERNAL ? 'url' : 'path'] }),
-					{
-						validator: (rule, value, callback) => {
-							if (formData.type == NAVIGATION_TYPE.CUSTOM && navigationList.some(item => item.jump_path === value && item.navigation_id !== originData.navigation_id)) {
-								return callback(new Error($t('form_path_same_tip')))
-							}
-							callback()
-						},
-						trigger: 'blur'
-					}
-				]">
-				<ElInput v-if="formData.type === NAVIGATION_TYPE.SYSTEM" :modelValue="domainUrl + formData.jump_path"
-					size="large" :placeholder="$t('form_input_placeholder')" disabled />
-				<ElInput v-else-if="formData.type === NAVIGATION_TYPE.EXTERNAL" v-model="formData.jump_path" size="large"
-					:placeholder="$t('form_input_placeholder')" />
-				<ElInput v-else v-model="formData.jump_path" size="large" :placeholder="$t('form_input_placeholder')">
-					<template #prepend>{{ domainUrl }}</template>
-				</ElInput>
-			</ElFormItem>
-			<ElFormItem :label="$t('open_method')" prop="target">
-				<ElRadioGroup v-model="formData.target" size="large">
-					<ElRadio v-for="value in [NAVIGATION_TARGET.SELF, NAVIGATION_TARGET.BLANK]" :key="value" :value="value">
-						{{ $t(NAVIGATION_TARGET_LABEL_MAP.get(value)) }}
-					</ElRadio>
-				</ElRadioGroup>
-			</ElFormItem>
-			<ElDivider />
-			<h1 class="font-semibold text-[#1D1E1F] mb-6">{{ $t('module.nav_seo_setting') }}</h1>
-			<ElFormItem :label="$t('module.nav_seo_setting_title')">
-				<ElInput v-model="formData.seo_title" maxlength="60" show-word-limit size="large"
-					:placeholder="$t('form_input_placeholder')" />
-			</ElFormItem>
-			<ElFormItem :label="$t('module.nav_seo_setting_keywords')">
-				<ElInput v-model="formData.seo_keywords" size="large" :placeholder="$t('form_input_placeholder')" />
-				<div class="mt-2 text-xs text-[#999]">{{ $t('module.nav_seo_setting_keywords_tip') }}</div>
-			</ElFormItem>
-			<ElFormItem :label="$t('module.nav_seo_setting_description')">
-				<ElInput v-model="formData.seo_description" type="textarea" :rows="5" maxlength="100" show-word-limit
-					size="large" resize="none" :placeholder="$t('form_input_placeholder')" />
-			</ElFormItem>
-		</ElForm>
-		<template #footer>
-			<div class="flex border-t pt-5 justify-end w-full">
-				<ElButton size="large" @click="close">
-					{{ $t('action_cancel') }}
-				</ElButton>
-				<ElButton type="primary" size="large" :loading="submitting" @click="handleSave">
-					{{ $t('action_save') }}
-				</ElButton>
-			</div>
-		</template>
-	</ElDrawer>
-</template>
 
 <style scoped lang="scss"></style>

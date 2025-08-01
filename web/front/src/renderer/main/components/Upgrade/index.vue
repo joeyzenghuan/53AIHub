@@ -19,10 +19,10 @@
           <h1 class="flex-none text-xl font-semibold text-[#000]">
             {{ $t('subscription.version_title') }}
           </h1>
-          <div class="flex-1 h-0 max-h-max relative overflow-auto">
+          <div class="flex-1 relative overflow-y-hidden">
             <ElButton
               v-show="scroll_left > 0"
-              class="absolute -left-4 top-1/2 -translate-y-1/2 z-10 bg-[#F5F2F2] text-[#333] !border-none !outline-none"
+              class="absolute left-0 top-1/2 -translate-y-1/2 z-10 bg-[#F5F2F2] text-[#333] !border-none !outline-none"
               :icon="ArrowLeft"
               size="default"
               circle
@@ -162,7 +162,7 @@
             </ElScrollbar>
             <ElButton
               v-show="scroll_left_limit > 0 && scroll_left < scroll_left_limit"
-              class="absolute -right-0.5 top-1/2 -translate-y-1/2 z-10 bg-[#F5F2F2] text-[#333] !border-none !outline-none"
+              class="absolute right-0 top-1/2 -translate-y-1/2 z-10 bg-[#F5F2F2] text-[#333] !border-none !outline-none"
               :icon="ArrowRight"
               size="default"
               circle
@@ -220,7 +220,7 @@
             </div>
           </div>
           <ElDivider class="!my-5 !border-[#E7ECF7]" />
-          <div class="w-full flex-1 min-h-[108px]">
+          <div class="w-full flex-1 md:min-h-[108px]">
             <div class="w-full flex items-center justify-between text-lg text-[#000]">
               <span>{{ active_subscription_info.group_name || '- -' }}</span>
               <span>{{ active_time_info.currency_symbol || '￥' }}{{ active_time_info.amount || 0 }}</span>
@@ -276,15 +276,15 @@
                   </div>
                 </div>
                 <ElDivider class="!my-5 !border-[#E7ECF7]" />
-                <div class="w-full flex-1 min-h-[108px]">
+                <div class="w-full flex-1 md:min-h-[108px] min-h-[48px] max-md:border-b">
                   <div class="w-full flex items-center justify-between text-lg text-[#000]">
                     <span>{{ active_subscription_info.group_name || '- -' }}</span>
                     <span>{{ active_time_info.currency_symbol || '￥' }}{{ active_time_info.amount || 0 }}</span>
                   </div>
                 </div>
               </div>
-              <div v-if="payment_options.length > 1" class="flex flex-row items-center gap-4 min-h-max pb-12">
-                <h2 class="text-lg text-[#000]">{{ $t('subscription.payment') }}</h2>
+              <div v-if="payment_options.length > 1" class="flex flex-row items-center gap-4 min-h-max md:pb-12">
+                <h2 class="text-lg text-[#000] whitespace-nowrap">{{ $t('subscription.payment') }}</h2>
                 <ElRadioGroup v-model="active_payment" class="" :disabled="pay_disabled">
                   <ElRadio v-for="opt in payment_options" :key="opt.pay_type" :value="opt.pay_type">
                     <span class="text-[#333]">

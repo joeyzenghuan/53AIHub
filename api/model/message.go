@@ -1,25 +1,79 @@
 package model
 
+import "encoding/json"
+
 type Message struct {
-	ID               int64  `json:"id" gorm:"column:id;primaryKey;autoIncrement"`
-	Eid              int64  `json:"eid" gorm:"column:eid;not null"`
-	UserID           int64  `json:"user_id" gorm:"column:user_id;not null"`
-	Message          string `json:"message" gorm:"column:message;type:text"`
-	AgentID          int64  `json:"agent_id" gorm:"column:agent_id;not null"`
-	ConversationID   int64  `json:"conversation_id" gorm:"column:conversation_id;not null"`
-	Answer           string `json:"answer" gorm:"column:answer;type:text"`
-	ReasoningContent string `json:"reasoning_content" gorm:"column:reasoning_content;type:text"`
-	ModelName        string `json:"model_name" gorm:"index;index:index_username_model_name,priority:1;default:''"`
-	Quota            int    `json:"quota" gorm:"default:0"`
-	PromptTokens     int    `json:"prompt_tokens" gorm:"default:0"`
-	CompletionTokens int    `json:"completion_tokens" gorm:"default:0"`
-	TotalTokens      int    `json:"total_tokens" gorm:"default:0"`
-	ChannelId        int    `json:"channel" gorm:"index"`
-	RequestId        string `json:"request_id" gorm:"default:''"`
-	ElapsedTime      int64  `json:"elapsed_time" gorm:"default:0"`
-	IsStream         bool   `json:"is_stream" gorm:"default:false"`
-	QuotaContent     string `json:"quota_content" gorm:"default:''"`
+	ID                int64  `json:"id" gorm:"column:id;primaryKey;autoIncrement"`
+	Eid               int64  `json:"eid" gorm:"column:eid;not null"`
+	UserID            int64  `json:"user_id" gorm:"column:user_id;not null"`
+	Message           string `json:"message" gorm:"column:message;type:text"`
+	AgentID           int64  `json:"agent_id" gorm:"column:agent_id;not null"`
+	ConversationID    int64  `json:"conversation_id" gorm:"column:conversation_id;not null"`
+	Answer            string `json:"answer" gorm:"column:answer;type:text"`
+	ReasoningContent  string `json:"reasoning_content" gorm:"column:reasoning_content;type:text"`
+	ModelName         string `json:"model_name" gorm:"index;index:index_username_model_name,priority:1;default:''"`
+	Quota             int    `json:"quota" gorm:"default:0"`
+	PromptTokens      int    `json:"prompt_tokens" gorm:"default:0"`
+	CompletionTokens  int    `json:"completion_tokens" gorm:"default:0"`
+	TotalTokens       int    `json:"total_tokens" gorm:"default:0"`
+	ChannelId         int    `json:"channel" gorm:"index"`
+	RequestId         string `json:"request_id" gorm:"default:''"`
+	ElapsedTime       int64  `json:"elapsed_time" gorm:"default:0"`
+	IsStream          bool   `json:"is_stream" gorm:"default:false"`
+	QuotaContent      string `json:"quota_content" gorm:"default:''"`
+	AgentCustomConfig string `json:"agent_custom_config" gorm:"default:''"`
 	BaseModel
+}
+
+// MessageType 消息类型枚举
+type MessageType string
+
+const (
+	MessageTypeChat     MessageType = "chat"     // 聊天消息
+	MessageTypeWorkflow MessageType = "workflow" // 工作流消息
+)
+
+// GetMessageType 根据 Agent 类型判断消息类型
+func (m *Message) GetMessageType() MessageType {
+	// 查询关联的 Agent 来判断类型
+	agent, err := GetAgentByID(m.Eid, m.AgentID)
+	if err != nil {
+		// 如果查询失败，默认返回聊天类型
+		return MessageTypeChat
+	}
+
+	if agent.AgentType == AgentTypeWorkflow {
+		return MessageTypeWorkflow
+	}
+
+	return MessageTypeChat
+}
+
+// ParseChatMessage 解析聊天消息的 Message 字段
+func (m *Message) ParseChatMessage() ([]map[string]interface{}, error) {
+	var messages []map[string]interface{}
+	if err := json.Unmarshal([]byte(m.Message), &messages); err != nil {
+		return nil, err
+	}
+	return messages, nil
+}
+
+// ParseWorkflowParameters 解析工作流消息的 Message 字段（parameters）
+func (m *Message) ParseWorkflowParameters() (map[string]interface{}, error) {
+	var parameters map[string]interface{}
+	if err := json.Unmarshal([]byte(m.Message), &parameters); err != nil {
+		return nil, err
+	}
+	return parameters, nil
+}
+
+// ParseWorkflowOutput 解析工作流消息的 Answer 字段（workflow_output_data）
+func (m *Message) ParseWorkflowOutput() (map[string]interface{}, error) {
+	var outputData map[string]interface{}
+	if err := json.Unmarshal([]byte(m.Answer), &outputData); err != nil {
+		return nil, err
+	}
+	return outputData, nil
 }
 
 // CreateMessage creates a new message record

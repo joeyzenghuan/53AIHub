@@ -43,10 +43,18 @@
         + {{ $t('apply.create_site') }}
       </li>
     </ul>
-    <ElButton type="primary" text class="relative mt-4 !bg-transparent left-1/2 -translate-x-1/2" @click.stop="loadEnterpriseList">
+    <ElButton
+      type="primary"
+      text
+      class="relative mt-4 !bg-transparent left-1/2 -translate-x-1/2"
+      @click.stop="loadEnterpriseList"
+    >
       {{ $t('apply.refresh_list') }}
     </ElButton>
-    <div class="flex items-center text-sm text-[#5B6A91] cursor-pointer w-max mx-auto mt-2" @click="service_visible = true">
+    <div
+      class="flex items-center text-sm text-[#5B6A91] cursor-pointer w-max mx-auto mt-2"
+      @click="service_visible = true"
+    >
       <SvgIcon name="service" width="14px" height="14px" class="mr-2" />
       {{ $t('apply.contact_customer_service') }}
     </div>
@@ -56,7 +64,10 @@
       {{ $t(`login.${form.type}_login`) }}
     </h4>
     <template v-if="form.type === 'mobile'">
-      <ElFormItem prop="username" :rules="generateInputRules({ message: 'login.mobile_placeholder', validator: ['text', 'mobile'] })">
+      <ElFormItem
+        prop="username"
+        :rules="generateInputRules({ message: 'login.mobile_placeholder', validator: ['text', 'mobile'] })"
+      >
         <template #label>
           <span class="text-[#1D1E1F]">{{ $t('mobile') }}</span>
         </template>
@@ -70,18 +81,32 @@
           clearable
         />
       </ElFormItem>
-      <ElFormItem class="relative" prop="verify_code" :rules="generateInputRules({ message: 'verification_code_placeholder' })">
+      <ElFormItem
+        class="relative"
+        prop="verify_code"
+        :rules="generateInputRules({ message: 'verification_code_placeholder' })"
+      >
         <template #label>
           <span class="text-[#1D1E1F]">{{ $t('verification_code') }}</span>
         </template>
         <VerificationCodeInput ref="verify_code_input_ref" v-model="form.verify_code" :account="form.username" />
       </ElFormItem>
-      <ElButton type="primary" round class="w-full mt-8 !h-10" :disabled="!form.username || !form.verify_code" :loading="submitting" @click="onLogin">
+      <ElButton
+        type="primary"
+        round
+        class="w-full mt-8 !h-10"
+        :disabled="!form.username || !form.verify_code"
+        :loading="submitting"
+        @click="onLogin"
+      >
         {{ $t('action_login') }}
       </ElButton>
     </template>
     <template v-else>
-      <ElFormItem prop="username" :rules="generateInputRules({ message: 'login.mobile_placeholder', validator: ['text', 'mobile'] })">
+      <ElFormItem
+        prop="username"
+        :rules="generateInputRules({ message: 'login.mobile_placeholder', validator: ['text', 'mobile'] })"
+      >
         <template #label>
           <span class="text-[#1D1E1F]">{{ $t('account') }}</span>
         </template>
@@ -121,7 +146,14 @@
           </ElButton>
         </div>
       </ElFormItem>
-      <ElButton type="primary" round class="w-full mt-8 !h-10" :disabled="!form.username || !form.password" :loading="submitting" @click="onLogin">
+      <ElButton
+        type="primary"
+        round
+        class="w-full mt-8 !h-10"
+        :disabled="!form.username || !form.password"
+        :loading="submitting"
+        @click="onLogin"
+      >
         {{ $t('action_login') }}
       </ElButton>
     </template>
@@ -129,11 +161,23 @@
       <span class="text-[#9A9A9A]">{{ $t('or') }}</span>
     </ElDivider>
     <div class="flex flex-col gap-4">
-      <ElButton v-if="form.type !== 'password'" type="default" round class="w-full !h-10 !ml-0 font-medium" @click="onPasswordLogin">
+      <ElButton
+        v-if="form.type !== 'password'"
+        type="default"
+        round
+        class="w-full !h-10 !ml-0 font-medium"
+        @click="onPasswordLogin"
+      >
         <SvgIcon class="mr-2" name="password" width="28" />
         {{ $t('login.password_login_v2') }}
       </ElButton>
-      <ElButton v-if="form.type !== 'mobile'" type="default" round class="w-full !h-10 !ml-0 font-medium" @click="onMobileLogin">
+      <ElButton
+        v-if="form.type !== 'mobile'"
+        type="default"
+        round
+        class="w-full !h-10 !ml-0 font-medium"
+        @click="onMobileLogin"
+      >
         <SvgIcon class="mr-2" name="mobile" width="28" />
         {{ $t('login.mobile_login_v2') }}
       </ElButton>
@@ -150,13 +194,13 @@
         v-html="
           $t('login.agree_and_policy', {
             agree: `<span class=\'agree-hook cursor-pointer text-[#4F5052] text-xs mx-1 -mt-0.5 underline underline-offset-4\'>${$t('login.agree')}</span>`,
-            policy: `<span class=\'policy-hook cursor-pointer text-[#4F5052] text-xs mx-1 -mt-0.5 underline underline-offset-4\'>${$t('login.policy')}</span>`
+            policy: `<span class=\'policy-hook cursor-pointer text-[#4F5052] text-xs mx-1 -mt-0.5 underline underline-offset-4\'>${$t('login.policy')}</span>`,
           })
         "
       />
     </div>
   </ElForm>
-  <ServiceDialog v-model:visible="service_visible" :title="$t('action_renew')" />
+  <ServiceDialog v-model:visible="service_visible" :title="$t('apply.contact_customer_service_v2')" />
 </template>
 
 <script setup lang="ts">
@@ -186,7 +230,7 @@ const form = reactive({
   type: 'password',
   username: '',
   password: '',
-  verify_code: ''
+  verify_code: '',
 })
 const submitting = ref(false)
 const enterprise_list = ref([])
@@ -230,12 +274,12 @@ const handleEnterpriseSelect = async ({ data = {} } = {}) => {
   data.is_loading = true
   if (!data.eid) {
     // 考虑申请流程存在异步情况，需要多次请求
-    const {apply_id} = data
+    const { apply_id } = data
     let request_count = 0
     const refreshData = async () => {
       const { list = [] } = await enterprise_store.loadListData({ data: { status: -1 } })
       request_count++
-      const apply_data = list.find((item) => item.apply_id == apply_id)
+      const apply_data = list.find(item => item.apply_id == apply_id)
       if (!apply_data.eid && request_count < 5) {
         await sleep(1)
         await refreshData()
@@ -251,17 +295,19 @@ const handleEnterpriseSelect = async ({ data = {} } = {}) => {
   await enterprise_store.loadDetailData({ data: { eid: data.eid } })
   await systemLogApi.create({
     action: SYSTEM_LOG_ACTION.LOGIN,
-    content: '登录'
+    content: '登录',
   })
   if (window.parent) {
     window.parent.postMessage(
       {
         action: 'saas-login-success',
         eid: data.eid,
-        access_token: user_store.info.access_token
+        access_token: user_store.info.access_token,
       },
       '*'
     )
+  } else {
+    window.location.reload()
   }
 }
 const onApply = () => {
@@ -283,12 +329,16 @@ const onLogin = async () => {
   }
   const data = await user_store
     .login({ type: form.type, data: form, hideError: true })
-    .catch((err) => {
+    .catch(err => {
       // if (err.code == RESPONSE_CODE_UNAUTHORIZED_ERROR && err.origin_message == 'unauthorized: user not found') {
       // 	onRegister()
       // } else ElMessage.warning(window.$t(err.message))
       ElMessage.warning(
-        window.$t(err.origin_message === 'unauthorized' ? 'response_message.user_not_found' : 'response_message.username_or_password_is_incorrect')
+        window.$t(
+          err.origin_message === 'unauthorized'
+            ? 'response_message.user_not_found'
+            : 'response_message.username_or_password_is_incorrect'
+        )
       )
       return Promise.reject(err)
     })
@@ -296,10 +346,14 @@ const onLogin = async () => {
       submitting.value = false
     })
   if (data.is_new_user) {
-    ElMessageBox.confirm(window.$t('login.new_user_tip', { password: `${form.verify_code}${form.verify_code}` }), window.$t('tip'), {
-      confirmButtonText: window.$t('login.I_remember'),
-      cancelButtonText: window.$t('login.modify_password')
-    })
+    ElMessageBox.confirm(
+      window.$t('login.new_user_tip', { password: `${form.verify_code}${form.verify_code}` }),
+      window.$t('tip'),
+      {
+        confirmButtonText: window.$t('login.I_remember'),
+        cancelButtonText: window.$t('login.modify_password'),
+      }
+    )
       .then(() => {})
       .catch(() => {
         onForgetPassword()
@@ -350,7 +404,7 @@ const onPolicy = () => {
 }
 
 defineExpose({
-  reset
+  reset,
 })
 </script>
 

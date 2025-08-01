@@ -35,12 +35,12 @@ declare global {
   }
 }
 
-declare module '@vue/runtime-core' {
-  interface ComponentCustomProperties {
-    $t: (key: string, ...args: any[]) => string
-    // 获取真实路径
-    $getRealPath: ({ url }: { url: string }) => string
-    vCopy: string
-    vDebounce: boolean
-  }
-}
+// declare module '@vue/runtime-core' {
+//   interface ComponentCustomProperties {
+//     $t: (key: string, ...args: any[]) => string
+//     // 获取真实路径
+//     $getRealPath: ({ url }: { url: string }) => string
+//     vCopy: string
+//     vDebounce: boolean
+//   }
+// }

@@ -1,218 +1,10 @@
-<script setup name="Agent" lang="ts">
-import { nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
-import { useRouter } from 'vue-router'
-
-import CreateDrawer from '@/views/agent/create/drawer.vue'
-
-import eventBus from '@/utils/event-bus'
-
-import { agentApi } from '@/api/modules/agent'
-import { providerApi } from '@/api/modules/provider'
-import { subscriptionApi } from '@/api/modules/subscription'
-import { GROUP_TYPE_AGENT } from '@/api/modules/group'
-import { getProvidersByAuth, getProviderByAgentId, AgentType } from '@/constants/platform/config'
-import { AGENT_APP_OPTIONS } from '@/constants/platform/agent'
-import { VERSION_MODULE } from '@/constants/enterprise'
-
-interface SubscriptionItem {
-  group_id: number
-  group_name: string
-}
-
-interface ProviderItem {
-  provider_type: string
-  [key: string]: any
-}
-
-const router = useRouter()
-const groupTabsRef = ref()
-const createDrawerRef = ref()
-
-const filter_form = reactive({
-  group_id: '-1',
-  keyword: '',
-  page: 1,
-  page_size: 10
-})
-const all_total = ref(0)
-const table_data = ref<Agent.State[]>([])
-const table_total = ref(0)
-const table_loading = ref(false)
-const add_visible = ref(false)
-const subscriptionList = ref<SubscriptionItem[]>([])
-
-const auth_providers = ref<ProviderItem[]>([])
-
-const loadSubscriptionList = async () => {
-  if (!subscriptionList.value.length) subscriptionList.value = await subscriptionApi.list({ params: { offset: 0, limit: 1000 } })
-}
-
-const loadAllTotal = async () => {
-  const { count = 0 } = await agentApi.list({
-    params: {
-      group_id: '-1',
-      keyword: '',
-      offset: 0,
-      limit: 1
-    }
-  })
-  all_total.value = count
-}
-const loadListData = async () => {
-  table_loading.value = true
-  await loadSubscriptionList()
-
-  try {
-    const { count = 0, agents = [] } = await agentApi.list({
-      params: {
-        group_id: filter_form.group_id,
-        keyword: filter_form.keyword,
-        offset: (filter_form.page - 1) * filter_form.page_size,
-        limit: filter_form.page_size
-      }
-    })
-
-    table_total.value = count
-    table_data.value = []
-    await nextTick()
-
-    table_data.value = agents.map((item: Partial<Agent.State> = {}) => {
-      const agent = item as Agent.State
-      agent.user_group_ids = agent.user_group_ids || []
-      agent.user_group_names = agent.user_group_ids
-        .map((value) => {
-          const subscription = subscriptionList.value.find((row) => row.group_id === value)
-          return subscription?.group_name || ''
-        })
-        .filter((group_name) => !!group_name)
-
-      return agent
-    })
-  } finally {
-    table_loading.value = false
-  }
-
-  loadAllTotal()
-}
-
-const refresh = async () => {
-  filter_form.page = 1
-  await loadListData()
-}
-
-const onTableSizeChange = (size: number) => {
-  filter_form.page_size = size
-  refresh()
-}
-
-const onTableCurrentChange = (current: number) => {
-  filter_form.page = current
-  loadListData()
-}
-
-const onAgentDelete = async ({ data: { agent_id } }: { data: { agent_id: number } }) => {
-  await ElMessageBox.confirm(window.$t('agent_delete_confirm'), window.$t('action_delete'))
-  await agentApi.delete({ data: { agent_id } })
-  ElMessage.success(window.$t('action_delete_success'))
-  loadListData()
-}
-
-const coze_cn_is_auth = ref(false)
-const app_builder_is_auth = ref(false)
-
-const loadProviderList = async () => {
-  const list = (await providerApi.list()) as ProviderItem[]
-
-  auth_providers.value = getProvidersByAuth(true).map((item) => {
-    const provider_type = item.id
-    return {
-      ...item,
-      provider_type,
-      is_auth: !!list.find((row) => row.provider_type === provider_type)
-    }
-  })
-}
-
-const checkAuth = (value: AgentType): Promise<void> => {
-  return new Promise<void>((resolve, reject) => {
-    const provider = getProviderByAgentId(value)
-    const auth_provider = auth_providers.value.find((row) => row.provider_type === provider.id)
-
-    if (auth_provider && !auth_provider?.is_auth) {
-      reject(new Error('Authentication required'))
-      return ElMessageBox.confirm(window.$t('auth_required', { provider_name: window.$t(provider.label) }), window.$t('tip'), {
-        confirmButtonText: window.$t('action_go'),
-        cancelButtonText: window.$t('action_cancel'),
-        type: 'warning'
-      }).then(() => {
-        router.push({
-          name: 'Platform'
-        })
-      })
-    }
-
-    resolve()
-  })
-}
-
-const handleAgentPrepare = async (data: { value: string; channel_type: number }) => {
-  await checkAuth(data.value)
-  createDrawerRef.value.open({
-    agent_type: data.value,
-    group_id: +filter_form.group_id > 0 ? filter_form.group_id : undefined,
-    data: { channel_config: { channel_type: data.channel_type } }
-  })
-
-  add_visible.value = false
-}
-
-const onAgentAdd = async (value: string, data: Partial<Agent.State> = {}) => {
-  await checkAuth(value)
-  loadListData()
-  await router.push({
-    name: 'AgentCreate',
-    query: data.agent_id
-      ? {
-          type: data.agent_type,
-          agent_id: data.agent_id
-        }
-      : {
-          type: value,
-          group_id: +filter_form.group_id > 0 ? filter_form.group_id : undefined
-        }
-  })
-}
-
-const onAgentStatusChange = async ({ data: { agent_id, enable } }: { data: { agent_id: number; enable: boolean } }) => {
-  await agentApi.updateStatus({ data: { agent_id, enable } })
-  ElMessage.success(window.$t(enable ? 'action_enable_success' : 'action_disable_success'))
-}
-
-// 添加onAddOpened函数修复错误
-const onAddOpened = () => {
-  // 抽屉打开时的处理逻辑
-}
-
-onMounted(() => {
-  refresh()
-  loadProviderList()
-  eventBus.on('user-login-success', refresh)
-  eventBus.on('agent-change', loadListData)
-})
-
-onUnmounted(() => {
-  eventBus.off('user-login-success', refresh)
-  eventBus.off('agent-change', loadListData)
-})
-</script>
-
 <template>
   <Layout class="px-[60px] py-8">
     <Header :title="$t('module.agent')">
       <template #right>
         <el-button
-          type="primary"
           v-version="{ module: VERSION_MODULE.AGENT, count: all_total, content: $t('version.agent_limit') }"
+          type="primary"
           size="large"
           @click="add_visible = true"
         >
@@ -223,7 +15,7 @@ onUnmounted(() => {
 
     <div class="flex items-center justify-between mt-5">
       <div class="flex-1 w-0">
-        <GroupTabs ref="groupTabsRef" v-model="filter_form.group_id" :group-type="GROUP_TYPE_AGENT" @change="refresh" />
+        <GroupTabs ref="groupTabsRef" v-model="filter_form.group_id" :group-type="GROUP_TYPE.AGENT" @change="refresh" />
       </div>
       <div class="flex-none flex-center gap-3 ml-8">
         <Search v-model="filter_form.keyword" placeholder="module.agent_search_placeholder" @change="refresh" />
@@ -299,7 +91,13 @@ onUnmounted(() => {
     </div>
   </Layout>
 
-  <el-drawer v-model="add_visible" :title="$t('action_add')" size="650px" @opened="onAddOpened">
+  <el-drawer
+    v-model="add_visible"
+    :title="$t('action_add')"
+    size="650px"
+    style="transition: none"
+    @opened="onAddOpened"
+  >
     <ul class="w-full min-h-[300px] overflow-y-auto">
       <li v-for="(item, itemIndex) in AGENT_APP_OPTIONS" :key="itemIndex">
         <h4 class="text-sm text-[#939499]">
@@ -324,8 +122,223 @@ onUnmounted(() => {
     </ul>
   </el-drawer>
 
-  <CreateDrawer ref="createDrawerRef" @success="(row) => onAgentAdd(row.agent_type, row)" />
+  <CreateDrawer ref="createDrawerRef" @success="row => onAgentAdd(row.agent_type, row, true)" />
 </template>
+
+<script setup name="Agent" lang="ts">
+import { nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
+import { useRouter } from 'vue-router'
+
+import CreateDrawer from '@/views/agent/create/drawer.vue'
+
+import eventBus from '@/utils/event-bus'
+
+import { agentApi } from '@/api/modules/agent'
+import { providerApi } from '@/api/modules/provider'
+import { subscriptionApi } from '@/api/modules/subscription'
+import { getProvidersByAuth, getProviderByAgentId, AgentType } from '@/constants/platform/config'
+import { AGENT_APP_OPTIONS } from '@/constants/platform/agent'
+import { VERSION_MODULE } from '@/constants/enterprise'
+import { GROUP_TYPE } from '@/constants/group'
+
+interface SubscriptionItem {
+  group_id: number
+  group_name: string
+}
+
+interface ProviderItem {
+  provider_type: string
+  [key: string]: any
+}
+
+const router = useRouter()
+const groupTabsRef = ref()
+const createDrawerRef = ref()
+
+const filter_form = reactive({
+  group_id: '-1',
+  keyword: '',
+  page: 1,
+  page_size: 10,
+})
+const all_total = ref(0)
+const table_data = ref<Agent.State[]>([])
+const table_total = ref(0)
+const table_loading = ref(false)
+const add_visible = ref(false)
+const subscriptionList = ref<SubscriptionItem[]>([])
+
+const auth_providers = ref<ProviderItem[]>([])
+
+const loadSubscriptionList = async () => {
+  if (!subscriptionList.value.length)
+    subscriptionList.value = await subscriptionApi.list({ params: { offset: 0, limit: 1000 } })
+}
+
+const loadAllTotal = async () => {
+  const { count = 0 } = await agentApi.list({
+    params: {
+      group_id: '-1',
+      keyword: '',
+      offset: 0,
+      limit: 1,
+    },
+  })
+  all_total.value = count
+}
+const loadListData = async () => {
+  table_loading.value = true
+  await loadSubscriptionList()
+
+  try {
+    const { count = 0, agents = [] } = await agentApi.list({
+      params: {
+        group_id: filter_form.group_id,
+        keyword: filter_form.keyword,
+        offset: (filter_form.page - 1) * filter_form.page_size,
+        limit: filter_form.page_size,
+      },
+    })
+
+    table_total.value = count
+    table_data.value = []
+    await nextTick()
+
+    table_data.value = agents.map((item: Partial<Agent.State> = {}) => {
+      const agent = item as Agent.State
+      agent.user_group_ids = agent.user_group_ids || []
+      agent.user_group_names = agent.user_group_ids
+        .map(value => {
+          const subscription = subscriptionList.value.find(row => row.group_id === value)
+          return subscription?.group_name || ''
+        })
+        .filter(group_name => !!group_name)
+
+      return agent
+    })
+  } finally {
+    table_loading.value = false
+  }
+
+  loadAllTotal()
+}
+
+const refresh = async () => {
+  filter_form.page = 1
+  await loadListData()
+}
+
+const onTableSizeChange = (size: number) => {
+  filter_form.page_size = size
+  refresh()
+}
+
+const onTableCurrentChange = (current: number) => {
+  filter_form.page = current
+  loadListData()
+}
+
+const onAgentDelete = async ({ data: { agent_id } }: { data: { agent_id: number } }) => {
+  await ElMessageBox.confirm(window.$t('agent_delete_confirm'), window.$t('action_delete'))
+  await agentApi.delete({ data: { agent_id } })
+  ElMessage.success(window.$t('action_delete_success'))
+  loadListData()
+}
+
+const coze_cn_is_auth = ref(false)
+const app_builder_is_auth = ref(false)
+
+const loadProviderList = async () => {
+  const list = (await providerApi.list()) as ProviderItem[]
+
+  auth_providers.value = getProvidersByAuth(true).map(item => {
+    const provider_type = item.id
+    return {
+      ...item,
+      provider_type,
+      is_auth: !!list.find(row => row.provider_type === provider_type),
+    }
+  })
+}
+
+const checkAuth = (value: AgentType): Promise<void> => {
+  return new Promise<void>((resolve, reject) => {
+    const provider = getProviderByAgentId(value)
+    const auth_provider = auth_providers.value.find(row => row.provider_type === provider.id)
+
+    if (auth_provider && !auth_provider?.is_auth) {
+      reject(new Error('Authentication required'))
+      return ElMessageBox.confirm(
+        window.$t('auth_required', { provider_name: window.$t(provider.label) }),
+        window.$t('tip'),
+        {
+          confirmButtonText: window.$t('action_go'),
+          cancelButtonText: window.$t('action_cancel'),
+          type: 'warning',
+        }
+      ).then(() => {
+        router.push({
+          name: 'Platform',
+        })
+      })
+    }
+
+    resolve()
+  })
+}
+
+const handleAgentPrepare = async (data: { value: string; channel_type: number }) => {
+  await checkAuth(data.value)
+  createDrawerRef.value.open({
+    agent_type: data.value,
+    group_id: +filter_form.group_id > 0 ? filter_form.group_id : undefined,
+    data: { channel_config: { channel_type: data.channel_type } },
+  })
+
+  add_visible.value = false
+}
+
+const onAgentAdd = async (value: string, data: Partial<Agent.State> = {}, is_new = false) => {
+  await checkAuth(value)
+  loadListData()
+  await router.push({
+    name: 'AgentCreate',
+    query: data.agent_id
+      ? {
+          type: data.agent_type,
+          agent_id: data.agent_id,
+          is_new,
+        }
+      : {
+          type: value,
+          group_id: +filter_form.group_id > 0 ? filter_form.group_id : undefined,
+          is_new,
+        },
+  })
+}
+
+const onAgentStatusChange = async ({ data: { agent_id, enable } }: { data: { agent_id: number; enable: boolean } }) => {
+  await agentApi.updateStatus({ data: { agent_id, enable } })
+  ElMessage.success(window.$t(enable ? 'action_enable_success' : 'action_disable_success'))
+}
+
+// 添加onAddOpened函数修复错误
+const onAddOpened = () => {
+  // 抽屉打开时的处理逻辑
+}
+
+onMounted(() => {
+  refresh()
+  loadProviderList()
+  eventBus.on('user-login-success', refresh)
+  eventBus.on('agent-change', loadListData)
+})
+
+onUnmounted(() => {
+  eventBus.off('user-login-success', refresh)
+  eventBus.off('agent-change', loadListData)
+})
+</script>
 
 <style lang="scss" scoped>
 ::v-deep(.el-table__cell) {

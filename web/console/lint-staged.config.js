@@ -1,5 +1,5 @@
 module.exports = {
-  // TypeScript 和 JavaScript 文件
+  // JavaScript 和 TypeScript 文件
   '*.{js,jsx,ts,tsx}': ['eslint --fix', 'prettier --write'],
 
   // Vue 文件

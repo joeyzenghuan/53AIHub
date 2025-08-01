@@ -13,12 +13,13 @@ import Components from 'unplugin-vue-components/vite'
 import { ElementPlusResolver } from 'unplugin-vue-components/resolvers'
 
 import { createSvgIconsPlugin } from 'vite-plugin-svg-icons'
+import conditionalCompilation from './vite-plugins/conditional-compilation.ts'
 
 // import { visualizer } from 'rollup-plugin-visualizer'
 
 // 读取 package.json 获取版本号
 const packageJson = JSON.parse(fs.readFileSync('./package.json', 'utf-8'))
-const version = packageJson.version
+const { version } = packageJson
 
 // 创建生成 version.txt 的插件
 const versionPlugin = () => {
@@ -27,7 +28,7 @@ const versionPlugin = () => {
     writeBundle: {
       sequential: true,
       order: 'post',
-      handler: async (options: any) => {
+      handler: async (options: { dir?: string }) => {
         const outDir = options.dir || 'dist'
         fs.writeFileSync(path.join(outDir, 'version.txt'), version)
       }
@@ -37,6 +38,11 @@ const versionPlugin = () => {
 
 function setupPlugins(env: ImportMetaEnv): PluginOption[] {
   return [
+    // 条件编译插件 - 必须在其他插件之前执行
+    conditionalCompilation({
+      platform: env.VITE_PLATFORM,
+      debug: true // 强制开启调试模式
+    }),
     vue({
       template: {
         compilerOptions: {
@@ -74,8 +80,7 @@ function setupPlugins(env: ImportMetaEnv): PluginOption[] {
 
 export default defineConfig((env) => {
   const viteEnv = loadEnv(env.mode, process.cwd()) as unknown as ImportMetaEnv
-  const vitePlatform = viteEnv.VITE_PLATFORM || 'web'
-
+  console.log(viteEnv)
   return {
     base: viteEnv.VITE_BASE_PATH || '/console',
     resolve: {
@@ -86,16 +91,16 @@ export default defineConfig((env) => {
     plugins: setupPlugins(viteEnv),
     server: {
       host: '0.0.0.0',
-      port: 8002,
+      port: viteEnv.VITE_PLATFORM === 'km' ? 8003 : 8002,
       open: false,
       proxy: {
         '/api': {
           target: viteEnv.VITE_APP_API_BASE_URL,
           changeOrigin: true, // 允许跨域
-          rewrite: (path) => path.replace('/api/', '/')
+          rewrite: (urlPath) => urlPath.replace('/api/', '/')
         }
       },
-      allowedHosts: ['hubtest.53ai.com', 'hub.53ai.com']
+      allowedHosts: ['hubtest.53ai.com', 'hub.53ai.com', 'kmtest.53ai.com', 'km.53ai.com']
     },
     build: {
       outDir: vitePlatform === 'web' ? 'dist' : `../../api/static/console`,

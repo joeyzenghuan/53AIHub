@@ -142,7 +142,9 @@ import DialogueRecordDrawer from '@/components/DialogueRecord/drawer.vue'
 import FilterDateRange from '@/components/Filter/date-range.vue'
 
 import { useUserStore } from '@/stores'
-import { GROUP_TYPE_USER, groupApi } from '@/api/modules/group'
+import { groupApi } from '@/api/modules/group'
+
+import { GROUP_TYPE } from '@/constants/group'
 import { useEnv } from '@/hooks/useEnv'
 
 const { isWorkEnv } = useEnv()
@@ -263,7 +265,7 @@ const handleMoreCommand = (command, data = {}) => {
 }
 
 onMounted(async () => {
-  const list = await groupApi.list({ params: { group_type: GROUP_TYPE_USER } })
+  const list = await groupApi.list({ params: { group_type: GROUP_TYPE.USER } })
   const options = list.map((item = {}) => {
     item.value = +item.group_id || 0
     item.label = item.group_name || ''

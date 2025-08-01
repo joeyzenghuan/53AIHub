@@ -1,6 +1,10 @@
+<template>
+  <component :is="CurrentComponent" ref="viewRef" :show-channel-config="showChannelConfig" />
+</template>
+
 <script setup lang="ts">
-import { computed, defineAsyncComponent, ref } from 'vue'
-import { AGENT_TYPES } from '@/constants/platform/config'
+import { computed, defineAsyncComponent, ref } from 'vue';
+import { AGENT_TYPES } from '@/constants/platform/config';
 
 const props = defineProps<{
   agentType: string
@@ -9,17 +13,19 @@ const props = defineProps<{
 
 const components = {
   [AGENT_TYPES.PROMPT]: defineAsyncComponent(() => import('./prompt.vue')),
-  [AGENT_TYPES.COZE_AGENT_CN]: defineAsyncComponent(() => import('./coze-agent.vue')),
-  'coze-workflow': defineAsyncComponent(() => import('./coze-workflow.vue')),
+  [AGENT_TYPES.COZE_AGENT_CN]: defineAsyncComponent(() => import('./coze-cn.vue')),
+  [AGENT_TYPES.COZE_WORKFLOW_CN]: defineAsyncComponent(() => import('./coze-cn.vue')),
   [AGENT_TYPES.DIFY_AGENT]: defineAsyncComponent(() => import('./dify-agent.vue')),
-  'dify-workflow': defineAsyncComponent(() => import('./dify-workflow.vue')),
+  [AGENT_TYPES.DIFY_WORKFLOW]: defineAsyncComponent(() => import('./dify-agent.vue')),
   [AGENT_TYPES['53AI_AGENT']]: defineAsyncComponent(() => import('./53ai-agent.vue')),
-  '53ai-workflow': defineAsyncComponent(() => import('./53ai-workflow.vue')),
+  [AGENT_TYPES['53AI_WORKFLOW']]: defineAsyncComponent(() => import('./53ai-agent.vue')),
   [AGENT_TYPES.APP_BUILDER]: defineAsyncComponent(() => import('./app-builder-agent.vue')),
   [AGENT_TYPES.YUANQI]: defineAsyncComponent(() => import('./yuanqi.vue')),
   [AGENT_TYPES.BAILIAN]: defineAsyncComponent(() => import('./bailian.vue')),
   [AGENT_TYPES.VOLCENGINE]: defineAsyncComponent(() => import('./volcengine.vue')),
   [AGENT_TYPES.FASTGPT_AGENT]: defineAsyncComponent(() => import('./fastgpt-agent.vue')),
+  [AGENT_TYPES.FASTGPT_WORKFLOW]: defineAsyncComponent(() => import('./fastgpt-agent.vue')),
+  [AGENT_TYPES.MAXKB_AGENT]: defineAsyncComponent(() => import('./maxkb-agent.vue')),
 }
 
 const viewRef = ref()
@@ -39,11 +45,3 @@ defineExpose({
   },
 })
 </script>
-
-<template>
-  <component
-    :is="CurrentComponent"
-    ref="viewRef"
-    :show-channel-config="showChannelConfig"
-  />
-</template>
