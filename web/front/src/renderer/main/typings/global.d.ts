@@ -11,11 +11,11 @@ declare global {
   }
 }
 
-declare module '@vue/runtime-core' {
-  interface ComponentCustomProperties {
-    $getPublicPath: (path: string) => string
-    // is electron
-    $isElectron?: boolean
-    $noop?: () => void
-  }
-}
+// declare module '@vue/runtime-core' {
+//   interface ComponentCustomProperties {
+//     $getPublicPath: (path: string) => string
+//     // is electron
+//     $isElectron?: boolean
+//     $noop?: () => void
+//   }
+// }

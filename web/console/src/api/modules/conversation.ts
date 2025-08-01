@@ -10,7 +10,7 @@ export const conversationApi = {
     offset?: number
     limit?: number
   }) {
-    const agent_id = params.agent_id
+    const { agent_id } = params
     delete params.agent_id
     return service.get(`/api/agents/${agent_id}/conversations`, { params }).catch(handleError)
   },
@@ -22,15 +22,32 @@ export const conversationApi = {
     offset?: number
     limit?: number
   }) {
-    const user_id = params.user_id
+    const { user_id } = params
     delete params.user_id
     return service.get(`/api/users/${user_id}/conversations`, { params }).catch(handleError)
   },
   fetch_conversation_detail(conversation_id: number) {
     return service.get(`/api/conversations/${conversation_id}`).catch(handleError)
   },
+  workflow: {
+    run(
+      data: {
+        conversation_id: number
+        model: string
+        parameters: {
+          [key: string]: any
+        }
+        stream: boolean
+      },
+      options: {
+        responseType: 'stream'
+        onDownloadProgress: (e: any) => void
+        signal: AbortSignal
+      }
+    ) {
+      return service.post('/v1/workflow/run', data, options).catch(handleError)
+    },
+  },
 }
 
 export default conversationApi
-
-export type { conversationApi }

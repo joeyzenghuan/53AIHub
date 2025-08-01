@@ -43,9 +43,8 @@
     "aibox": "AI百寶箱",
     "bot": "智能體",
     "prompt": "提示詞",
-    "library": "私有數據",
-    "builtapp": "應用智改",
-    "chat_bi": "ChatBI",
+    "library": "全部知識庫",
+    "chunk_setting": "語料拆分",
     "system": "系統管理",
     "dialogue_digital_employee": "AI員工",
     "dialogue_prompt": "提示詞",
@@ -58,6 +57,8 @@
     "homepage": "首頁",
     "app_management": "應用管理",
     "agent": "智能體",
+    "knowledge": "知識管理",
+    "space": "空間管理",
     "agent_search_placeholder": "搜索智能體",
     "ai_toolbox": "AI工具",
     "ai_toolbox_search_placeholder": "搜索工具",
@@ -83,6 +84,7 @@
     "website_info_language": "默認語言",
     "website_info_keyword": "關鍵詞",
     "website_info_keyword_placeholder": "請輸入關鍵詞",
+    "website_info_keyword_placeholder_v2": "可輸入多個關鍵詞，每個關鍵詞輸入後按Enter即可",
     "website_info_desc": "站點描述",
     "website_info_desc_placeholder": "請輸入站點描述",
     "website_info_copyright": "版權信息",
@@ -116,6 +118,8 @@
     "platform_model_organization_id": "組織 ID",
     "platform_model_organization_id_placeholder": "輸入您的組織 ID",
     "platform_model_base_url": "API Base",
+    "platform_model_base_url_azure": "API 域名",
+    "platform_model_base_url_maxkb": "Base URL",
     "platform_model_base_url_placeholder": "輸入您的API Base，如：https://api.openai.com",
     "platform_model_base_url_placeholder_53ai": "輸入您的API Base，如：https://api.53ai.com",
     "platform_model_api_endpoint": "自定義 API endpoint 地址",
@@ -151,7 +155,7 @@
     "nav_seo_setting": "SEO設置",
     "nav_seo_setting_title": "SEO Title",
     "nav_seo_setting_keywords": "SEO Keywords",
-    "nav_seo_setting_keywords_tip": "每個關鍵詞請用逗號隔開",
+    "nav_seo_setting_keywords_tip": "每個關鍵詞請用英文逗號隔開",
     "nav_seo_setting_description": "SEO Description",
     "payment": "支付配置",
     "subscription": "訂閱服務",
@@ -232,7 +236,7 @@
     "policy": "隱私政策",
     "account_length": "賬號長度必須在 4-20 個字符之間",
     "account_format": "賬號必須以字母開頭，只能包含字母、數字和下劃線",
-    "password_length": "密碼長度必須在 8-20 個字符之間",
+    "password_length": "密碼長度需在 8-20 個字元之間，可以是字母、數字、符號組合",
     "password_format": "密碼必須包含大小寫字母和數字",
     "password_not_match": "兩次輸入的密碼不一致",
     "reset_password": "重置密碼",
@@ -267,6 +271,7 @@
     "reject": "已拒绝",
     "refresh_list": "刷新列表",
     "contact_customer_service": "遇到問題？聯繫客服解答",
+    "contact_customer_service_v2": "聯絡客服",
     "create_site": "創建站點",
     "waiting_audit": "等待審核",
     "create_success": "創建成功",
@@ -434,6 +439,8 @@
     "bailian": "阿里百煉",
     "volcengine": "火山方舟",
     "fastgpt_agent": "FastGPT",
+    "fastgpt_workflow": "FastGPT工作流",
+    "maxkb_agent": "MaxKB",
     "check_agent_config_tip": "請檢查智能體配置是否正確"
   },
   "provider_platform": {
@@ -453,7 +460,8 @@
     "bailian": "阿里百煉",
     "volcengine": "火山方舟",
     "yuanqi": "腾讯元器",
-    "fastgpt": "FastGPT"
+    "fastgpt": "FastGPT",
+    "maxkb": "MaxKB"
   },
   "register_user": {
     "title": "註冊用戶"
@@ -697,6 +705,10 @@
   "form_url_validator": "請輸入正確的URL地址",
   "form_path_validator": "请输入正确格式的路径地址 (如:/index) ",
   "form_path_same_tip": "已存在相同路径地址, 请重新输入",
+  "form_image_validator": "請上傳正確的圖片",
+  "form_variable_validator": "變量名只能包含字母、數字和下劃線，且不能以數字開頭",
+  "form_hide_logo": "隱藏技術支援Logo",
+  "enterprise_edition": "企業版",
   "image_cropper": "圖片裁剪",
   "reupload": "重新上傳",
   "wechat": "微信",
@@ -832,10 +844,6 @@
   "workspace": "工作空間",
   "edit_agent": "編輯智能體",
   "coze_workflow_link": "Coze工作流\"編輯狀態\"的鏈接",
-  "input_variable": "輸入變量",
-  "display_name": "顯示名稱",
-  "variable_type": "變量類型",
-  "output_variable": "輸出變量",
   "model_name": "模型名稱",
   "model_name_placeholder": "請輸入模型名稱",
   "prompt_placeholder": "請輸入提示詞",
@@ -905,13 +913,14 @@
   "volcengine_agent_get_tip": "前往火山引擎（{ url }） \n第一步：登录火山方舟，点击进入我的应用（{ my_url }）\n第二步：点击已有的应用（或创建应用），点复制左上角的bot-xxxxxx（后面有个复制按钮），粘贴到下面表单\n第三步：点击右上角“API调用指南”，点击选择API Key并复制，然后复制出一个key粘贴到下面表单",
   "yuanqi_agent_get_tip": "前往腾讯元器（{ url }） \n第一步：登录腾讯元器，去到我的创建。\n第二步：选择一个智能体卡片的右下角更多按钮，点击调用API（新建智能体要等审核通过才有）。\n第三步，点击复制智能体ID，粘贴到下面表单。\n第四步：点击复制Token,粘贴到下面表单。",
   "fastgpt_agent_get_tip": "前往 FastGPT（ {url} ） \n第一步：登录FastGPT，点击进入「工作台」,点击选择要接入的应用；\n第二步：进入应用，在「发布渠道」下选择\"API 访问\"；\n第三步：在API密钥管理下，点击新建，新建成功后复制\"API KEY\"填入表单；\n第四步：复制\"API 根地址\",填入表单；",
+  "maxkb_agent_get_tip": "前往 MaxKB（ {url} ） \n第一步：下载MaxKB客户端；\n第二步：在「应用」下，点击要接入的应用；\n第三步：在\"API 访问凭据\"下复制Base URL，创建并复制API Key，填入下列表单；",
   "tip": "提示",
   "auth_required": "{provider_name}未授權，請先前往{provider_name}授權",
   "intelligent_agent_platform": "智能體平台",
   "cloud_computing_platform": "雲計算平台",
   "model_platform": "大模型平台",
   "local_config_limited_tip": "配置受限提示",
-  "local_config_limited_desc": "由於當前系統訪問為內網地址({url})，無法添加/配置Coze 智能體和微信支付，需要部署到外網能訪問的地址訪問再配置。",
+  "local_config_limited_desc": "由於當前系統訪問為內網地址({url})，無法添加/配置Coze 智能體、微信支付、支付寶支持，需要部署到外網能訪問的地址訪問再配置。",
   "know_it": "知道了",
   "selected_tip": "已選擇 {total} 個",
   "support_image": "支持圖片",
@@ -958,6 +967,125 @@
     "upgrade_tip": "升級提示",
     "upgrade": "升級版本",
     "not_support": "當前版本不支持",
-    "agent_limit": "智能體添加數量達上限，請升級後嘗試添加"
+    "agent_limit": "智能體添加數量達上限，請升級後嘗試添加",
+    "upgrade_hide_logo": "升級至企業版，開啟隱藏技術支援 Logo"
+  },
+  "knowledge": {
+    "name": "知識庫",
+    "short_name": "知識"
+  },
+  "space": {
+    "title": "空間管理",
+    "search_placeholder": "輸入空間名稱",
+    "name": "空間",
+    "name_placeholder": "請輸入空間名稱",
+    "icon": "圖標",
+    "capacity": "容量",
+    "description": "簡介",
+    "description_placeholder": "請輸入簡介",
+    "delete_tip": "當前空間中有{total}個知識庫，請先清空知識庫後再刪除空間",
+    "system": "系統",
+    "system_space_delete_tip": "系統空間，無法刪除"
+  },
+  "common": {
+    "name": "名稱",
+    "short_name": "簡稱",
+    "member": "成員",
+    "creator": "創建人",
+    "created_time": "創建時間"
+  },
+  "action": {
+    "create": "創建",
+    "add": "添加",
+    "added": "已添加",
+    "edit": "編輯",
+    "manage": "管理",
+    "delete": "刪除",
+    "save": "保存",
+    "operation": "操作",
+    "more": "更多",
+    "cancel": "取消",
+    "setting": "設置"
+  },
+  "default_links": {
+    "default_setting": "默認設置",
+    "website": "網站",
+    "jump_path": "跳轉地址"
+  },
+  "message_status": {
+    "create_success": "已創建",
+    "save_success": "已保存"
+  },
+  "agent": {
+    "name": "智能體",
+    "base_info": "基礎信息",
+    "input_variable": "輸入",
+    "output_variable": "輸出",
+    "variable_name": "變量名称",
+    "variable_type": "變量類型",
+    "variable_label": "顯示名稱",
+    "variable_desc": "描述",
+    "variable_required": "是否必填",
+    "variable_max_length": "最大輸入字數",
+    "variable_show_word_limit": "是否展示字數",
+    "variable_options": "選項",
+    "coze": {
+      "workspace": "工作空間",
+      "workflow_link": "Coze工作流\"編輯狀態\"的鏈接",
+      "agent_type_chat": "對話型應用",
+      "agent_type_chat_desc": "用戶與大模型進行對話，由一個大模型自主思考決策，適用於較為簡單的業務邏輯。",
+      "agent_type_workflow": "工作流編排對話型應用",
+      "agent_type_workflow_desc": "工作流是一系列可執行指令的集合，用於實現業務邏輯或完成特定任務。"
+    },
+    "53ai": {
+      "agent_type_chat": "對話型應用",
+      "agent_type_chat_desc": "用戶與大模型進行對話，由一個大模型自主思考決策，適用於較為簡單的業務邏輯。",
+      "agent_type_workflow": "工作流編排對話型應用",
+      "agent_type_workflow_desc": "工作流是一系列可執行指令的集合，用於實現業務邏輯或完成特定任務。"
+    },
+    "dify": {
+      "agent_type_chat": "對話型應用",
+      "agent_type_chat_desc": "用戶與大模型進行對話，由一個大模型自主思考決策，適用於較為簡單的業務邏輯。",
+      "agent_type_workflow": "工作流編排對話型應用",
+      "agent_type_workflow_desc": "工作流是一系列可執行指令的集合，用於實現業務邏輯或完成特定任務。"
+    },
+    "fastgpt": {
+      "agent_type_chat": "對話型應用",
+      "agent_type_chat_desc": "用戶與大模型進行對話，由一個大模型自主思考決策，適用於較為簡單的業務邏輯。",
+      "agent_type_workflow": "工作流編排對話型應用",
+      "agent_type_workflow_desc": "工作流是一系列可執行指令的集合，用於實現業務邏輯或完成特定任務。"
+    },
+    "relate_app": {
+      "title": "關聯場景",
+      "desc": "將智能體的“輸出”賦值給關聯場景智能體的“輸入”，實現多場景任務的自動化流轉。",
+      "input_mapping": "傳參映射",
+      "execution_rule": "執行規則",
+      "auto_execution": "自動執行",
+      "manual_execution": "手動執行"
+    }
+  },
+  "form": {
+    "input_placeholder": "請輸入",
+    "select_placeholder": "請選擇",
+    "set_variable_placeholder": "請設置｛#變量｝"
+  },
+  "file": {
+    "type_limit": "目前支持僅{accept}格式文件",
+    "size_empty": "文件內容不能為空",
+    "size_limit": "文件上傳大小不能超過{size}MB({name}大小已超出)",
+    "upload_limit": "最多上傳{limit}個文件"
+  },
+  "variable_type": {
+    "text": "单行文本",
+    "textarea": "多行文本",
+    "inputNumber": "数字",
+    "select": "选项",
+    "date": "日期",
+    "tag": "标签",
+    "file": "文件",
+    "markdown": "Markdown",
+    "image": "图片",
+    "audio": "音频",
+    "video": "视频"
   }
 }

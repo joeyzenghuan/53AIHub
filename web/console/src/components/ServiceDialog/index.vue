@@ -1,32 +1,41 @@
 <template>
-	<el-dialog class="service-dialog" :title="title || $t('service.title')" width="520px" :before-close="handleClose" :model-value="visible">
-		<div class="consult">
-			<div class="consult-info">
-				<div class="w-[70px] h-[70px] rounded-full bg-white flex justify-center items-center">
-					<img class="w-[50px] h-[50px]" src="https://chat.53ai.com/images/extension_icon.png">
-				</div>
-				<div class="consult-info--rt">
-					<p class="name">
-						{{ $t('service.consult_name') }}
-					</p>
-					<div class="flex-center">
-						<ElIcon :size="16">
-							<PhoneFilled />
-						</ElIcon>
-						<span class="mobile-number">186 8888 1185</span>
-					</div>
-				</div>
-			</div>
-			<div class="consult-ft px-[50px] py-[30px] max-md:px-4">
-				<p
-					v-html="`<span style='font-size: 15px;'>“</span>${$t('service.desc_1')}<br />${title}<span style='font-size: 15px;'>”</span>`" />
-				<!-- <p v-html="`<span style='font-size: 15px;'>“</span>${$t('service.desc_1')}<br />${$t('service.desc_2')}<span style='font-size: 15px;'>”</span>`" /> -->
-			</div>
-			<div class="consult-img right-[30px] max-md:right-[15px]">
-				<img :src="$getRealPath({ url: '/images/upgrade-qrcode.png' })">
-			</div>
-		</div>
-	</el-dialog>
+  <el-dialog
+    class="service-dialog"
+    :title="title || $t('service.title')"
+    width="520px"
+    :before-close="handleClose"
+    :model-value="visible"
+  >
+    <div class="consult">
+      <div class="consult-info">
+        <div class="w-[70px] h-[70px] rounded-full bg-white flex justify-center items-center">
+          <img class="w-[50px] h-[50px]" src="https://chat.53ai.com/images/extension_icon.png" />
+        </div>
+        <div class="consult-info--rt">
+          <p class="name">
+            {{ $t('service.consult_name') }}
+          </p>
+          <div class="flex-center">
+            <ElIcon :size="16">
+              <PhoneFilled />
+            </ElIcon>
+            <span class="mobile-number">186 8888 1185</span>
+          </div>
+        </div>
+      </div>
+      <div class="consult-ft px-[50px] py-[30px] max-md:px-4">
+        <p
+          v-html="
+            `<span style='font-size: 15px;'>“</span>${$t('service.desc_1')}${title === $t('apply.contact_customer_service_v2') ? $t('action_renew') : title}<span style='font-size: 15px;'>”</span>`
+          "
+        />
+        <!-- <p v-html="`<span style='font-size: 15px;'>“</span>${$t('service.desc_1')}<br />${$t('service.desc_2')}<span style='font-size: 15px;'>”</span>`" /> -->
+      </div>
+      <div class="consult-img right-[30px] max-md:right-[15px]">
+        <img src="https://hub.53ai.com/console/images/upgrade-qrcode.png" />
+      </div>
+    </div>
+  </el-dialog>
 </template>
 
 <script lang="ts" setup>
@@ -55,19 +64,19 @@ const handleClose = () => {
 .service-dialog {
   border-radius: 10px 10px 11px 11px !important;
   background-color: #efefef !important;
-	padding: 0 !important;
+  padding: 0 !important;
 }
 
-.service-dialog .el-dialog__header{
- padding: var(--el-dialog-padding-primary) !important;
+.service-dialog .el-dialog__header {
+  padding: var(--el-dialog-padding-primary) !important;
 }
 
 .service-dialog .el-dialog__headerbtn {
-	width: max-content !important;
-	height: max-content !important;
+  width: max-content !important;
+  height: max-content !important;
 }
 
-.service-dialog .el-dialog__body{
+.service-dialog .el-dialog__body {
   padding: 30px 0 0 !important;
   border: none !important;
   margin: 0 !important;

@@ -1,6 +1,6 @@
 <template>
-  <div class="h-full flex gap-10 bg-white relative overflow-hidden">
-    <div class="flex-1 flex flex-col">
+  <div class="flex gap-10 h-full bg-white relative" :class="[hideMenuHeader ? '' : 'overflow-hidden']">
+    <div class="flex-1 flex flex-col h-full">
       <MainHeader v-if="!hideMenuHeader">
         <template #before_suffix>
           <div class="text-base text-primary line-clamp-1 max-md:flex-1 max-md:text-center" :title="currentConv.title || currentAgent.name || ''">
@@ -26,97 +26,117 @@
       </MainHeader>
 
       <!-- 消息列表区域 -->
-      <x-bubble-list
-        class="flex-1"
-        :auto-scroll="true"
-        :messages="state.messageList"
-        :main-class="[showRecommend ? 'w-[95%]' : 'w-11/12 md:w-4/5 max-w-[800px] mx-auto mt-5']"
-        enable-pull-up
-        @pull-up="handleLoadListMore"
-      >
-        <template v-if="currentAgent.settings_obj && !state.messageList.length" #header>
-          <div
-            class="w-full mt-2 flex items-center gap-3 box-border p-6 rounded-xl overflow-hidden"
-            :style="{
-              background: `linear-gradient(90deg, rgba(243, 249, 254, 1) 0%, rgba(247, 243, 255, 1) 100%)`
-            }"
-          >
-            <img class="flex-none size-10 rounded-full overflow-hidden" :src="currentAgent.logo" />
-            <div class="flex-1 flex flex-col gap-1">
-              <div class="text-xl font-semibold text-primary">{{ currentAgent.name }}</div>
-              <div class="text-sm text-regular break-words whitespace-pre-wrap">
-                {{ currentAgent.description }}
+      <div class="flex-1 flex">
+        <x-bubble-list
+          ref="bubbleListRef"
+          :auto-scroll="false"
+          class="flex-1"
+          :messages="state.messageList"
+          :main-class="[showRecommend ? 'w-[95%]' : 'w-11/12 md:w-4/5 max-w-[800px] mx-auto mt-5']"
+          enable-pull-up
+          @pull-up="handleLoadListMore"
+        >
+          <template v-if="currentAgent.settings_obj && !state.messageList.length" #header>
+            <div
+              class="w-full mt-2 flex items-center gap-3 box-border p-6 rounded-xl overflow-hidden"
+              :style="{
+                background: `linear-gradient(90deg, rgba(243, 249, 254, 1) 0%, rgba(247, 243, 255, 1) 100%)`
+              }"
+            >
+              <img class="flex-none size-10 rounded-full overflow-hidden" :src="currentAgent.logo" />
+              <div class="flex-1 flex flex-col gap-1">
+                <div class="text-xl font-semibold text-primary">{{ currentAgent.name }}</div>
+                <div class="text-sm text-regular break-words whitespace-pre-wrap">
+                  {{ currentAgent.description }}
+                </div>
               </div>
             </div>
-          </div>
-          <div class="mt-2 mb-10">
-            <AuthTagGroup label-position="top" :model-value="currentAgent.user_group_ids" />
-          </div>
-          <x-bubble-assistant
-            v-if="showWelcome"
-            type="welcome"
-            :content="currentAgent.settings_obj.opening_statement"
-            :suggestions="currentAgent.settings_obj.suggested_questions"
-            @suggestion="handleSuggestion"
-          ></x-bubble-assistant>
-        </template>
-        <template #item="{ message, index }">
-          <!-- 用户消息气泡 -->
-          <x-bubble-user :key="message.id + '_user'" :content="message.query" :files="message.user_files">
-            <template #menu>
-              <div
-                v-tooltip="{ content: $t('action.copy') }"
-                v-copy="message.query"
-                class="h-6 px-1 rounded flex-center cursor-pointer hover:bg-[#E1E2E3]"
-              >
-                <el-icon color="#9B9B9B">
-                  <CopyDocument />
-                </el-icon>
-              </div>
-            </template>
-          </x-bubble-user>
+            <div class="mt-2 mb-10">
+              <AuthTagGroup label-position="top" :model-value="currentAgent.user_group_ids" />
+            </div>
+            <x-bubble-assistant
+              v-if="showWelcome"
+              type="welcome"
+              :content="currentAgent.settings_obj.opening_statement"
+              :suggestions="currentAgent.settings_obj.suggested_questions"
+              @suggestion="handleSuggestion"
+            ></x-bubble-assistant>
+          </template>
+          <template #item="{ message, index }">
+            <!-- 用户消息气泡 -->
+            <x-bubble-user :key="message.id + '_user'" :content="message.query" :files="message.user_files">
+              <template #menu>
+                <div
+                  v-tooltip="{ content: $t('action.copy') }"
+                  v-copy="message.query"
+                  class="h-6 px-1 rounded flex-center cursor-pointer hover:bg-[#E1E2E3]"
+                >
+                  <el-icon color="#9B9B9B">
+                    <CopyDocument />
+                  </el-icon>
+                </div>
+              </template>
+            </x-bubble-user>
 
-          <!-- AI助手消息气泡 -->
-          <x-bubble-assistant
-            :key="message.id + '_assistant'"
-            :content="message.answer"
-            :reasoning="message.reasoning_content"
-            :reasoning-expanded="message.reasoning_expanded"
-            :streaming="message.loading"
-            :always-show-menu="index === state.messageList.length - 1"
-          >
-            <template v-if="!message.loading" #menu>
-              <div
-                v-tooltip="{ content: $t('action.copy') }"
-                v-copy="message.answer"
-                class="h-6 px-1 rounded flex-center cursor-pointer hover:bg-[#E1E2E3]"
-              >
-                <el-icon color="#9B9B9B">
-                  <CopyDocument />
-                </el-icon>
-              </div>
-              <div
-                v-tooltip="{ content: $t('chat.regenerate') }"
-                class="h-6 px-1 rounded flex-center cursor-pointer hover:bg-[#E1E2E3]"
-                @click="handleRegenerate(message)"
-              >
-                <el-icon color="#9B9B9B">
-                  <Refresh />
-                </el-icon>
-              </div>
-              <div v-if="false" v-tooltip="{ content: $t('chat.like') }" class="h-6 px-1 rounded flex-center cursor-pointer hover:bg-[#E1E2E3]">
-                <svg-icon size="18" name="like" color="#9B9B9B"></svg-icon>
-              </div>
-              <div v-if="false" v-tooltip="{ content: $t('chat.like') }" class="h-6 px-1 rounded flex-center cursor-pointer hover:bg-[#E1E2E3]">
-                <svg-icon size="18" name="dislike" color="#9B9B9B"></svg-icon>
+            <!-- AI助手消息气泡 -->
+            <x-bubble-assistant
+              :key="message.id + '_assistant'"
+              :content="message.answer"
+              :reasoning="message.reasoning_content"
+              :reasoning-expanded="message.reasoning_expanded"
+              :streaming="message.loading"
+              :always-show-menu="index === state.messageList.length - 1"
+            >
+              <template v-if="!message.loading" #menu>
+                <div
+                  v-tooltip="{ content: $t('action.copy') }"
+                  v-copy="message.answer"
+                  class="h-6 px-1 rounded flex-center cursor-pointer hover:bg-[#E1E2E3]"
+                >
+                  <el-icon color="#9B9B9B">
+                    <CopyDocument />
+                  </el-icon>
+                </div>
+                <div
+                  v-tooltip="{ content: $t('chat.regenerate') }"
+                  class="h-6 px-1 rounded flex-center cursor-pointer hover:bg-[#E1E2E3]"
+                  @click="handleRegenerate(message)"
+                >
+                  <el-icon color="#9B9B9B">
+                    <Refresh />
+                  </el-icon>
+                </div>
+                <div v-if="false" v-tooltip="{ content: $t('chat.like') }" class="h-6 px-1 rounded flex-center cursor-pointer hover:bg-[#E1E2E3]">
+                  <svg-icon size="18" name="like" color="#9B9B9B"></svg-icon>
+                </div>
+                <div v-if="false" v-tooltip="{ content: $t('chat.like') }" class="h-6 px-1 rounded flex-center cursor-pointer hover:bg-[#E1E2E3]">
+                  <svg-icon size="18" name="dislike" color="#9B9B9B"></svg-icon>
+                </div>
+              </template>
+            </x-bubble-assistant>
+          </template>
+        </x-bubble-list>
+
+        <div v-if="showRecommend" class="flex-none w-2/6 relative flex flex-col gap-4 pb-5">
+          <h2 class="flex-none text-base font-semibold text-regular">{{ $t('common.related_agent') }}</h2>
+          <div v-if="currentAgent.agent_id" class="flex-1 overflow-y-auto flex flex-col gap-2.5">
+            <template v-for="item in relatedAgentList" :key="item.agent_id">
+              <div class="flex-none h-24 border rounded p-4 cursor-pointer hover:bg-[#F1F2F3]" @click="onSelectAgent(item)">
+                <div class="flex items-center gap-2">
+                  <img class="size-6 rounded-full" :src="item.logo" />
+                  <span class="text-sm text-primary">{{ item.name }}</span>
+                </div>
+                <div class="text-sm text-regular line-clamp-2 mt-1.5" :title="item.description">
+                  {{ item.description || '--' }}
+                </div>
               </div>
             </template>
-          </x-bubble-assistant>
-        </template>
-      </x-bubble-list>
+          </div>
+        </div>
+      </div>
 
       <!-- 底部输入区域 -->
-      <div class="py-5" :class="[showRecommend ? 'w-full box-border' : 'w-11/12 md:w-4/5 max-w-[800px] mx-auto']">
+      <div class="py-5" :class="[showRecommend ? 'w-4/6 sticky bottom-0 bg-white' : 'w-11/12 md:w-4/5 max-w-[800px] mx-auto']">
         <div class="flex gap-2 mb-2.5">
           <AgentTooltip @select="onSelectAgent">
             <div class="h-8 px-2 rounded-full flex-center gap-1.5 bg-[#F1F2F3] cursor-pointer hover:bg-[#E1E2E3]">
@@ -159,6 +179,7 @@
           </div>
         </div>
         <x-sender
+          ref="senderRef"
           :http-request="httpRequest"
           :enable-upload="enable_upload"
           :accept-types="upload_accept"
@@ -172,22 +193,6 @@
         <div v-if="!hideFooter" class="flex justify-center items-center my-2">
           <img src="/images/chat/footer.png" class="h-[12px]" />
         </div>
-      </div>
-    </div>
-    <div v-if="showRecommend" class="flex-none w-2/6 box-border relative flex flex-col gap-4 pb-5">
-      <h2 class="flex-none text-base font-semibold text-regular">{{ $t('common.related_agent') }}</h2>
-      <div v-if="currentAgent.agent_id" class="flex-1 overflow-y-auto flex flex-col gap-2.5">
-        <template v-for="item in relatedAgentList" :key="item.agent_id">
-          <div class="flex-none h-24 border rounded p-4 cursor-pointer hover:bg-[#F1F2F3]" @click="onSelectAgent(item)">
-            <div class="flex items-center gap-2">
-              <img class="size-6 rounded-full" :src="item.logo" />
-              <span class="text-sm text-primary">{{ item.name }}</span>
-            </div>
-            <div class="text-sm text-regular line-clamp-2 mt-1.5" :title="item.description">
-              {{ item.description || '--' }}
-            </div>
-          </div>
-        </template>
       </div>
     </div>
 
@@ -219,7 +224,7 @@
 
 <script setup lang="ts">
 import { ArrowDown, Close, CopyDocument, Refresh } from '@element-plus/icons-vue'
-import { computed, defineAsyncComponent, onMounted, reactive, ref } from 'vue'
+import { computed, defineAsyncComponent, onMounted, onBeforeUnmount, reactive, ref } from 'vue'
 import AuthTagGroup from '@/components/AuthTagGroup/index.vue'
 import MainHeader from '@/layout/header.vue'
 import AgentTooltip from './agent-tooltip.vue'
@@ -262,6 +267,7 @@ withDefaults(
 
 const abortController = ref<AbortController | null>(null)
 const historyRef = ref<InstanceType<typeof HistoryDrawer> | null>(null)
+const senderRef = ref(null)
 
 const currentAgent = computed(() => convStore.currentAgent)
 const currentConv = computed(() => convStore.currentConversation)
@@ -292,6 +298,14 @@ const showWelcome = computed(() => {
     return true
   return false
 })
+
+const bubbleListRef = ref(null)
+const containerHeight = ref(0)
+let resizeObserver = null
+
+const handleHeightChange = (height) => {
+  agentStore.setBoxHeight(height)
+}
 
 const state = reactive({
   offset: 0,
@@ -584,6 +598,35 @@ const handleSuggestion = (suggestion: string) => {
 
 onMounted(() => {
   loadList()
+  if (bubbleListRef.value) {
+    resizeObserver = new ResizeObserver((entries) => {
+      for (const entry of entries) {
+        const { height } = entry.contentRect
+        containerHeight.value = height
+        handleHeightChange(height)
+      }
+    })
+
+    // 注意：有些组件可能需要访问 $el，有些则直接是 DOM 元素
+    const targetElement = bubbleListRef.value.$el || bubbleListRef.value
+    resizeObserver.observe(targetElement)
+  }
+
+  const prepare = convStore.next_agent_prepare
+  if (prepare.agent_id) {
+    const question = prepare.parameters.input
+    senderRef.value?.setPrompt && senderRef.value?.setPrompt(question)
+    if (prepare.execution_rule === 'auto') {
+      handleSend(question, [])
+    }
+    convStore.setNextAgentPrepare({})
+  }
+})
+
+onBeforeUnmount(() => {
+  if (resizeObserver) {
+    resizeObserver.disconnect()
+  }
 })
 
 defineExpose({

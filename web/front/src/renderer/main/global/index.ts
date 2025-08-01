@@ -26,7 +26,9 @@ export function setupGlobal(app) {
       $win: () => {}
     }
   }
-  window.$getPublicPath = window.$chat53ai.getPublicPath
+  window.$getPublicPath = (path: string) => {
+    return path
+  }
   app.config.globalProperties.$isElectron = window.$isElectron
   app.config.globalProperties.$noop = window.$noop
   app.config.globalProperties.$getPublicPath = window.$getPublicPath

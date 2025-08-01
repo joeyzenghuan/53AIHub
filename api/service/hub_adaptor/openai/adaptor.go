@@ -64,6 +64,9 @@ func (a *Adaptor) GetRequestURL(meta *meta.Meta) (string, error) {
 		return novita.GetRequestURL(meta)
 	case Hub_model.ChannelApiVolcengine:
 		return volcengine.GetRequestURL(meta)
+	case Hub_model.ChannelApiTypeMaxKB:
+		meta.RequestURLPath = strings.TrimPrefix(meta.RequestURLPath, "/v1")
+		return GetFullRequestURL(meta.BaseURL, meta.RequestURLPath, meta.ChannelType), nil
 	default:
 		return GetFullRequestURL(meta.BaseURL, meta.RequestURLPath, meta.ChannelType), nil
 	}

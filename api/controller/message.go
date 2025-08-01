@@ -11,8 +11,16 @@ import (
 )
 
 type MessagesResponse struct {
-	Count    int64            `json:"count"`
-	Messages []*model.Message `json:"messages"`
+	Count    int64              `json:"count"`
+	Messages []*EnhancedMessage `json:"messages"`
+}
+
+// EnhancedMessage 增强的消息结构，包含解析后的内容
+type EnhancedMessage struct {
+	*model.Message
+	MessageType   model.MessageType `json:"message_type"`   // 消息类型
+	ParsedMessage interface{}       `json:"parsed_message"` // 解析后的 message 内容
+	ParsedAnswer  interface{}       `json:"parsed_answer"`  // 解析后的 answer 内容
 }
 
 type MessageListRequest struct {
@@ -20,6 +28,48 @@ type MessageListRequest struct {
 	Offset    int    `json:"offset" form:"offset" example:"0"`
 	Limit     int    `json:"limit" form:"limit" example:"10"`
 	Direction string `json:"direction" form:"direction" example:"desc"` // 获取方向: desc=从新到旧, asc=从旧到新
+}
+
+// convertToEnhancedMessages 将普通消息转换为增强消息
+func convertToEnhancedMessages(messages []*model.Message) []*EnhancedMessage {
+	enhancedMessages := make([]*EnhancedMessage, len(messages))
+
+	for i, msg := range messages {
+		enhanced := &EnhancedMessage{
+			Message:     msg,
+			MessageType: msg.GetMessageType(),
+		}
+
+		// 根据消息类型解析内容
+		switch enhanced.MessageType {
+		case model.MessageTypeChat:
+			// 解析聊天消息
+			if parsedMsg, err := msg.ParseChatMessage(); err == nil {
+				enhanced.ParsedMessage = parsedMsg
+			} else {
+				enhanced.ParsedMessage = msg.Message // 解析失败时返回原始内容
+			}
+			enhanced.ParsedAnswer = msg.Answer // 聊天消息的 answer 就是文本
+
+		case model.MessageTypeWorkflow:
+			// 解析工作流消息
+			if parsedParams, err := msg.ParseWorkflowParameters(); err == nil {
+				enhanced.ParsedMessage = parsedParams
+			} else {
+				enhanced.ParsedMessage = msg.Message // 解析失败时返回原始内容
+			}
+
+			if parsedOutput, err := msg.ParseWorkflowOutput(); err == nil {
+				enhanced.ParsedAnswer = parsedOutput
+			} else {
+				enhanced.ParsedAnswer = msg.Answer // 解析失败时返回原始内容
+			}
+		}
+
+		enhancedMessages[i] = enhanced
+	}
+
+	return enhancedMessages
 }
 
 // @Summary Get messages by agent
@@ -59,7 +109,7 @@ func GetMessagesByUserAndAgent(c *gin.Context) {
 
 	c.JSON(http.StatusOK, model.Success.ToResponse(&MessagesResponse{
 		Count:    count,
-		Messages: messages,
+		Messages: convertToEnhancedMessages(messages),
 	}))
 }
 
@@ -116,7 +166,7 @@ func GetUserMessages(c *gin.Context) {
 
 	c.JSON(http.StatusOK, model.Success.ToResponse(&MessagesResponse{
 		Count:    count,
-		Messages: messages,
+		Messages: convertToEnhancedMessages(messages),
 	}))
 }
 
@@ -194,6 +244,6 @@ func GetMessagesByConversation(c *gin.Context) {
 
 	c.JSON(http.StatusOK, model.Success.ToResponse(&MessagesResponse{
 		Count:    count,
-		Messages: messages,
+		Messages: convertToEnhancedMessages(messages),
 	}))
 }

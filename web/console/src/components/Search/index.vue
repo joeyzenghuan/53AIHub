@@ -1,8 +1,30 @@
-<script setup lang="ts">
-import { nextTick, ref } from 'vue'
-import { Search } from '@element-plus/icons-vue'
+<template>
+  <el-input
+    v-if="searching"
+    ref="inputRef"
+    v-model="input"
+    style="max-width: 230px"
+    size="default"
+    clearable
+    :prefix-icon="Search"
+    :placeholder="$t(placeholder)"
+    class="input-with-search"
+		:disabled="disabled"
+    @blur="handleBlur"
+    @input="handleInput"
+		@change="handleChange"
+  />
+  <div v-else class="flex items-center gap-1" :class="[disabled ? 'text-[#999] cursor-not-allowed' : 'cursor-pointer text-[#576D9C]']" @click="handleFocus">
+    <svg-icon name="search" width="16" />
+    <span class="text-sm ">{{ $t('action_search') }}</span>
+  </div>
+</template>
 
-import { debounce } from '@/utils/functions/debounce'
+<script setup lang="ts">
+import { nextTick, ref } from 'vue';
+import { Search } from '@element-plus/icons-vue';
+
+import { debounce } from '@/utils/functions/debounce';
 
 const props = withDefaults(defineProps<{
   placeholder?: string
@@ -15,8 +37,8 @@ const props = withDefaults(defineProps<{
 })
 
 const emits = defineEmits<{
-	(e: 'input', value: any): void
-	(e: 'change', value: any): void
+	(e: 'input', value: string): void
+	(e: 'change', value: string): void
 }>()
 
 const inputRef = ref()
@@ -37,35 +59,13 @@ const handleBlur = () => {
   searching.value = false
 }
 
-const onInput = debounce(() => {
+const handleInput = debounce(() => {
 	emits('input', input.value)
 }, 600)
-const onChange = debounce(() => {
+const handleChange = debounce(() => {
   emits('change', input.value)
 }, 0)
 </script>
-
-<template>
-  <el-input
-    v-if="searching"
-    ref="inputRef"
-    v-model="input"
-    style="max-width: 230px"
-    size="default"
-    clearable
-    :prefix-icon="Search"
-    :placeholder="$t(placeholder)"
-    class="input-with-search"
-		:disabled="disabled"
-    @blur="handleBlur"
-    @input="onInput"
-		@change="onChange"
-  />
-  <div v-else class="flex items-center gap-1" :class="[disabled ? 'text-[#999] cursor-not-allowed' : 'cursor-pointer text-[#576D9C]']" @click="handleFocus">
-    <svg-icon name="search" width="16" />
-    <span class="text-sm ">{{ $t('action_search') }}</span>
-  </div>
-</template>
 
 <style>
 .input-with-search  .el-input-group__prepend {

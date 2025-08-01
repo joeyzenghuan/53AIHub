@@ -1,9 +1,53 @@
+<template>
+	<ElDialog v-model="visible" :title="$t(editable ? 'action_edit' : 'action_add')" :close-on-click-modal="false"
+		width="700px" destroy-on-close append-to-body @close="close">
+		<ElForm ref="form_ref" v-loading="loading" :model="form" label-position="top">
+			<ElFormItem :label="$t('user')" prop="user_id" :rules="[{ validator: (rule, value, callback) => {
+	if (!value) return callback(new Error($t('form_select_placeholder') + $t('user')))
+				callback()
+			}, trigger: 'blur' }]">
+				<ElSelect v-if="editable" v-model="origin_data.user_id" filterable clearable :collapse-tags="false" collapse-tags-tooltip size="large"
+					:placeholder="$t('form_select_placeholder') + $t('user')" :disabled="true">
+					<ElOption :label="origin_data.nickname" :value="origin_data.user_id" />
+				</ElSelect>
+				<ElSelect v-else v-model="form.user_id" filterable clearable :collapse-tags="false" collapse-tags-tooltip size="large"
+					:placeholder="$t('form_select_placeholder') + $t('user')">
+					<ElOption v-for="opt in user_options" :key="opt.value" :label="opt.label" :value="opt.value" />
+				</ElSelect>
+			</ElFormItem>
+			<ElFormItem :label="$t('order_subscription_version')">
+				<GroupSelect v-model="form.subscription_id" default-first type="radio" @change="computedAmount" />
+			</ElFormItem>
+			<ElFormItem :label="$t('order_subscription_duration')">
+				<ElInputNumber v-model="form.subscription_duration" :min="1" :controls="false" class="!w-[108px] mr-4"
+					size="large" :placeholder="$t('form_input_placeholder')" @change="computedAmount" />
+				<ElRadioGroup v-model="form.subscription_unit" size="large" @change="computedAmount">
+					<ElRadio v-for="opt in subscription_unit_options" :key="opt.value" :label="opt.value">{{ opt.label }}
+					</ElRadio>
+				</ElRadioGroup>
+			</ElFormItem>
+			<ElFormItem :label="$t('order_amount')">
+				<div class="border border-[#DCDFE6] border-r-0 h-10 px-5 rounded-s flex-center">{{ active_time_option.currency }}</div>
+				<ElInputNumber v-model="form.amount" class="flex-1 amount-input" :min="0" :precision="2" :controls="false" size="large"
+					:placeholder="$t('form_input_placeholder')">
+				</ElInputNumber>
+			</ElFormItem>
+		</ElForm>
+		<template #footer>
+			<div class="py-4 flex items-center justify-center">
+				<ElButton class="w-[96px] h-[36px]" type="primary" :loading="submitting" @click="handleConfirm">{{ $t('action_confirm') }}</ElButton>
+				<ElButton class="w-[96px] h-[36px] text-[#1D1E1F]" type="info" plain @click.stop="close">{{ $t('action_cancel')
+					}}</ElButton>
+			</div>
+		</template>
+	</ElDialog>
+</template>
+
 <script setup lang="ts">
+import { ref, reactive, onMounted, computed } from 'vue'
 import GroupSelect from '@/components/GroupSelect/index.vue'
 
-import { ref, reactive, onMounted, computed } from 'vue'
 import { useUserStore } from '@/stores/modules/user'
-import { GROUP_TYPE_USER, groupApi } from '@/api/modules/group'
 import { orderApi } from '@/api/modules/order'
 import { subscriptionApi } from '@/api/modules/subscription'
 
@@ -95,7 +139,7 @@ const reset = () => {
 const handleConfirm = async () => {
 	const valid = await form_ref.value.validate()
 	if (!valid) return
-	let data = {
+	const data = {
 		id: origin_data.value.id,
 		user_id: form.user_id,
 		nickname: active_user_option.value.label,
@@ -147,51 +191,6 @@ defineExpose({
 	reset
 })
 </script>
-
-<template>
-	<ElDialog :title="$t(editable ? 'action_edit' : 'action_add')" :close-on-click-modal="false" width="700px"
-		destroy-on-close append-to-body v-model="visible" @close="close">
-		<ElForm ref="form_ref" :model="form" label-position="top" v-loading="loading">
-			<ElFormItem :label="$t('user')" prop="user_id" :rules="[{ validator: (rule, value, callback) => {
-	if (!value) return callback(new Error($t('form_select_placeholder') + $t('user')))
-				callback()
-			}, trigger: 'blur' }]">
-				<ElSelect v-if="editable" v-model="origin_data.user_id" filterable clearable :collapse-tags="false" collapse-tags-tooltip size="large"
-					:placeholder="$t('form_select_placeholder') + $t('user')" :disabled="true">
-					<ElOption :label="origin_data.nickname" :value="origin_data.user_id" />
-				</ElSelect>
-				<ElSelect v-else v-model="form.user_id" filterable clearable :collapse-tags="false" collapse-tags-tooltip size="large"
-					:placeholder="$t('form_select_placeholder') + $t('user')">
-					<ElOption v-for="opt in user_options" :key="opt.value" :label="opt.label" :value="opt.value" />
-				</ElSelect>
-			</ElFormItem>
-			<ElFormItem :label="$t('order_subscription_version')">
-				<GroupSelect defaultFirst v-model="form.subscription_id" type="radio" @change="computedAmount" />
-			</ElFormItem>
-			<ElFormItem :label="$t('order_subscription_duration')">
-				<ElInputNumber v-model="form.subscription_duration" :min="1" :controls="false" class="!w-[108px] mr-4"
-					size="large" :placeholder="$t('form_input_placeholder')" @change="computedAmount" />
-				<ElRadioGroup v-model="form.subscription_unit" size="large" @change="computedAmount">
-					<ElRadio v-for="opt in subscription_unit_options" :key="opt.value" :label="opt.value">{{ opt.label }}
-					</ElRadio>
-				</ElRadioGroup>
-			</ElFormItem>
-			<ElFormItem :label="$t('order_amount')">
-				<div class="border border-[#DCDFE6] border-r-0 h-10 px-5 rounded-s flex-center">{{ active_time_option.currency }}</div>
-				<ElInputNumber class="flex-1 amount-input" v-model="form.amount" :min="0" :precision="2" :controls="false" size="large"
-					:placeholder="$t('form_input_placeholder')">
-				</ElInputNumber>
-			</ElFormItem>
-		</ElForm>
-		<template #footer>
-			<div class="py-4 flex items-center justify-center">
-				<ElButton class="w-[96px] h-[36px]" type="primary" :loading="submitting" @click="handleConfirm">{{ $t('action_confirm') }}</ElButton>
-				<ElButton class="w-[96px] h-[36px] text-[#1D1E1F]" type="info" plain @click.stop="close">{{ $t('action_cancel')
-					}}</ElButton>
-			</div>
-		</template>
-	</ElDialog>
-</template>
 
 <style scoped lang="scss">
 ::v-deep(.el-input-number .el-input__inner) {

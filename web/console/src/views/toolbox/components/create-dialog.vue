@@ -1,90 +1,3 @@
-<script setup lang="ts">
-import { computed, inject, nextTick, onMounted, reactive, ref } from 'vue'
-import UploadImage from '@/components/Upload/image.vue'
-
-import { generateInputRules } from '@/utils/form-rule'
-import { aiLinkApi } from '@/api/modules/ai-link'
-
-const props = withDefaults(defineProps<{
-  groupType: GroupType
-}>(), {
-  groupType: 1,
-})
-
-const emits = defineEmits<{
-  (e: 'success'): any
-}>()
-
-const groupOptions = inject('groupOptions', [])
-
-const formRef = ref()
-
-const visible = ref(false)
-const editable = ref(false)
-const submitting = ref(false)
-const originInfo = ref({})
-const formData = reactive({
-  logo: '',
-  name: '',
-  url: '',
-  description: '',
-  group_id: '',
-})
-
-onMounted(() => { })
-
-const showGroupOptions = computed(() => groupOptions.value.filter(item => +item.group_id > 0))
-
-const reset = () => {
-  formData.logo = ''
-  formData.name = ''
-  formData.url = ''
-  formData.description = ''
-  formData.group_id = (showGroupOptions.value[0] || {}).group_id || ''
-  submitting.value = false
-}
-const open = async ({ data = {} } = {}) => {
-  reset()
-  await nextTick()
-  editable.value = !!+data.ai_link_id
-  formData.logo = data.logo || ''
-  formData.name = data.name || ''
-  formData.url = data.url || ''
-  formData.description = data.description || ''
-  formData.group_id = data.group_id || formData.group_id || ''
-  originInfo.value = data
-  visible.value = true
-}
-const close = async () => {
-  visible.value = false
-}
-const onSave = async () => {
-  if (submitting.value)
-    return
-  const valid = await formRef.value.validate()
-  if (!valid)
-    return Promise.reject()
-  submitting.value = true
-  await aiLinkApi.save({
-    data: {
-      ...formData,
-      ai_link_id: originInfo.value.ai_link_id,
-    },
-  }).catch(() => {
-    submitting.value = false
-  })
-  emits('success')
-  ElMessage.success(window.$t('action_save_success'))
-  close()
-}
-
-defineExpose({
-  open,
-  close,
-  reset,
-})
-</script>
-
 <template>
   <ElDialog
     v-model="visible" :title="$t(editable ? 'action_edit' : 'action_add')" width="600px" destroy-on-close
@@ -133,5 +46,86 @@ defineExpose({
     </template>
   </ElDialog>
 </template>
+
+<script setup lang="ts">
+import { computed, inject, nextTick, reactive, ref } from 'vue';
+import UploadImage from '@/components/Upload/image.vue';
+
+import { generateInputRules } from '@/utils/form-rule';
+import { aiLinkApi } from '@/api/modules/ai-link';
+
+
+const emits = defineEmits<{
+  (e: 'success'): any
+}>()
+
+const groupOptions = inject('groupOptions', [])
+
+const formRef = ref()
+
+const visible = ref(false)
+const editable = ref(false)
+const submitting = ref(false)
+const originInfo = ref({})
+const formData = reactive({
+  logo: '',
+  name: '',
+  url: '',
+  description: '',
+  group_id: '',
+})
+
+
+const showGroupOptions = computed(() => groupOptions.value.filter(item => +item.group_id > 0))
+
+const reset = () => {
+  formData.logo = ''
+  formData.name = ''
+  formData.url = ''
+  formData.description = ''
+  formData.group_id = (showGroupOptions.value[0] || {}).group_id || ''
+  submitting.value = false
+}
+const open = async ({ data = {} } = {}) => {
+  reset()
+  await nextTick()
+  editable.value = !!+data.ai_link_id
+  formData.logo = data.logo || ''
+  formData.name = data.name || ''
+  formData.url = data.url || ''
+  formData.description = data.description || ''
+  formData.group_id = data.group_id || formData.group_id || ''
+  originInfo.value = data
+  visible.value = true
+}
+const close = async () => {
+  visible.value = false
+}
+const onSave = async () => {
+  if (submitting.value)
+    return
+  const valid = await formRef.value.validate()
+  if (!valid)
+    return
+  submitting.value = true
+  await aiLinkApi.save({
+    data: {
+      ...formData,
+      ai_link_id: originInfo.value.ai_link_id,
+    },
+  }).catch(() => {
+    submitting.value = false
+  })
+  emits('success')
+  ElMessage.success(window.$t('action_save_success'))
+  close()
+}
+
+defineExpose({
+  open,
+  close,
+  reset,
+})
+</script>
 
 <style scoped></style>

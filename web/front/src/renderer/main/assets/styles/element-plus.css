@@ -52,10 +52,6 @@
 
 /* dialog弹窗 */
 
-.el-dialog--center {
-  text-align: left;
-}
-
-.el-dialog--center .el-dialog__footer {
+.el-dialog--bottom-center .el-dialog__footer {
   text-align: center;
 }

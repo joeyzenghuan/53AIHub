@@ -7,13 +7,16 @@ export const AGENT_TYPE = AGENT_TYPES
 export type { AgentType }
 
 // 从 agents 配置中构建分类
-const AGENT_CATEGORIES = Object.entries(agents).reduce((acc, [key, agent]) => {
-  if (!acc[agent.category])
-    acc[agent.category] = []
+const AGENT_CATEGORIES = Object.entries(agents).reduce(
+  (acc, [key, agent]) => {
+    if (!agent.visible) return acc
+    if (!acc[agent.category]) acc[agent.category] = []
 
-  acc[agent.category].push(key)
-  return acc
-}, {} as Record<string, string[]>)
+    acc[agent.category].push(key)
+    return acc
+  },
+  {} as Record<string, string[]>
+)
 
 export const AGENT_APP_OPTIONS = Object.entries(AGENT_CATEGORIES).map(([title, types]) => ({
   title,
@@ -24,7 +27,7 @@ export const AGENT_APP_OPTIONS = Object.entries(AGENT_CATEGORIES).map(([title, t
       label: `agent_app.${value}` || '',
       icon: agent.icon || '',
       response: agent.mode || '',
-      channel_type: agent.channelType || 0,
+      channel_type: agent.channelType || 0
     }
-  }),
+  })
 }))

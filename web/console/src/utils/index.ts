@@ -517,3 +517,38 @@ export const runOnIdle = (callback, options = {}) => {
     }, 0)
   }
 }
+
+
+export const isInternalNetwork = () =>{
+  const hostname = window.location.hostname;
+  
+  // 检查localhost和其他本地主机名
+  if (['localhost', '127.0.0.1', '::1', '0.0.0.0'].includes(hostname)) {
+    return true;
+  }
+  
+  // 检查IPv4内网地址范围
+  if (/^\d+\.\d+\.\d+\.\d+$/.test(hostname)) {
+    const parts = hostname.split('.').map(Number);
+    
+    // 检查地址合法性
+    if (parts.some(p => p < 0 || p > 255)) return false;
+    
+    // 私有地址段判断
+    return (parts[0] === 10) || // 10.0.0.0/8
+           (parts[0] === 172 && parts[1] >= 16 && parts[1] <= 31) || // 172.16.0.0/12
+           (parts[0] === 192 && parts[1] === 168) || // 192.168.0.0/16
+           (parts[0] === 169 && parts[1] === 254); // APIPA 169.254.0.0/16
+  }
+  
+  // 检查IPv6内网地址
+  if (hostname.startsWith('[') && hostname.endsWith(']')) {
+    const ip = hostname.slice(1, -1);
+    return ip === 'fc00:' || // IPv6私有地址范围 (fc00::/7)
+           ip === 'fd00:' ||
+           ip.startsWith('fe80:'); // 链路本地地址 (fe80::/10)
+  }
+  
+  // 检查常见内网域名后缀
+  return /\.(local|lan|intranet|internal|priv)$/i.test(hostname);
+}

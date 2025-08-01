@@ -88,7 +88,8 @@ export default {
     expand_more: '展开更多',
     collapse_more: '收起更多',
     or: '或',
-    later: '稍后再说'
+    later: '稍后再说',
+    allow_to: '已复制提示词内容，访问"{name}"站点'
   },
 
   // 状态提示
@@ -125,6 +126,7 @@ export default {
     close: '关闭',
     open: '打开',
     ok: '确定',
+    allow: '允许',
     and: '和',
     copy: '复制',
     upload: '上传',
@@ -156,7 +158,19 @@ export default {
     stop: '停止',
     pay: '去支付',
     ok_v2: '好的',
-    view_more: '查看更多'
+    view_more: '查看更多',
+    click_upload: '点击上传',
+    view: '查看',
+    delete: '删除'
+  },
+
+  file: {
+    support_format: '目前仅支持{format}格式文件',
+    file_size: '单个文件大小不超过{size}MB',
+    file_format: '支持格式：{format}',
+    file_empty: '文件内容不能为空',
+    file_exceed: '文件上传大小不能超过{size}MB({name}大小已超出)',
+    file_exceed_limit: '最多上传{limit}个文件'
   },
 
   // 表单相关
@@ -287,7 +301,8 @@ export default {
     // 暂无可用的智能体
     no_available_agent: '暂无可用的智能体',
     completion_completed: '已完成深度思考',
-    completion_thinking: '深度思考中...'
+    completion_thinking: '深度思考中...',
+    completion_next_action: '关联场景做下一步操作'
   },
 
   // 知识库相关
@@ -325,7 +340,8 @@ export default {
     views_sort: '按最多浏览排序',
     content: '提示词内容',
 
-    auth_tip: '你所在的分组无权限'
+    auth_tip: '你所在的分组无权限',
+    let_use_prompt: '去使用这个提示词'
   },
 
   toolbox: {

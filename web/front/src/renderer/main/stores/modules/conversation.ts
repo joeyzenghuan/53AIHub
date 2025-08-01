@@ -2,7 +2,7 @@ import { defineStore } from 'pinia'
 import conversationApi from '@/api/modules/conversation'
 import { getSimpleDateFormatString } from '@/utils/moment'
 import { setRouterQuery } from '@/utils/router'
-import { isHashRouter } from '@/router'
+import { isHashRouter, router } from '@/router'
 import { cacheManager } from '@/utils/cache'
 
 // 添加类型定义
@@ -40,13 +40,15 @@ export const useConversationStore = defineStore('conversation-store', {
     current_agentid: number
     current_conversationid: number
     base_path: string
+    next_agent_prepare: Partial<Conversation.NextAgentPrepare>
   } => ({
     conversations: [],
     agents: [],
     usual_agents: getLocalStorage(USUAL_AGENTS_KEY, []),
     current_agentid: 0,
     current_conversationid: 0,
-    base_path: '/chat'
+    base_path: '/chat',
+    next_agent_prepare: {}
   }),
   getters: {
     currentAgent: (state) => {
@@ -76,23 +78,33 @@ export const useConversationStore = defineStore('conversation-store', {
     }
   },
   actions: {
+    setNextAgentPrepare(data: Partial<Conversation.NextAgentPrepare>) {
+      this.next_agent_prepare = data
+    },
+
     setBasePath(path: string) {
       this.base_path = path || '/chat'
+    },
+
+    findAgentByAgentId(agent_id: number) {
+      return this.agents.find((item) => item.agent_id === agent_id)
     },
 
     async loadConversations() {
       const fetchConversations = async () => {
         const res = await conversationApi.list()
         return res.data.conversations.map((item) => {
-          item.created_at = getSimpleDateFormatString({
-            date: item.created_time,
-            format: 'YYYY.MM.DD hh:mm'
-          })
-          item.updated_at = getSimpleDateFormatString({
-            date: item.updated_time,
-            format: 'YYYY.MM.DD hh:mm'
-          })
-          return item
+          return {
+            ...item,
+            created_at: getSimpleDateFormatString({
+              date: item.created_time,
+              format: 'YYYY.MM.DD hh:mm'
+            }),
+            updated_at: getSimpleDateFormatString({
+              date: item.updated_time,
+              format: 'YYYY.MM.DD hh:mm'
+            })
+          }
         })
       }
 
@@ -180,15 +192,18 @@ export const useConversationStore = defineStore('conversation-store', {
     },
 
     addConversation(conversation: Conversation.Info) {
-      conversation.created_at = getSimpleDateFormatString({
-        date: conversation.created_time,
-        format: 'YYYY.MM.DD hh:mm'
-      })
-      conversation.updated_at = getSimpleDateFormatString({
-        date: conversation.updated_time,
-        format: 'YYYY.MM.DD hh:mm'
-      })
-      this.conversations.unshift(conversation)
+      const newConversation = {
+        ...conversation,
+        created_at: getSimpleDateFormatString({
+          date: conversation.created_time,
+          format: 'YYYY.MM.DD hh:mm'
+        }),
+        updated_at: getSimpleDateFormatString({
+          date: conversation.updated_time,
+          format: 'YYYY.MM.DD hh:mm'
+        })
+      }
+      this.conversations.unshift(newConversation)
     },
 
     updateConversation(conversation: Partial<Conversation.Info>) {
@@ -223,10 +238,12 @@ export const useConversationStore = defineStore('conversation-store', {
     },
 
     setCurrentState(agent_id: number, conversation_id: number) {
+      let newAgent_id = agent_id
+      let newConversation_id = conversation_id
       if (agent_id) {
-        const agent = this.agents.find((item) => item.agent_id == agent_id)
+        const agent = this.agents.find((item) => item.agent_id === agent_id)
         if (!agent) {
-          agent_id = this.agents[0]?.agent_id || 0
+          newAgent_id = this.agents[0]?.agent_id || 0
         }
       }
       if (conversation_id) {
@@ -234,12 +251,12 @@ export const useConversationStore = defineStore('conversation-store', {
           (item) => item.conversation_id === conversation_id
         )
         if (!conversation) {
-          conversation_id = 0
+          newConversation_id = 0
         }
       }
-      this.current_agentid = agent_id
-      this.current_conversationid = conversation_id
-      this.setRouter({ agent_id: agent_id || null, conversation_id: conversation_id || null })
+      this.current_agentid = newAgent_id
+      this.current_conversationid = newConversation_id
+      this.setRouter({ agent_id: newAgent_id || null, conversation_id: newConversation_id || null })
     },
 
     clearCurrentState() {
@@ -250,15 +267,18 @@ export const useConversationStore = defineStore('conversation-store', {
     setRouter(data: RouterOptions = {}) {
       if (!data.agent_id) return
       // electron环境 需要使用hash跳转 使用setRouterQuery
-
       if (isHashRouter) {
         setRouterQuery(data, this.base_path)
       } else {
-        window.history.replaceState(
-          null,
-          '',
-          `${this.base_path}?agent_id=${data.agent_id}${data.conversation_id ? `&conversation_id=${data.conversation_id}` : ''}`
-        )
+        const url = `${this.base_path}?agent_id=${data.agent_id}${data.conversation_id ? `&conversation_id=${data.conversation_id}` : ''}`
+        if (window.location.pathname.includes('/chat')) {
+          window.history.replaceState(null, '', url)
+        } else {
+          router.push({
+            path: this.base_path,
+            query: { agent_id: data.agent_id, conversation_id: data.conversation_id || null }
+          })
+        }
       }
     }
   }

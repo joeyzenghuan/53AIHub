@@ -82,7 +82,11 @@ export const DEEP_SEEK_MODEL_LIST: ModelConfig[] = [
   { provider: CHANNEL_TYPE.DEEPSEEK, id: 'deepseek-reasoner' },
 ]
 
-export const ALL_MODEL_LIST = [...OPEN_AI_MODEL_LIST, ...SILICON_FLOW_MODEL_LIST, ...DEEP_SEEK_MODEL_LIST]
+export const ALL_MODEL_LIST = [
+  ...OPEN_AI_MODEL_LIST,
+  ...SILICON_FLOW_MODEL_LIST,
+  ...DEEP_SEEK_MODEL_LIST,
+]
 
 export const MODEL_ALIAS_MAP = new Map([
   ['deepseek-chat', 'DeepSeek-V3'],
@@ -91,24 +95,15 @@ export const MODEL_ALIAS_MAP = new Map([
 
 export const getModelIcon = ({ value = '' }: { value: string }) => {
   let icon = ''
-  if (/deepseek/i.test(value))
-    icon = 'deepseek'
-  else if (/tongyi|qwen/i.test(value))
-    icon = 'tongyi'
-  else if (/thudm/i.test(value))
-    icon = 'zhipu'
-  else if (/ai\/yi/i.test(value))
-    icon = 'yi'
-  else if (/internlm/i.test(value))
-    icon = 'internlm'
-  else if (/baai/i.test(value))
-    icon = 'baai'
-  else if (/google/i.test(value))
-    icon = 'google'
-  else if (/mistralai/i.test(value))
-    icon = 'mistralai'
-  else if (/llama/i.test(value))
-    icon = 'llama'
+  if (/deepseek/i.test(value)) icon = 'deepseek'
+  else if (/tongyi|qwen/i.test(value)) icon = 'tongyi'
+  else if (/thudm/i.test(value)) icon = 'zhipu'
+  else if (/ai\/yi/i.test(value)) icon = 'yi'
+  else if (/internlm/i.test(value)) icon = 'internlm'
+  else if (/baai/i.test(value)) icon = 'baai'
+  else if (/google/i.test(value)) icon = 'google'
+  else if (/mistralai/i.test(value)) icon = 'mistralai'
+  else if (/llama/i.test(value)) icon = 'llama'
 
   return icon
 }
@@ -119,7 +114,8 @@ export const getFormatChannelData = (data: ChannelData = {}) => {
   data.channel_id = channelId
   data.channel_type = data.channel_type || data.type || 0
   data.type = data.name || data.id || ''
-  data.channel_type = data.channel_type || Number(CHANNEL_TYPE_VALUE_MAP.get(data.type || '') || 0) || 0
+  data.channel_type =
+    data.channel_type || Number(CHANNEL_TYPE_VALUE_MAP.get(data.type || '') || 0) || 0
   data.name = data.name || ''
   data.label = CHANNEL_TYPE_LABEL_MAP.get(data.channel_type) || data.name || ''
   data.icon = CHANNEL_TYPE_ICON_MAP.get(data.channel_type) || ''
@@ -127,8 +123,7 @@ export const getFormatChannelData = (data: ChannelData = {}) => {
   data.base_url = data.base_url || ''
   try {
     data.config = typeof data.config === 'string' ? JSON.parse(data.config) : data.config || {}
-  }
-  catch (error) {
+  } catch (error) {
     data.config = {}
   }
   data.models = typeof data.models === 'string' ? data.models.split(',') : data.models || []
@@ -144,13 +139,17 @@ export const getFormatChannelData = (data: ChannelData = {}) => {
   return data
 }
 
-const api = {
-  async list({ params = {} }: {
-    params: {
-      provider_id?: number
-      channel_types?: string
-    }
-  } = { params: {} }) {
+export const channelApi = {
+  async list(
+    {
+      params = {},
+    }: {
+      params: {
+        provider_id?: number
+        channel_types?: string
+      }
+    } = { params: {} }
+  ) {
     params = JSON.parse(JSON.stringify(params))
     const { data = [] } = await service.get('/api/channels', { params }).catch(handleError)
     const list = data.map((item: ChannelData = {}) => getFormatChannelData(item))
@@ -173,26 +172,25 @@ const api = {
     }
     if (!data.type) {
       data.type = CHANNEL_TYPE_VALUE_MAP.get(data.name || '') || 0
-      if (!data.type)
-        return Promise.reject(new Error('Invalid channel type'))
+      if (!data.type) return Promise.reject(new Error('Invalid channel type'))
     }
-    const channel_id = data.channel_id
+    const { channel_id } = data
     delete data.channel_id
     if (typeof data.config === 'object') {
       if (data.config.model_alias_map) {
         const models = typeof data.models === 'string' ? data.models.split(',') : data.models || []
-        Object.keys(data.config.model_alias_map).forEach((key) => {
-          if (!models.includes(key))
-            delete data.config.model_alias_map[key]
+        Object.keys(data.config.model_alias_map).forEach(key => {
+          if (!models.includes(key)) delete data.config.model_alias_map[key]
         })
-        if (!Object.keys(data.config.model_alias_map).length)
-          delete data.config.model_alias_map
+        if (!Object.keys(data.config.model_alias_map).length) delete data.config.model_alias_map
       }
       data.config = JSON.stringify(data.config)
     }
-    if (Array.isArray(data.models))
-      data.models = data.models.join(',')
-    const { data: resultData = {} } = await service[channel_id ? 'put' : 'post'](`/api/channels${channel_id ? `/${channel_id}` : ''}`, data).catch(handleError)
+    if (Array.isArray(data.models)) data.models = data.models.join(',')
+    const { data: resultData = {} } = await service[channel_id ? 'put' : 'post'](
+      `/api/channels${channel_id ? `/${channel_id}` : ''}`,
+      data
+    ).catch(handleError)
     return getFormatChannelData(resultData)
   },
 
@@ -201,7 +199,9 @@ const api = {
   },
 
   async modelList({ params: { owner = 'all' } }: { params: { owner: string } }) {
-    const { data: { models = [] } = {} } = await service.get('/api/channels/models', { params: { owner } }).catch(handleError)
+    const { data: { models = [] } = {} } = await service
+      .get('/api/channels/models', { params: { owner } })
+      .catch(handleError)
     let list = models.map((item: ModelItem) => {
       const id = item.id || item.value || ''
       const ownedBy = item.owned_by || ''
@@ -212,7 +212,12 @@ const api = {
         label: item.label || MODEL_ALIAS_MAP.get(id) || '',
       }
     })
-    list = list.filter(item => ![CHANNEL_TYPE.OPENAI, CHANNEL_TYPE.SILICONFLOW, CHANNEL_TYPE.DEEPSEEK].includes(item.owned_by as ChannelType))
+    list = list.filter(
+      item =>
+        ![CHANNEL_TYPE.OPENAI, CHANNEL_TYPE.SILICONFLOW, CHANNEL_TYPE.DEEPSEEK].includes(
+          item.owned_by as ChannelType
+        )
+    )
     const manual_list = [
       ...OPEN_AI_MODEL_LIST.map(model => ({
         value: model.id,
@@ -256,7 +261,7 @@ const api = {
             closeOnClickModal: false,
             showClose: false,
             showCancelButton: false,
-          },
+          }
         ).then(() => {
           location.hash = '#/platform'
         })
@@ -267,10 +272,16 @@ const api = {
     return data
   },
 
-  async cozeBotList({ params: { workspace_id } = { workspace_id: 0 } }: {
-    params: { workspace_id: number }
-  } = { params: { workspace_id: 0 } }) {
-    const { data = [] } = await service.get(`/api/coze/workspaces/${workspace_id}/bots`).catch(handleError)
+  async cozeBotList(
+    {
+      params: { workspace_id } = { workspace_id: 0 },
+    }: {
+      params: { workspace_id: number }
+    } = { params: { workspace_id: 0 } }
+  ) {
+    const { data = [] } = await service
+      .get(`/api/coze/workspaces/${workspace_id}/bots`)
+      .catch(handleError)
     return data
   },
 
@@ -283,7 +294,10 @@ const api = {
     const { data = [] } = await service.get('/api/53ai/bots').catch(handleError)
     return data
   },
+  async chat53aiWorkflowList() {
+    const { data = [] } = await service.get('/api/53ai/workflows').catch(handleError)
+    return data
+  },
 }
 
-export { api as channelApi }
-export default api
+export default channelApi

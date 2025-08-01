@@ -3,49 +3,61 @@ module.exports = {
   singleQuote: true,
   semi: false,
   printWidth: 100,
-  trailingComma: 'none',
+  tabWidth: 2,
+  useTabs: false,
+  trailingComma: 'es5',
+  bracketSpacing: true,
+  bracketSameLine: false,
+  arrowParens: 'avoid',
+  endOfLine: 'lf',
 
-  // Vue 模板特殊配置
-  vueIndentScriptAndStyle: true,
-  htmlWhitespaceSensitivity: 'ignore',
-
-  // 属性格式化配置
-  singleAttributePerLine: false, // 不强制每个属性一行
+  // Vue 相关配置
+  vueIndentScriptAndStyle: false,
+  htmlWhitespaceSensitivity: 'css',
+  singleAttributePerLine: false,
 
   // 针对不同文件类型的配置
   overrides: [
     {
       files: '*.vue',
       options: {
-        // Vue 文件特殊配置
-        printWidth: 200, // Vue 文件允许更长的行，防止属性被强制换行
-        htmlWhitespaceSensitivity: 'ignore', // 忽略 HTML 空白符敏感性
-        vueIndentScriptAndStyle: false, // 不缩进 script 和 style 标签
-
-        // 禁用 Vue 模板格式化，保持原有缩进
-        singleAttributePerLine: false,
-        bracketSameLine: true, // 保持 > 符号在同一行
-
-        // 保持原有格式
-        proseWrap: 'preserve', // 保持原有的换行
-        useTabs: false,
-        tabWidth: 2,
-
-        // 重要：禁用 HTML 格式化
         parser: 'vue',
-        htmlWhitespaceSensitivity: 'strict' // 严格保持空白符
+        printWidth: 120,
+        htmlWhitespaceSensitivity: 'css',
+        vueIndentScriptAndStyle: false,
+        singleAttributePerLine: false
       }
     },
     {
-      files: ['*.js', '*.ts'],
+      files: ['*.js', '*.ts', '*.tsx'],
       options: {
-        printWidth: 100
+        printWidth: 100,
+        semi: false,
+        singleQuote: true
       }
     },
     {
-      files: ['*.json'],
+      files: ['*.json', '*.jsonc'],
       options: {
-        printWidth: 80
+        printWidth: 80,
+        semi: false,
+        singleQuote: false,
+        trailingComma: 'none'
+      }
+    },
+    {
+      files: ['*.md', '*.markdown'],
+      options: {
+        printWidth: 80,
+        proseWrap: 'preserve',
+        singleQuote: false
+      }
+    },
+    {
+      files: ['*.css', '*.scss', '*.less'],
+      options: {
+        printWidth: 120,
+        singleQuote: true
       }
     }
   ]

@@ -3,27 +3,6 @@ import { handleError } from '../errorHandler'
 import { getSimpleDateFormatString } from '@/utils/moment'
 import { PaymentType, PAYMENT_TYPE } from '@/constants/payment'
 
-export const ORDER_STATUS_ALL = -1
-export const ORDER_STATUS_NOT_CONFIRM = 1
-export const ORDER_STATUS_PENDING = 2
-export const ORDER_STATUS_PAID = 3
-export const ORDER_STATUS_EXPIRED = 4
-export const ORDER_STATUS_CANCELLED = 5
-export const ORDER_STATUS_LABEL_MAP = new Map([
-  [ORDER_STATUS_ALL, 'order.status.all'],
-  [ORDER_STATUS_NOT_CONFIRM, 'order.status.not_confirm'],
-  [ORDER_STATUS_PENDING, 'order.status.pending'],
-  [ORDER_STATUS_PAID, 'order.status.paid'],
-  [ORDER_STATUS_EXPIRED, 'order.status.expired'],
-  [ORDER_STATUS_CANCELLED, 'order.status.cancelled']
-])
-export type OrderStatus =
-  | typeof ORDER_STATUS_ALL
-  | typeof ORDER_STATUS_NOT_CONFIRM
-  | typeof ORDER_STATUS_PENDING
-  | typeof ORDER_STATUS_PAID
-  | typeof ORDER_STATUS_EXPIRED
-  | typeof ORDER_STATUS_CANCELLED
 export const orderApi = {
   async list({
     params = {}

@@ -13,7 +13,7 @@ export const WEBSITE_TYPE_INDEPENDENT = 'independent'
 export const WEBSITE_TYPE_ENTERPRISE = 'enterprise'
 export const WEBSITE_TYPE_INDUSTRY = 'industry'
 
-export const default_website_logo = `//${location.host}${location.pathname}/images/default_website_logo.png`
+export const getDefaultLogo = () => window.$getRealPath({ url: '/images/default_website_logo.png' })
 
 const default_version = {
   product_id: 1,
@@ -54,7 +54,7 @@ export const useEnterpriseStore = defineStore('enterprise-store', {
         ...data.enterprise
       }
       data.eid = data.eid || data.apply.eid || data.enterprise.id || ''
-      data.logo = data.logo || data.enterprise.logo || default_website_logo
+      data.logo = data.logo || data.enterprise.logo || getDefaultLogo()
       data.description = data.description || data.enterprise.description || ''
       data.domain = data.domain || (data.domains[0] || {}).domain || ''
       if (data.domain) data.domain = `https://${data.domain.replace(/^https?:\/\//, '')}`
@@ -149,7 +149,7 @@ export const useEnterpriseStore = defineStore('enterprise-store', {
 
         const link = document.querySelector('link[rel="icon"]') || document.createElement('link')
         link.rel = 'icon'
-        link.href = this.info.ico || default_website_logo
+        link.href = this.info.ico || getDefaultLogo()
         if (!document.querySelector('link[rel="icon"]')) document.head.appendChild(link)
 
         eventBus.emit('enterprise-info-loaded', this.info)

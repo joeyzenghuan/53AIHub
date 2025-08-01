@@ -5,7 +5,7 @@
       v-loading="loading"
       class="w-full vditor-custom"
       :class="[props.preview ? 'vditor-preview !border-none !bg-transparent' : '']"
-      :style="{ 'height': props.height, '--panel-background-color': props.bgColor }"
+      :style="{ height: props.height, '--panel-background-color': props.bgColor }"
     />
   </div>
 </template>
@@ -34,7 +34,7 @@ const props = withDefaults(
     height: '300px',
     bgColor: '#fff',
     type: 'full',
-  },
+  }
 )
 
 const emits = defineEmits<{
@@ -74,8 +74,7 @@ const getUploadConfig = () => {
   }
 }
 const setVditor = async () => {
-  if (vditor.value)
-    vditor.value.destroy()
+  if (vditor.value) vditor.value.destroy()
 
   loading.value = true
 
@@ -86,84 +85,87 @@ const setVditor = async () => {
       enable: false,
     },
     cdn: `${lib_host}/js/vditor`,
-    toolbar: props.type === 'full' ? [
-      'undo',
-      'redo',
-      '|',
-      {
-        name: 'insert',
-        toolbar: [
-          'image',
-          // 'upload',
-          // 'table',
-          'link',
-          // 'video',
-          'code',
-          'inline-code',
-          'line',
-          'insert-before',
-          'insert-after',
-          // '-',
-          // 'echarts',
-          // 'math',
-          // 'mermaid',
-          // 'mindmap',
-          // 'mermaid-sequence',
-          // 'mermaid-gantt',
-        ],
-      },
-      '|',
-      'headings',
-      'bold',
-      'italic',
-      'strike',
-      '|',
-      'list',
-      'ordered-list',
-      'outdent',
-      'indent',
-      '|',
-      'quote',
-      '|',
-      'copy',
-      'edit-mode',
-      'fullscreen',
-    ] : [
-      {
-        name: 'insert',
-        toolbar: [
-          'image',
-          // 'upload',
-          // 'table',
-          'link',
-          // 'video',
-          'code',
-          'inline-code',
-          'line',
-          'insert-before',
-          'insert-after',
-          // '-',
-          // 'echarts',
-          // 'math',
-          // 'mermaid',
-          // 'mindmap',
-          // 'mermaid-sequence',
-          // 'mermaid-gantt',
-        ],
-      },
-      '|',
-      'headings',
-      'bold',
-      'italic',
-      'strike',
-      '|',
-      'list',
-      'ordered-list',
-      'quote',
-      '|',
-      'copy',
-      'fullscreen',
-    ],
+    toolbar:
+      props.type === 'full'
+        ? [
+            'undo',
+            'redo',
+            '|',
+            {
+              name: 'insert',
+              toolbar: [
+                'image',
+                // 'upload',
+                // 'table',
+                'link',
+                // 'video',
+                'code',
+                'inline-code',
+                'line',
+                'insert-before',
+                'insert-after',
+                // '-',
+                // 'echarts',
+                // 'math',
+                // 'mermaid',
+                // 'mindmap',
+                // 'mermaid-sequence',
+                // 'mermaid-gantt',
+              ],
+            },
+            '|',
+            'headings',
+            'bold',
+            'italic',
+            'strike',
+            '|',
+            'list',
+            'ordered-list',
+            'outdent',
+            'indent',
+            '|',
+            'quote',
+            '|',
+            'copy',
+            'edit-mode',
+            'fullscreen',
+          ]
+        : [
+            {
+              name: 'insert',
+              toolbar: [
+                'image',
+                // 'upload',
+                // 'table',
+                'link',
+                // 'video',
+                'code',
+                'inline-code',
+                'line',
+                'insert-before',
+                'insert-after',
+                // '-',
+                // 'echarts',
+                // 'math',
+                // 'mermaid',
+                // 'mindmap',
+                // 'mermaid-sequence',
+                // 'mermaid-gantt',
+              ],
+            },
+            '|',
+            'headings',
+            'bold',
+            'italic',
+            'strike',
+            '|',
+            'list',
+            'ordered-list',
+            'quote',
+            '|',
+            'copy',
+            'fullscreen',
+          ],
     toolbarConfig: {
       hide: props.preview,
     },
@@ -225,10 +227,9 @@ const setVditor = async () => {
 // 监听外部传入的值变化
 watch(
   () => props.modelValue,
-  (newValue) => {
-    if (vditor.value && newValue !== vditor.value.getValue())
-      vditor.value.setValue(newValue)
-  },
+  newValue => {
+    if (vditor.value && newValue !== vditor.value.getValue()) vditor.value.setValue(newValue)
+  }
 )
 
 onMounted(() => {
@@ -236,8 +237,7 @@ onMounted(() => {
 })
 
 onUnmounted(() => {
-  if (vditor.value)
-    vditor.value.destroy()
+  if (vditor.value) vditor.value.destroy()
 })
 </script>
 
@@ -246,17 +246,17 @@ onUnmounted(() => {
   padding-left: 0 !important;
 }
 .vditor-custom .vditor-reset {
-	padding: 10px 30px !important;
+  padding: 10px 30px !important;
 }
-.vditor-custom .vditor-toolbar--hide{
+.vditor-custom .vditor-toolbar--hide {
   display: none;
 }
 .vditor-preview .vditor-reset {
-	padding: 0 !important;
-	overflow: hidden;
-	text-overflow: ellipsis;
-	display: -webkit-box;
-	-webkit-box-orient: vertical;
-	/* -webkit-line-clamp: 8; */
+  padding: 0 !important;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  /* -webkit-line-clamp: 8; */
 }
 </style>

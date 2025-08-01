@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  53aihub:
+  web:
     image: 53ai/53ai-hub:0.1.5
     env_file: .env
     ports:
@@ -17,8 +17,7 @@ services:
   redis:
     image: redis:6-alpine
     command: redis-server --requirepass your_redis_password  # 设置 Redis 密码
-    ports:
-      - "6379:6379"
+
     volumes:
       - redis_data:/data
     restart: unless-stopped
@@ -30,8 +29,6 @@ services:
       MYSQL_DATABASE: 53ai_hub
       MYSQL_USER: agent
       MYSQL_PASSWORD: agentpassword
-    ports:
-      - "3306:3306"
     volumes:
       - mysql_data:/var/lib/mysql
     restart: unless-stopped

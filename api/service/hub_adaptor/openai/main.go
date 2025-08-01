@@ -27,6 +27,9 @@ const (
 func StreamHandler(c *gin.Context, resp *http.Response, relayMode int) (*model.ErrorWithStatusCode, string, *model.Usage) {
 	responseText := ""
 	scanner := bufio.NewScanner(resp.Body)
+	// 设置更大的缓冲区以处理大型响应 (1MB)
+	buf := make([]byte, 0, 64*1024)
+	scanner.Buffer(buf, 1024*1024)
 	scanner.Split(bufio.ScanLines)
 	var usage *model.Usage
 

@@ -1,11 +1,9 @@
 import { loadScript, sleep } from '@/utils'
 import wecomApi from '@/api/modules/wecom'
-import useEnv from '@/hooks/useEnv'
 
 const userAgent = navigator.userAgent.toLowerCase()
 const isInQw = /wxwork|micromessenger/im.test(userAgent)
 
-const { isLocalEnv } = useEnv()
 /*
 http://ask.dcloud.net.cn/article/36007
 1 测试时，可以将debug设置为true，可以看到日志信息
@@ -15,11 +13,7 @@ http://ask.dcloud.net.cn/article/36007
 */
 const openTagList = ['wx-open-launch-weapp']
 
-const jsApiList = [
-  'agentConfig',
-  'openEnterpriseChat',
-  'selectEnterpriseContact',
-]
+const jsApiList = ['agentConfig', 'openEnterpriseChat', 'selectEnterpriseContact']
 
 // 企微需要用到
 const agentApiList = [
@@ -38,7 +32,7 @@ const agentApiList = [
   'shareWechatMessage',
   'shareToExternalContact',
   'shareToExternalChat',
-  'shareToExternalMoments',
+  'shareToExternalMoments'
 ]
 
 const jssdk = {
@@ -46,18 +40,17 @@ const jssdk = {
     return sleep(2).then(() => {
       return Promise.all([
         loadScript('//res.wx.qq.com/open/js/jweixin-1.2.0.js'),
-        loadScript('//open.work.weixin.qq.com/wwopen/js/jwxwork-1.0.0.js'),
+        loadScript('//open.work.weixin.qq.com/wwopen/js/jwxwork-1.0.0.js')
       ])
     })
   },
   /**
-	 * 初始化sdk配置
- */
+   * 初始化sdk配置
+   */
   getConfig() {
     const { origin, pathname, search } = window.location
     const url = `${origin}${pathname}${search}`
-    return wecomApi.jssdk_config(import.meta.env.VITE_GLOB_SUITEID, { url })
-      .then(res => res.data)
+    return wecomApi.jssdk_config(import.meta.env.VITE_GLOB_SUITEID, { url }).then((res) => res.data)
   },
 
   /**
@@ -78,7 +71,7 @@ const jssdk = {
         appId: params.app_id,
         timestamp: params.timestamp,
         nonceStr: params.nonce_str,
-        signature: params.signature,
+        signature: params.signature
       }
       console.log('jssdk init start')
       wx.config(config)
@@ -113,17 +106,14 @@ const jssdk = {
           resolve()
         },
         fail(err) {
-          if (err.errMsg.includes('function not exist'))
-            alert('企业微信版本过低请升级')
-
-          else
-            reject()
+          if (err.errMsg.includes('function not exist')) alert('企业微信版本过低请升级')
+          else reject()
 
           console.error(err)
-        },
+        }
       })
     })
-  },
+  }
 }
 
 /**
@@ -131,11 +121,8 @@ const jssdk = {
  */
 let instance: any
 export default function (reset = false) {
-  if (reset)
-    instance = undefined
+  if (reset) instance = undefined
 
-  // if (isLocalEnv.value)
-  //   return Promise.resolve()
   if (!instance) {
     instance = new Promise((resolve) => {
       const fail = () => {
@@ -146,10 +133,8 @@ export default function (reset = false) {
       task
         .then(() => jssdk.getConfig())
         .then((data) => {
-          if (isInQw)
-            return jssdk.initConfig(data.corp_config).then(() => data)
-          else
-            return data
+          if (isInQw) return jssdk.initConfig(data.corp_config).then(() => data)
+          return data
         })
         .then((data) => {
           return jssdk.agentConfig(data.agent_config)

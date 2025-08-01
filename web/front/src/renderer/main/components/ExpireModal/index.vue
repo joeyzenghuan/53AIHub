@@ -1,7 +1,7 @@
 <template>
   <ElDialog
     v-model="visible"
-    class="el-dialog--center"
+    class="el-dialog--bottom-center"
     :title="$t('common.tip')"
     :width="520"
     :close-on-click-modal="false"

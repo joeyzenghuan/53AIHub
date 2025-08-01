@@ -1,168 +1,3 @@
-<script setup lang="ts">
-import { MoreFilled, Search } from '@element-plus/icons-vue'
-import { computed, onMounted, reactive, ref } from 'vue'
-import GroupAddDialog from '../components/group-add-dialog.vue'
-
-import { GROUP_TYPE_INTERNAL_USER, groupApi } from '@/api/modules/group'
-import { useEnterpriseStore } from '@/stores'
-
-const enterpriseStore = useEnterpriseStore()
-
-const groupAddRef = ref()
-const filterForm = reactive({
-  groupKeyword: '',
-  groupId: 0,
-  activeTabIndex: 0,
-})
-const groupData = ref([])
-const groupLoading = ref(false)
-
-const activeGroupInfo = computed(() => {
-  return groupData.value.find(item => item.group_id === filterForm.groupId) || {}
-})
-
-const fetchGroupData = async () => {
-  groupLoading.value = true
-  const list = await groupApi.list({ params: { group_type: GROUP_TYPE_INTERNAL_USER } }).finally(() => {
-    groupLoading.value = false
-  })
-  groupData.value = list.filter(item => item.group_name && item.group_name.includes(filterForm.groupKeyword))
-  if (!filterForm.groupId)
-    filterForm.groupId = (groupData.value[0] || {}).group_id || 0
-}
-const handleGroupClick = (data = {}) => {
-  filterForm.groupId = data.group_id
-  refresh()
-}
-const handleGroupCommand = async (command: string, data: any, index: number) => {
-  switch (command) {
-    case 'create':
-    case 'rename':
-      groupAddRef.value.open({
-        data,
-        success: () => {
-          fetchGroupData()
-        },
-      })
-      break
-    case 'delete':
-      await ElMessageBox.confirm(window.$t('group_delete_confirm'), window.$t('action_delete'))
-      await groupApi.delete({ data: { group_id: data.group_id } })
-      ElMessage.success(window.$t('action_delete_success'))
-      fetchGroupData()
-      break
-  }
-}
-
-const handleTabChange = (index: number) => {
-  filterForm.activeTabIndex = index
-  refresh()
-}
-const refresh = () => {
-  if (filterForm.activeTabIndex === 0) {
-    userFilterForm.page = 1
-    return fetchUserData()
-  }
-  else if (filterForm.activeTabIndex === 1) {
-    return fetchAgentData()
-  }
-}
-
-const userFilterForm = reactive({
-  keyword: '',
-  page: 1,
-  pageSize: 10,
-})
-const userTableData = ref([])
-const userTableTotal = ref(0)
-const userLoading = ref(false)
-const fetchUserData = async () => {
-  userLoading.value = true
-  const { total = 0, list = [] } = await groupApi.user_list({
-    group_id: filterForm.groupId,
-    keyword: userFilterForm.keyword,
-    offset: (userFilterForm.page - 1) * userFilterForm.pageSize,
-    limit: userFilterForm.pageSize,
-  }).finally(() => {
-    userLoading.value = false
-  })
-  userTableTotal.value = total
-  userTableData.value = [...list]
-}
-const onUserPageChange = (page: number) => {
-  userFilterForm.page = page
-  fetchUserData()
-}
-const onUserPageSizeChange = (pageSize: number) => {
-  userFilterForm.pageSize = pageSize
-  refresh()
-}
-const handleUserAddConfirm = async ({ value = [] } = {}) => {
-  if (!filterForm.groupId)
-    return ElMessage.warning(window.$t('internal_user.group.create_tip'))
-  const department_ids = value.filter(item => +item.did).map(item => +item.did)
-  const user_ids = value.filter(item => +item.user_id).map(item => +item.user_id)
-  const data = {
-    group_id: filterForm.groupId,
-    department_ids,
-    user_ids,
-  }
-  await groupApi.batch_add_user(data)
-  ElMessage.success(window.$t('action_add_success'))
-  refresh()
-}
-const handleUserRemove = async (data = {}) => {
-  await ElMessageBox.confirm(window.$t('internal_user.group.remove_user_confirm'), window.$t('tip'))
-  await groupApi.remove_user({
-    group_id: filterForm.groupId,
-    permission_ids: [data.permission_id],
-  })
-  ElMessage.success(window.$t('action_remove_success'))
-  fetchUserData()
-}
-
-const agentData = ref([])
-const agentLoading = ref(false)
-const fetchAgentData = async () => {
-  agentLoading.value = true
-  const { list = [] } = await groupApi.agent_list({
-    group_id: filterForm.groupId,
-    offset: 0,
-    limit: 1000,
-  }).finally(() => {
-    agentLoading.value = false
-  })
-  agentData.value = list
-}
-const handleAgentAddConfirm = async ({ value = [] } = {}) => {
-  if (!filterForm.groupId)
-    return ElMessage.warning(window.$t('internal_user.group.create_tip'))
-  const agent_ids = value.filter(item => +item.agent_id).map(item => +item.agent_id)
-  const data = {
-    group_id: filterForm.groupId,
-    agent_ids,
-  }
-  await groupApi.batch_add_agent(data)
-  ElMessage.success(window.$t('action_add_success'))
-  refresh()
-}
-const handleAgentRemove = async ({ value = [] } = {}) => {
-  const agent_ids = value.filter(item => +item.agent_id).map(item => +item.agent_id)
-  await ElMessageBox.confirm(window.$t('internal_user.group.remove_agent_confirm'), window.$t('tip'))
-  await groupApi.remove_agent({
-    group_id: filterForm.groupId,
-    agent_ids,
-  })
-  ElMessage.success(window.$t('action_remove_success'))
-  fetchAgentData()
-}
-
-onMounted(async () => {
-  await fetchGroupData()
-  refresh()
-})
-</script>
-
 <template>
   <ElContainer class="bg-white h-full">
     <ElAside width="280px" class="flex flex-col px-5 py-6 box-border border-r border-[#e5e5e5]">
@@ -306,3 +141,171 @@ onMounted(async () => {
     <GroupAddDialog ref="groupAddRef" />
   </ElContainer>
 </template>
+
+<script setup lang="ts">
+import { MoreFilled, Search } from '@element-plus/icons-vue'
+import { computed, onMounted, reactive, ref } from 'vue'
+import GroupAddDialog from '../components/group-add-dialog.vue'
+
+import { groupApi } from '@/api/modules/group'
+
+import { GROUP_TYPE } from '@/constants/group'
+
+import { useEnterpriseStore } from '@/stores'
+
+const enterpriseStore = useEnterpriseStore()
+
+const groupAddRef = ref()
+const filterForm = reactive({
+  groupKeyword: '',
+  groupId: 0,
+  activeTabIndex: 0,
+})
+const groupData = ref([])
+const groupLoading = ref(false)
+
+const activeGroupInfo = computed(() => {
+  return groupData.value.find(item => item.group_id === filterForm.groupId) || {}
+})
+
+const fetchGroupData = async () => {
+  groupLoading.value = true
+  const list = await groupApi.list({ params: { group_type: GROUP_TYPE.INTERNAL_USER } }).finally(() => {
+    groupLoading.value = false
+  })
+  groupData.value = list.filter(item => item.group_name && item.group_name.includes(filterForm.groupKeyword))
+  if (!filterForm.groupId)
+    filterForm.groupId = (groupData.value[0] || {}).group_id || 0
+}
+const handleGroupClick = (data = {}) => {
+  filterForm.groupId = data.group_id
+  refresh()
+}
+const handleGroupCommand = async (command: string, data: any, index: number) => {
+  switch (command) {
+    case 'create':
+    case 'rename':
+      groupAddRef.value.open({
+        data,
+        success: () => {
+          fetchGroupData()
+        },
+      })
+      break
+    case 'delete':
+      await ElMessageBox.confirm(window.$t('group_delete_confirm'), window.$t('action_delete'))
+      await groupApi.delete({ data: { group_id: data.group_id } })
+      ElMessage.success(window.$t('action_delete_success'))
+      fetchGroupData()
+      break
+  }
+}
+
+const handleTabChange = (index: number) => {
+  filterForm.activeTabIndex = index
+  refresh()
+}
+const refresh = () => {
+  if (filterForm.activeTabIndex === 0) {
+    userFilterForm.page = 1
+    return fetchUserData()
+  }
+  if (filterForm.activeTabIndex === 1) {
+    return fetchAgentData()
+  }
+}
+
+const userFilterForm = reactive({
+  keyword: '',
+  page: 1,
+  pageSize: 10,
+})
+const userTableData = ref([])
+const userTableTotal = ref(0)
+const userLoading = ref(false)
+const fetchUserData = async () => {
+  userLoading.value = true
+  const { total = 0, list = [] } = await groupApi.user_list({
+    group_id: filterForm.groupId,
+    keyword: userFilterForm.keyword,
+    offset: (userFilterForm.page - 1) * userFilterForm.pageSize,
+    limit: userFilterForm.pageSize,
+  }).finally(() => {
+    userLoading.value = false
+  })
+  userTableTotal.value = total
+  userTableData.value = [...list]
+}
+const onUserPageChange = (page: number) => {
+  userFilterForm.page = page
+  fetchUserData()
+}
+const onUserPageSizeChange = (pageSize: number) => {
+  userFilterForm.pageSize = pageSize
+  refresh()
+}
+const handleUserAddConfirm = async ({ value = [] } = {}) => {
+  if (!filterForm.groupId)
+    return ElMessage.warning(window.$t('internal_user.group.create_tip'))
+  const department_ids = value.filter(item => +item.did).map(item => +item.did)
+  const user_ids = value.filter(item => +item.user_id).map(item => +item.user_id)
+  const data = {
+    group_id: filterForm.groupId,
+    department_ids,
+    user_ids,
+  }
+  await groupApi.batch_add_user(data)
+  ElMessage.success(window.$t('action_add_success'))
+  refresh()
+}
+const handleUserRemove = async (data = {}) => {
+  await ElMessageBox.confirm(window.$t('internal_user.group.remove_user_confirm'), window.$t('tip'))
+  await groupApi.remove_user({
+    group_id: filterForm.groupId,
+    permission_ids: [data.permission_id],
+  })
+  ElMessage.success(window.$t('action_remove_success'))
+  fetchUserData()
+}
+
+const agentData = ref([])
+const agentLoading = ref(false)
+const fetchAgentData = async () => {
+  agentLoading.value = true
+  const { list = [] } = await groupApi.agent_list({
+    group_id: filterForm.groupId,
+    offset: 0,
+    limit: 1000,
+  }).finally(() => {
+    agentLoading.value = false
+  })
+  agentData.value = list
+}
+const handleAgentAddConfirm = async ({ value = [] } = {}) => {
+  if (!filterForm.groupId)
+    return ElMessage.warning(window.$t('internal_user.group.create_tip'))
+  const agent_ids = value.filter(item => +item.agent_id).map(item => +item.agent_id)
+  const data = {
+    group_id: filterForm.groupId,
+    agent_ids,
+  }
+  await groupApi.batch_add_agent(data)
+  ElMessage.success(window.$t('action_add_success'))
+  refresh()
+}
+const handleAgentRemove = async ({ value = [] } = {}) => {
+  const agent_ids = value.filter(item => +item.agent_id).map(item => +item.agent_id)
+  await ElMessageBox.confirm(window.$t('internal_user.group.remove_agent_confirm'), window.$t('tip'))
+  await groupApi.remove_agent({
+    group_id: filterForm.groupId,
+    agent_ids,
+  })
+  ElMessage.success(window.$t('action_remove_success'))
+  fetchAgentData()
+}
+
+onMounted(async () => {
+  await fetchGroupData()
+  refresh()
+})
+</script>

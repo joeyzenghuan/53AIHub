@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"io"
 	"net/http"
+	"strings"
 
 	"github.com/53AI/53AIHub/service/hub_adaptor/custom"
 	"github.com/gin-gonic/gin"
@@ -23,11 +24,22 @@ func (a *Adaptor) Init(meta *meta.Meta) {
 }
 
 func (a *Adaptor) GetRequestURL(meta *meta.Meta) (string, error) {
-	// return fmt.Sprintf("%s/open_api/v2/chat", meta.BaseURL), nil
 	baseUrl, err := custom.GetBaseURL(meta.BaseURL)
 	if err != nil {
 		return "", err
 	}
+
+	// 检查是否为工作流请求
+	if strings.HasPrefix(meta.ActualModelName, "workflow-") {
+		// 使用工作流适配器处理
+		workflowAdaptor := &WorkflowAdaptor{
+			meta:         meta,
+			CustomConfig: a.CustomConfig,
+		}
+		return workflowAdaptor.GetRequestURL(meta)
+	}
+
+	// 默认使用Bot模式
 	url := fmt.Sprintf("%s/v3/chat", baseUrl)
 	if a.CustomConfig.ConversationId != "" {
 		url = fmt.Sprintf("%s?conversation_id=%s", url, a.CustomConfig.ConversationId)
@@ -45,6 +57,18 @@ func (a *Adaptor) ConvertRequest(c *gin.Context, relayMode int, request *model.G
 	if request == nil {
 		return nil, errors.New("request is nil")
 	}
+
+	// 检查是否为工作流请求
+	if strings.HasPrefix(a.meta.ActualModelName, "workflow-") {
+		// 使用工作流适配器处理
+		workflowAdaptor := &WorkflowAdaptor{
+			meta:         a.meta,
+			CustomConfig: a.CustomConfig,
+		}
+		return workflowAdaptor.ConvertRequest(c, relayMode, request)
+	}
+
+	// 默认使用Bot模式
 	request.User = a.meta.Config.UserID
 	return ConvertRequest(*request, a.meta, a.CustomConfig), nil
 }
@@ -61,6 +85,7 @@ func (a *Adaptor) DoRequest(c *gin.Context, meta *meta.Meta, requestBody io.Read
 }
 
 func (a *Adaptor) DoResponse(c *gin.Context, resp *http.Response, meta *meta.Meta) (usage *model.Usage, err *model.ErrorWithStatusCode) {
+	// 默认使用Bot模式
 	var responseText *string
 	conversationId := ""
 	if meta.IsStream {

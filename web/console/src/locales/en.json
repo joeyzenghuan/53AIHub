@@ -43,9 +43,8 @@
     "aibox": "AI Toolbox",
     "bot": "Intelligent Agent",
     "prompt": "Prompts",
-    "library": "Private Data",
-    "builtapp": "App Intelligence",
-    "chat_bi": "ChatBI",
+    "library": "All Knowledge",
+    "chunk_setting": "Chunk",
     "system": "System Management",
     "dialogue_digital_employee": "AI Employee",
     "dialogue_prompt": "Prompts",
@@ -58,6 +57,8 @@
     "homepage": "Homepage",
     "app_management": "App Manage",
     "agent": "Intelligent Agent",
+    "knowledge": "Knowledge",
+    "space": "Space",
     "agent_search_placeholder": "Search Intelligent Agent",
     "ai_toolbox": "AI Toolbox",
     "ai_toolbox_search_placeholder": "Search Toolbox",
@@ -83,6 +84,7 @@
     "website_info_language": "Default Language",
     "website_info_keyword": "Keywords",
     "website_info_keyword_placeholder": "Please enter keywords",
+    "website_info_keyword_placeholder_v2": "You can enter multiple keywords - press Enter after each one",
     "website_info_desc": "Website Description",
     "website_info_desc_placeholder": "Please enter website description",
     "website_info_copyright": "Copyright",
@@ -116,6 +118,8 @@
     "platform_model_organization_id": "Organization ID",
     "platform_model_organization_id_placeholder": "Enter your organization ID",
     "platform_model_base_url": "API Base",
+    "platform_model_base_url_azure": "API Domain",
+    "platform_model_base_url_maxkb": "Base URL",
     "platform_model_base_url_placeholder": "Enter your API Base, e.g. https://api.openai.com",
     "platform_model_base_url_placeholder_53ai": "Enter your API Base, e.g. https://api.53ai.com",
     "platform_model_api_endpoint": "Custom API endpoint",
@@ -149,7 +153,7 @@
     "nav_seo_setting": "SEO Settings",
     "nav_seo_setting_title": "SEO Title",
     "nav_seo_setting_keywords": "SEO Keywords",
-    "nav_seo_setting_keywords_tip": "Please separate keywords with commas",
+    "nav_seo_setting_keywords_tip": "Separate each keyword with English commas",
     "nav_seo_setting_description": "SEO Description",
     "payment": "Payment Configuration",
 
@@ -231,7 +235,7 @@
     "policy": "Privacy Policy",
     "account_length": "Account length must be between 4 and 20 characters",
     "account_format": "Account must start with a letter, and can only contain letters, numbers, and underscores",
-    "password_length": "Password length must be between 8 and 20 characters",
+    "password_length": "Password length must be between 8-20 characters and can include letters, numbers, and symbols",
     "password_format": "Password must contain uppercase and lowercase letters and numbers",
     "password_not_match": "The two passwords you entered do not match",
     "reset_password": "Reset Password",
@@ -266,6 +270,7 @@
     "reject": "Rejected",
     "refresh_list": "Refresh List",
     "contact_customer_service": "Contact Customer Service",
+    "contact_customer_service_v2": "Contact Customer Service",
     "create_site": "Create Site",
     "waiting_audit": "Waiting Audit",
     "create_success": "Create Success",
@@ -430,6 +435,8 @@
     "bailian": "Alibaba Bailian",
     "volcengine": "Volcengine",
     "fastgpt_agent": "FastGPT",
+    "fastgpt_workflow": "FastGPT Workflow",
+    "maxkb_agent": "MaxKB",
     "check_agent_config_tip": "Please check if the agent configuration is correct"
   },
   "provider_platform": {
@@ -449,7 +456,8 @@
     "bailian": "Alibaba Bailian",
     "volcengine": "Volcengine",
     "yuanqi": "Tencent Yuanqi",
-    "fastgpt": "FastGPT"
+    "fastgpt": "FastGPT",
+    "maxkb": "MaxKB"
   },
   "register_user": {
     "title": "Register User"
@@ -693,6 +701,10 @@
   "form_url_validator": "Please enter a valid URL address",
   "form_path_validator": "Please enter a valid path address (e.g. /index)",
   "form_path_same_tip": "The same path address already exists, please re-enter",
+  "form_image_validator": "Please upload a valid image",
+  "form_variable_validator": "Variable names can only contain letters, numbers, and underscores, and cannot start with a number",
+  "form_hide_logo": "Hide Technical Support Logo",
+  "enterprise_edition": "Enterprise Edition",
   "image_cropper": "Image Cropper",
   "reupload": "Reupload",
   "wechat": "WeChat",
@@ -824,10 +836,6 @@
   "workspace": "Workspace",
   "edit_agent": "Edit Agent",
   "coze_workflow_link": "Coze workflow \"edit state\" link",
-  "input_variable": "Input Variable",
-  "display_name": "Display Name",
-  "variable_type": "Variable Type",
-  "output_variable": "Output Variable",
   "model_name": "Model Name",
   "model_name_placeholder": "Please enter model name",
   "prompt_placeholder": "Please enter prompt",
@@ -895,12 +903,13 @@
   "volcengine_agent_get_tip": "Go to Volcengine and login ({ url })\n Step 1: Login Volcengine, click \"My App\" in the system management \n Step 2: Click \"Create API Key\", and fill in the form below after completion.",
   "yuanqi_agent_get_tip": "Go to Tencent Yuanqi and login ({ url })\n Step 1: Login Tencent Yuanqi, go to my creation. \n Step 2: Click the more button in the lower right corner of the intelligent agent card, click call API (new intelligent agent needs to wait for approval to have). \n Step 3: Click copy intelligent agent ID, paste it below. \n Step 4: Click copy Token, paste it below.",
   "fastgpt_agent_get_tip": "Go to FastGPT and login ({ url })\n Step 1: Login FastGPT, click \"Workspace\" in the system management \n Step 2: Click \"API Key\" in the system management \n Step 3: Click \"Create API Key\", and fill in the form below after completion.",
+  "maxkb_agent_get_tip": "Go to MaxKB and login ({ url })\n Step 1: Download MaxKB client; \n Step 2: Click the application to be accessed in \"Application\"; \n Step 3: Copy Base URL in \"API Access Credentials\", create and copy API Key, fill in the form below.",
   "tip": "Tip",
   "auth_required": "{provider_name} is not authorized, please go to {provider_name} to authorize",
   "intelligent_agent_platform": "Intelligent Agent Platform",
   "cloud_computing_platform": "Cloud Computing Platform",
   "local_config_limited_tip": "Configuration Limited Tip",
-  "local_config_limited_desc": "Due to the current system access being an internal network address ({url}), it is not possible to add/configure Coze intelligent agent and WeChat payment, which needs to be deployed to an address that can be accessed from the outside to configure.",
+  "local_config_limited_desc": "Due to the current system access being an internal network address ({url}), it is not possible to add/configure Coze intelligent agent, WeChat payment, and Alipay payment, which needs to be deployed to an address that can be accessed from the outside to configure.",
   "know_it": "I know",
   "selected_tip": "Selected {total} items",
   "support_image": "Support Image",
@@ -953,6 +962,125 @@
     "upgrade_tip": "Upgrade Tip",
     "upgrade": "Upgrade Version",
     "not_support": "Current Version Not Support",
-    "agent_limit": "Agent Add Limit, Please Upgrade to Add"
+    "agent_limit": "Agent Add Limit, Please Upgrade to Add",
+    "upgrade_hide_logo": "Upgrade to the enterprise version to enable hiding the technical support logo"
+  },
+  "knowledge": {
+    "name": "Knowledge",
+    "short_name": "Knowledge"
+  },
+  "space": {
+    "title": "Space",
+    "search_placeholder": "Enter Space Name",
+    "name": "Space",
+    "name_placeholder": "Please enter space name",
+    "icon": "Icon",
+    "capacity": "Capacity",
+    "description": "Description",
+    "description_placeholder": "Please enter description",
+    "delete_tip": "There are {total} knowledge bases in the current space, please clear the knowledge bases before deleting the space",
+    "system": "System",
+    "system_space_delete_tip": "System space, cannot be deleted"
+  },
+  "common": {
+    "name": "Name",
+    "short_name": "Short Name",
+    "member": "Member",
+    "creator": "Creator",
+    "created_time": "Created Time"
+  },
+  "action": {
+    "create": "Create",
+    "add": "Add",
+    "added": "Added",
+    "edit": "Edit",
+    "manage": "Manage",
+    "delete": "Delete",
+    "save": "Save",
+    "operation": "Operation",
+    "more": "More",
+    "cancel": "Cancel",
+    "setting": "Setting"
+  },
+  "default_links": {
+    "default_setting": "Default Setting",
+    "website": "Website",
+    "jump_path": "Jump Path"
+  },
+  "message_status": {
+    "create_success": "Created",
+    "save_success": "Saved"
+  },
+  "agent": {
+    "name": "Agent",
+    "base_info": "Base Info",
+    "input_variable": "Input",
+    "output_variable": "Output",
+    "variable_name": "Variable Name",
+    "variable_type": "Variable Type",
+    "variable_label": "Display Name",
+    "variable_desc": "Description",
+    "variable_required": "Required",
+    "variable_max_length": "Max Length",
+    "variable_show_word_limit": "Show Word Limit",
+    "variable_options": "Options",
+    "coze": {
+      "workspace": "Workspace",
+      "workflow_link": "Coze workflow \"edit state\" link",
+      "agent_type_chat": "Chat Application",
+      "agent_type_chat_desc": "User interacts with a large model, which is autonomous and decision-making, suitable for simple business logic.",
+      "agent_type_workflow": "Workflow Orchestration Application",
+      "agent_type_workflow_desc": "Workflow is a collection of executable instructions, used to implement business logic or complete specific tasks."
+    },
+    "53ai": {
+      "agent_type_chat": "Chat Application",
+      "agent_type_chat_desc": "User interacts with a large model, which is autonomous and decision-making, suitable for simple business logic.",
+      "agent_type_workflow": "Workflow Orchestration Application",
+      "agent_type_workflow_desc": "Workflow is a collection of executable instructions, used to implement business logic or complete specific tasks."
+    },
+    "dify": {
+      "agent_type_chat": "Chat Application",
+      "agent_type_chat_desc": "User interacts with a large model, which is autonomous and decision-making, suitable for simple business logic.",
+      "agent_type_workflow": "Workflow Orchestration Application",
+      "agent_type_workflow_desc": "Workflow is a collection of executable instructions, used to implement business logic or complete specific tasks."
+    },
+    "fastgpt": {
+      "agent_type_chat": "Chat Application",
+      "agent_type_chat_desc": "User interacts with a large model, which is autonomous and decision-making, suitable for simple business logic.",
+      "agent_type_workflow": "Workflow Orchestration Application",
+      "agent_type_workflow_desc": "Workflow is a collection of executable instructions, used to implement business logic or complete specific tasks."
+    },
+    "relate_app": {
+      "title": "Relate App",
+      "desc": "Assign the output of the intelligent agent to the input of the related scene intelligent agent to realize the automatic flow of multi-scene tasks.",
+      "input_mapping": "Input Mapping",
+      "execution_rule": "Execution Rule",
+      "auto_execution": "Auto Execution",
+      "manual_execution": "Manual Execution"
+    }
+  },
+  "form": {
+    "input_placeholder": "Please enter",
+    "select_placeholder": "Please select",
+    "set_variable_placeholder": "Please set ｛#variable｝"
+  },
+  "file": {
+    "type_limit": "Currently only supports {accept} format files",
+    "size_empty": "File content cannot be empty",
+    "size_limit": "File upload size cannot exceed {size}MB ({name} size exceeds)",
+    "upload_limit": "Upload up to {limit} files"
+  },
+  "variable_type": {
+    "text": "Text",
+    "textarea": "Textarea",
+    "inputNumber": "Number",
+    "select": "Select",
+    "date": "Date",
+    "tag": "Tag",
+    "file": "File",
+    "markdown": "Markdown",
+    "image": "Image",
+    "audio": "Audio",
+    "video": "Video"
   }
 }

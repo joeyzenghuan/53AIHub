@@ -1,5 +1,12 @@
 <template>
+  <Completion
+    v-if="currentAgent?.custom_config_obj?.agent_mode === 'completion'"
+    ref="chatRef"
+    :use-case-fixed="useCaseFixed"
+    :hide-menu-header="hideMenuHeader"
+  />
   <Chat
+    v-else
     ref="chatRef"
     :key="currentConv.virtual_id || currentConv.conversation_id"
     class="flex-1"
@@ -9,8 +16,6 @@
     :use-case-fixed="useCaseFixed"
     :show-history="showHistory"
   />
-  <Completion v-if="false" />
-  <!-- </div> -->
 </template>
 
 <script setup lang="ts">

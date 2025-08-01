@@ -24,11 +24,7 @@
       </div>
     </div>
 
-    <x-bubble-list
-      :messages="chat_list"
-      class="flex-1 px-4 relative py-4"
-      main-class="mx-5"
-    >
+    <x-bubble-list :messages="chat_list" class="flex-1 px-4 relative py-4" main-class="mx-5">
       <template #header>
         <ElEmpty v-if="showChatListEmpty" class="mt-10" :description="$t('chat.empty_desc')" />
         <x-bubble-assistant
@@ -39,13 +35,19 @@
           @suggestion="handleSuggestion"
         />
       </template>
-      <template #item="{ message, index }">
+      <template #item="{ message }">
         <x-bubble-user :content="message.question.content" :files="message.question.user_files">
           <template v-if="!message.answer.loading" #menu>
             <x-icon size="16" class="cursor-pointer" name="copy" @click="onCopy(message.question.content)" />
           </template>
         </x-bubble-user>
-        <x-bubble-assistant :content="message.answer.content" :reasoning="message.answer.reasoning_content" :reasoning-expanded="message.answer.reasoning_expanded" :streaming="message.answer.loading" :always-show-menu="message_index === chat_list.length - 1">
+        <x-bubble-assistant
+          :content="message.answer.content"
+          :reasoning="message.answer.reasoning_content"
+          :reasoning-expanded="message.answer.reasoning_expanded"
+          :streaming="message.answer.loading"
+          :always-show-menu="message_index === chat_list.length - 1"
+        >
           <template v-if="!message.answer.loading" #menu>
             <x-icon size="16" class="cursor-pointer" name="copy" @click="onCopy(message.answer.content)" />
             <x-icon size="16" class="cursor-pointer" name="refresh" @click="onRestartGeneration(message)" />
@@ -83,26 +85,29 @@ import { RefreshRight } from '@element-plus/icons-vue'
 import { computed, nextTick, ref, watch } from 'vue'
 import { useAgentFormStore } from '../store'
 
-import api from '@/apis'
 import { useConversationStore } from '@/stores'
 import { copyToClip } from '@/utils/copy'
 import { api_host } from '@/utils/config'
 import { AGENT_TYPES } from '@/constants/platform/config'
+import uploadApi from '@/api/modules/upload'
 
 const agentFormStore = useAgentFormStore()
-const conversation_store = useConversationStore()
+const conversationStore = useConversationStore()
 const scroll_ref = ref()
 const chat_list = ref([])
-const conversation_creating = ref(false)
+const conversationCreating = ref(false)
 
-const chat_loading = computed(() => conversation_creating.value || chat_list.value.some(item => item.answer.loading))
-const enable_upload = computed(() => Boolean(agentFormStore.form_data.custom_config?.file_parse?.enable || agentFormStore.form_data.custom_config?.image_parse?.enable))
+const chat_loading = computed(() => conversationCreating.value || chat_list.value.some(item => item.answer.loading))
+const enable_upload = computed(() =>
+  Boolean(
+    agentFormStore.form_data.settings?.file_parse?.enable || agentFormStore.form_data.settings?.image_parse?.enable
+  )
+)
 const upload_accept = computed(() => {
   let accept = ''
-  if (agentFormStore.form_data.custom_config?.file_parse?.enable)
+  if (agentFormStore.form_data.settings?.file_parse?.enable)
     accept += '.pdf,.doc,.docx,.xls,.xlsx,.ppt,.pptx,.csv,.txt,.html,.json,.xml,.md'
-  if (agentFormStore.form_data.custom_config?.image_parse?.enable)
-    accept += ',image/*'
+  if (agentFormStore.form_data.settings?.image_parse?.enable) accept += ',image/*'
   return accept
 })
 const allowSendWithFiles = computed(() => {
@@ -110,26 +115,21 @@ const allowSendWithFiles = computed(() => {
 })
 
 const showWelcome = computed(() => {
-  const {settings} = agentFormStore.form_data
-  if (settings.opening_statement.replace(/\s/g, ''))
-    return true
+  const { settings } = agentFormStore.form_data
+  if (settings.opening_statement.replace(/\s/g, '')) return true
   if (settings.suggested_questions.length && settings.suggested_questions.some(item => item.content.replace(/\s/g, '')))
     return true
   return false
 })
 const showChatListEmpty = computed(() => {
-  if (chat_list.value.length)
-    return false
-  if (showWelcome.value)
-    return false
+  if (chat_list.value.length) return false
+  if (showWelcome.value) return false
   return true
 })
 
 const httpRequest = async (dataFile: File) => {
-  const fileFormData = new FormData()
-  fileFormData.append('file', dataFile)
   try {
-    const res = await api.upload({ data: fileFormData })
+    const res = await uploadApi.upload(dataFile)
     return {
       id: res.data.id,
       url: `${api_host}/api/preview/${res.data.preview_key || ''}`,
@@ -137,9 +137,8 @@ const httpRequest = async (dataFile: File) => {
       name: res.data.file_name,
       mime_type: res.data.mime_type,
     }
-  }
-  catch (error) {
-    return { }
+  } catch (error) {
+    return {}
   }
 }
 
@@ -148,29 +147,35 @@ let active_chat_index = -1
 let active_chat_data = {}
 let abort_controller: any = null
 const onSendConfirm = async (question: string, user_files?: any[], type = '') => {
-  if (chat_loading.value)
-    return
+  if (chat_loading.value) return
   user_files = user_files || []
-  if (!agentFormStore.agent_data.agent_id)
-    return ElMessage.warning(window.$t('agent_not_found'))
-  if (!agentFormStore.agent_data.channel_type)
-    await agentFormStore.saveAgentData({ hideToast: true })
+  if (!agentFormStore.agent_data.agent_id) return ElMessage.warning(window.$t('agent_not_found'))
+  if (!agentFormStore.agent_data.channel_type) await agentFormStore.saveAgentData({ hideToast: true })
   // return ElMessage.warning(window.$t('agent_channel_type_not_found'))
 
-  if (abort_controller)
-    abort_controller.abort()
+  if (abort_controller) abort_controller.abort()
   abort_controller = new AbortController()
 
   if (!conversation_id) {
-    conversation_creating.value = true
-    const { data = {} } = await conversation_store.save({ data: { agent_id: agentFormStore.agent_data.agent_id, title: question } }).finally(() => {
-      conversation_creating.value = false
-    })
+    conversationCreating.value = true
+    const { data = {} } = await conversationStore
+      .save({ data: { agent_id: agentFormStore.agent_data.agent_id, title: question } })
+      .finally(() => {
+        conversationCreating.value = false
+      })
     conversation_id = data.conversation_id
   }
 
   if (type !== 'regenerate')
- 		user_files = user_files?.map(item => ({ type: 'image', content: `file_id:${item.id}`, filename: item.name, size: item.size, mime_type: item.mime_type, url: item.url })) || []
+    user_files =
+      user_files?.map(item => ({
+        type: 'image',
+        content: `file_id:${item.id}`,
+        filename: item.name,
+        size: item.size,
+        mime_type: item.mime_type,
+        url: item.url,
+      })) || []
 
   chat_list.value.push({
     question: {
@@ -182,15 +187,13 @@ const onSendConfirm = async (question: string, user_files?: any[], type = '') =>
       loading: true,
       role: 'assistant',
       content: '',
-    	reasoning_expanded: true,
+      reasoning_expanded: true,
       reasoning_content: '',
     },
   })
   active_chat_index = chat_list.value.length - 1
   active_chat_data = chat_list.value[active_chat_index] || {}
-  let messages = [
-    { role: 'user', content: question },
-  ]
+  let messages = [{ role: 'user', content: question }]
   if (user_files.length) {
     messages = [
       {
@@ -206,36 +209,38 @@ const onSendConfirm = async (question: string, user_files?: any[], type = '') =>
     ]
   }
 
-  conversation_store.chat({
-    data: {
-      conversation_id,
-      messages,
-      agent_id: agentFormStore.agent_data.agent_id,
-      agent_configs: agentFormStore.agent_data.configs,
-    },
-    hideError: true,
-    onDownloadProgress: async ({ chunks = [], intact_content, intact_reasoning_content } = {}) => {
-      active_chat_data.answer.content = intact_content || active_chat_data.answer.content || ''
-      active_chat_data.answer.reasoning_content = intact_reasoning_content || active_chat_data.answer.reasoning_content || ''
-      if (chunks[0] && chunks[0].role)
-        active_chat_data.answer.role = chunks[0].role || ''
-      await nextTick()
-      if (scroll_ref.value)
-        scroll_ref.value.scrollToBottom()
-    },
-    signal: abort_controller.signal,
-  }).catch((err) => {
-    if (!active_chat_data.answer.content)
-      active_chat_data.answer.content = err.message
+  conversationStore
+    .chat({
+      data: {
+        conversation_id,
+        messages,
+        agent_id: agentFormStore.agent_data.agent_id,
+        agent_configs: agentFormStore.agent_data.configs,
+      },
+      hideError: true,
+      onDownloadProgress: async ({ chunks = [], intact_content, intact_reasoning_content } = {}) => {
+        active_chat_data.answer.content = intact_content || active_chat_data.answer.content || ''
+        active_chat_data.answer.reasoning_content =
+          intact_reasoning_content || active_chat_data.answer.reasoning_content || ''
+        if (chunks[0] && chunks[0].role) active_chat_data.answer.role = chunks[0].role || ''
+        await nextTick()
+        if (scroll_ref.value) scroll_ref.value.scrollToBottom()
+      },
+      signal: abort_controller.signal,
+    })
+    .catch(err => {
+      if (!active_chat_data.answer.content) active_chat_data.answer.content = err.message
 
-    ElMessage.warning(err.message === 'Access token is invalid' ? window.$t('agent_app.check_agent_config_tip') : err.message)
-  }).finally(() => {
-    active_chat_data.answer.loading = false
-    abort_controller = null
-  })
+      ElMessage.warning(
+        err.message === 'Access token is invalid' ? window.$t('agent_app.check_agent_config_tip') : err.message
+      )
+    })
+    .finally(() => {
+      active_chat_data.answer.loading = false
+      abort_controller = null
+    })
   await nextTick()
-  if (scroll_ref.value)
-    scroll_ref.value.scrollToBottom()
+  if (scroll_ref.value) scroll_ref.value.scrollToBottom()
 }
 const onStopGeneration = () => {
   if (abort_controller) {
@@ -244,7 +249,7 @@ const onStopGeneration = () => {
     active_chat_data.answer.loading = false
   }
 }
-const onRestartGeneration = (data) => {
+const onRestartGeneration = data => {
   // chat_list.value.splice(0, active_chat_index + 1)
   onSendConfirm(data.question.content, data.question.user_files, 'regenerate')
 }
@@ -265,13 +270,16 @@ const handleSuggestion = (question: string) => {
 }
 
 const is_config_changed = ref(false)
-watch(() => agentFormStore.form_data.custom_config, (data) => {
-  is_config_changed.value = false
-  if (conversation_id)
-    is_config_changed.value = true
-}, {
-  deep: true,
-})
+watch(
+  () => agentFormStore.form_data.custom_config,
+  data => {
+    is_config_changed.value = false
+    if (conversation_id) is_config_changed.value = true
+  },
+  {
+    deep: true,
+  }
+)
 
 defineExpose({
   restart: onRestart,
@@ -279,6 +287,4 @@ defineExpose({
 })
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

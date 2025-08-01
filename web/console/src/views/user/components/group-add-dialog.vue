@@ -1,13 +1,36 @@
+<template>
+	<ElDialog v-model="visible" :title="$t(editable ? 'action_edit' : 'action_create')" :close-on-click-modal="false"
+		width="600px" destroy-on-close append-to-body @close="close">
+		<ElForm ref="formRef" :model="formData" label-position="top">
+			<ElFormItem class="is-required" :label="$t('name')" prop="name"
+				:rules="generateInputRules({ message: 'form_input_placeholder' })">
+				<ElInput v-model="formData.name" size="large" maxlength="20" show-word-limit
+					:placeholder="$t('form_input_placeholder')" />
+			</ElFormItem>
+		</ElForm>
+		<template #footer>
+			<div class="py-4 flex items-center justify-center">
+				<ElButton class="w-[96px] h-[36px] text-[#1D1E1F]" type="info" plain @click.stop="close">
+					{{ $t('action_cancel') }}
+				</ElButton>
+				<ElButton class="w-[96px] h-[36px]" type="primary" :loading="submitting" @click="handleSave">
+					{{ $t('action_confirm') }}
+				</ElButton>
+			</div>
+		</template>
+	</ElDialog>
+</template>
+
 <script setup lang="ts">
-import { reactive, ref } from 'vue'
-import { generateInputRules } from '@/utils/form-rule'
-import { groupApi, GROUP_TYPE_INTERNAL_USER } from '@/api/modules/group'
+import { reactive, ref } from 'vue';
+import { generateInputRules } from '@/utils/form-rule';
+import { groupApi } from '@/api/modules/group';
+
+import { GROUP_TYPE } from '@/constants/group';
 
 const emits = defineEmits<{
 	(e: 'success'): void
 }>()
-
-const DEFAULT_SORT = 999999
 
 const formRef = ref()
 const visible = ref(false)
@@ -39,9 +62,9 @@ const reset = () => {
 const handleSave = async () => {
 	const valid = await formRef.value.validate()
 	if (!valid) return
-	let data = {
+	const data = {
 		group_id: originData.value.group_id,
-		group_type: GROUP_TYPE_INTERNAL_USER,
+		group_type: GROUP_TYPE.INTERNAL_USER,
 		group_name: formData.name,
 		sort: +originData.value.sort || 0,
 	}
@@ -61,29 +84,6 @@ defineExpose({
   reset,
 })
 </script>
-
-<template>
-	<ElDialog v-model="visible" :title="$t(editable ? 'action_edit' : 'action_create')" :close-on-click-modal="false"
-		width="600px" destroy-on-close append-to-body @close="close">
-		<ElForm ref="formRef" :model="formData" label-position="top">
-			<ElFormItem class="is-required" :label="$t('name')" prop="name"
-				:rules="generateInputRules({ message: 'form_input_placeholder' })">
-				<ElInput v-model="formData.name" size="large" maxlength="20" show-word-limit
-					:placeholder="$t('form_input_placeholder')" />
-			</ElFormItem>
-		</ElForm>
-		<template #footer>
-			<div class="py-4 flex items-center justify-center">
-				<ElButton class="w-[96px] h-[36px] text-[#1D1E1F]" type="info" plain @click.stop="close">
-					{{ $t('action_cancel') }}
-				</ElButton>
-				<ElButton class="w-[96px] h-[36px]" type="primary" :loading="submitting" @click="handleSave">
-					{{ $t('action_confirm') }}
-				</ElButton>
-			</div>
-		</template>
-	</ElDialog>
-</template>
 
 <style scoped>
 </style>

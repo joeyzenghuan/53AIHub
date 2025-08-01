@@ -89,6 +89,8 @@ func GetAdaptor(apiType int) adaptor.Adaptor {
 		return &yuanqi.Adaptor{}
 	case model.ChannelApiTypeFastGpt:
 		return &Hub_openai.Adaptor{}
+	case model.ChannelApiTypeMaxKB:
+		return &Hub_openai.Adaptor{}
 	}
 
 	return nil
