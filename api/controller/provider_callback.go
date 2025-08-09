@@ -7,7 +7,6 @@ import (
 	"strconv"
 	"strings"
 
-	"github.com/53AI/53AIHub/config"
 	"github.com/53AI/53AIHub/model"
 	"github.com/53AI/53AIHub/service"
 	"github.com/gin-gonic/gin"
@@ -59,12 +58,15 @@ func CozeCallBack(c *gin.Context) {
 		return
 	}
 
-	// scheme := "http"
-	// if c.Request.TLS != nil || c.Request.Header.Get("X-Forwarded-Proto") == "https" {
-	// 	scheme = "https"
-	// }
-
-	scheme := "https"
+	// 根据实际请求获取scheme
+	var scheme string
+	if c.Request.TLS != nil {
+		scheme = "https"
+	} else if proto := c.Request.Header.Get("X-Forwarded-Proto"); proto != "" {
+		scheme = proto
+	} else {
+		scheme = "http"
+	}
 	callbackUrl := scheme + "://" + c.Request.Host + c.Request.URL.Path
 	ser := service.CozeService{
 		Provider: provider,
@@ -124,14 +126,9 @@ func CozeCallBack(c *gin.Context) {
 		}
 	}
 
-	domain := "hub.53ai.com"
-	if config.Server == "develop" {
-		domain = "hubtest.53ai.com"
-	}
-
 	// Redirect to frontend page
 	redirectURL := fmt.Sprintf(scheme+"://%s/console/?is_authorized=%t&provider_id=%d&provider_type=%d",
-		domain, provider.IsAuthorized, provider.ProviderID, provider.ProviderType)
+		c.Request.Host, provider.IsAuthorized, provider.ProviderID, provider.ProviderType)
 	c.Redirect(http.StatusFound, redirectURL)
 
 	c.JSON(http.StatusOK, model.Success.ToResponse(nil))
