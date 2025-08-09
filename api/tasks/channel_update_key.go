@@ -53,18 +53,11 @@ func updateCozeCnKey() {
 		}
 
 		// Check and refresh token
-		isRefreshed, err := ser.CheckAndRefreshToken()
+		err := ser.HandlerAccessTokenByRefreshToken()
 		if err != nil {
 			logger.SysErrorf("Failed to refresh provider token: %d error: %v", provider.ProviderID, err)
 			failCount++
 			continue
-		}
-
-		if isRefreshed {
-			logger.SysLogf("Successfully refreshed provider token: %d", provider.ProviderID)
-			successCount++
-		} else {
-			logger.SysLogf("Provider token refresh not needed: %d", provider.ProviderID)
 		}
 	}
 
