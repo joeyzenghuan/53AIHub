@@ -16,7 +16,7 @@ services:
 
   redis:
     image: redis:6-alpine
-    command: redis-server --requirepass your_redis_password  # 设置 Redis 密码
+    command: redis-server --requirepass your_redis_password  # 设置 Redis 密码,改这里同时要改.env文件
 
     volumes:
       - redis_data:/data
