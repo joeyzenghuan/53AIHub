@@ -127,9 +127,9 @@ cat logs/53aihub.log
 - 检查数据库连接参数是否正确
 - 确认数据库用户是否有足够的权限
 
-### 3. 微信支付配置
+### 3. 支付配置
 
-如需支持微信支付功能，必须配置 `API_HOST` 环境变量：
+如需支持微信支付功能、支付宝支付功能，必须配置 `API_HOST` 环境变量：
 
 ```bash
 export API_HOST="http://your-domain.com"
@@ -158,6 +158,22 @@ panic: runtime error: invalid memory address or nil pointer dereference
 
 - 确保在使用 logger 前已正确初始化
 
+请注意：静态编译需要安装一些额外的依赖项（例如 GCC、G++、Git、Make），请查看 Makefile 中的静态编译命令，以获得更多信息。如果您的环境缺少这些依赖项，可能会导致静态编译失败。
+
+错误信息示例2：
+
+```
+CGO_ENABLED=0 go build -trimpath -v -o bin/53aihub -a -ldflags '-X "github.com/53AI/53AIHub/config.VersionTime=20250817222030" -extldflags "-static"' ./main.go
+main.go:18:29: pattern all:static/console: no matching files found
+make: *** [Makefile:48: static-build] Error 1
+
+可能原因：
+
+- 没有先编绎前端
+
+//go:embed all:static/front all:static/console static/images all:static/libs
+上面这句的意思是打包前端资源，注意要先将前端打包成出来，分别放在static/front和static/console里
+不熟悉go的请注意它就是这种注释语法
 如果您遇到其他问题，请提交 GitHub Issue 获取支持。
 
 ```

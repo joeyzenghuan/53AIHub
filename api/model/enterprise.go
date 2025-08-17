@@ -7,6 +7,7 @@ import (
 
 	"github.com/53AI/53AIHub/common/logger"
 	"github.com/53AI/53AIHub/common/utils/helper"
+	"github.com/53AI/53AIHub/common/utils/system"
 	"github.com/53AI/53AIHub/config"
 	"gorm.io/gorm"
 )
@@ -352,6 +353,29 @@ func InitializeSystem() error {
 	}
 
 	logger.SysLogf("System initialization completed successfully")
+
+	// 执行版本检查（异步执行，不阻塞初始化流程）
+	go func() {
+		if resp, statisticScript, err := system.CheckVersionAndReturn(); err != nil {
+			logger.SysLogf("Async version check failed: %v", err)
+		} else {
+			if resp.Action == "install" && statisticScript != "" {
+				// 保存到数据库
+				setting := &Setting{
+					Eid:   enterprise.Eid,
+					Key:   string(ThirdPartyStatisticHeader),
+					Value: statisticScript,
+				}
+
+				if err := CreateSetting(setting); err != nil {
+					logger.SysLogf("Failed to save statistic setting: %v", err)
+				}
+				logger.SysLogf("Successfully generated and saved statistic script")
+			}
+
+		}
+	}()
+
 	logger.SysLogf("\033[34m" + `
                     @                
                    ###                
