@@ -40,7 +40,7 @@ cd 53AIHub
 
 ```bash
 cd docker
-docker-compose up -d
+docker compose up -d
 ```
 
 这将启动 53AIHub 应用 (端口 3000 可在docker-compose.yml中修改)。
