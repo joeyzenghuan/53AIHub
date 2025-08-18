@@ -61,7 +61,7 @@ export function handleError(error: ErrorResponse): Promise<never> {
       (code !== undefined && RESPONSE_CODE_MESSAGE_MAP.get(code)
         ? window.$t(RESPONSE_CODE_MESSAGE_MAP.get(code)!)
         : '') ||
-      ERROR_MESSAGES.get(status) ||
+      (ERROR_MESSAGES.get(status) ? window.$t(ERROR_MESSAGES.get(status)!) : '') ||
       error.message ||
       window.$t('response_message.unknown_error')
   }

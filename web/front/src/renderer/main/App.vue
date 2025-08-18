@@ -58,9 +58,13 @@ const insertScript = (content: string) => {
   if (scripts.length) {
     scripts.forEach((script) => {
       const newScript = document.createElement('script')
-      if (script.src) {
-        newScript.src = script.src
-      } else {
+      // Copy all attributes from the original script element
+      Array.from(script.attributes).forEach((attr) => {
+        newScript.setAttribute(attr.name, attr.value)
+      })
+
+      // If no src attribute, set type and content
+      if (!script.src) {
         newScript.type = 'text/javascript'
         newScript.appendChild(document.createTextNode(script.innerHTML))
       }
