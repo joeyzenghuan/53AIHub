@@ -30,6 +30,7 @@
 }
 
 .el-drawer {
+  transition: none !important;
   &__header {
     border-bottom: 1px solid #dcdfe6;
     margin-bottom: 0 !important;
@@ -57,6 +58,6 @@
 
 .el-input-number.el-input-number--left {
   .el-input__inner {
-    text-align: left;
+    text-align: left !important;
   }
 }

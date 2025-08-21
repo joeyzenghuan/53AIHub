@@ -76,6 +76,7 @@
       </template>
       <template v-else>
         <BaseConfig />
+        <RelateApp />
         <ExpandConfig />
         <UseScope />
       </template>
@@ -89,6 +90,7 @@ import AgentInfo from '../components/agent-info.vue'
 import BaseConfig from '../components/base-config.vue'
 import ExpandConfig from '../components/expand-config.vue'
 import UseScope from '../components/use-scope.vue'
+import RelateApp from '../components/relate-agents.vue'
 
 import { useAgentFormStore } from '../store'
 import { generateInputRules } from '@/utils/form-rule'

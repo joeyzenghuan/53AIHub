@@ -25,8 +25,10 @@ import (
 	"github.com/53AI/53AIHub/service/hub_adaptor/custom"
 	"github.com/53AI/53AIHub/service/hub_adaptor/dify"
 	"github.com/53AI/53AIHub/service/hub_adaptor/fastgpt"
+	"github.com/53AI/53AIHub/service/hub_adaptor/n8n"
 	"github.com/gin-gonic/gin"
 	"github.com/songquanpeng/one-api/common"
+	oneapi_model "github.com/songquanpeng/one-api/model"
 	"github.com/songquanpeng/one-api/monitor"
 	"github.com/songquanpeng/one-api/relay/adaptor"
 	"github.com/songquanpeng/one-api/relay/adaptor/openai"
@@ -37,6 +39,7 @@ import (
 	"github.com/songquanpeng/one-api/relay/controller"
 	"github.com/songquanpeng/one-api/relay/controller/validator"
 	"github.com/songquanpeng/one-api/relay/meta"
+	relay_meta "github.com/songquanpeng/one-api/relay/meta"
 	relay_model "github.com/songquanpeng/one-api/relay/model"
 	"github.com/songquanpeng/one-api/relay/relaymode"
 )
@@ -521,7 +524,7 @@ func getRequestBody(c *gin.Context, meta *meta.Meta, textRequest *relay_model.Ge
 func RelayTextHelper(c *gin.Context) *relay_model.ErrorWithStatusCode {
 	ctx := c.Request.Context()
 	user_id := config.GetUserId(c)
-	meta := meta.GetByContext(c)
+	meta := GetByContext(c)
 	channelId := c.GetInt64(ctxkey.ChannelId)
 	meta.ChannelId = int(channelId)
 	meta.APIType = model.GetApiType(meta.ChannelType)
@@ -847,6 +850,10 @@ func executeWorkflowDirect(c *gin.Context, workflowRequest *WorkflowRunRequest, 
 		return executeAI53Workflow(c, workflowRequest, agent, channel, modelName)
 	}
 
+	if channel.Type == model.ChannelApiTypeN8n {
+		return executeN8nWorkflow(c, workflowRequest, agent, channel, modelName)
+	}
+
 	return nil, fmt.Errorf("不支持的渠道类型: %d", channel.Type)
 }
 
@@ -903,7 +910,7 @@ func handleWorkflowError(resp *http.Response, workflowType string) error {
 // executeCozeWorkflow 执行 Coze 工作流
 func executeCozeWorkflow(c *gin.Context, workflowRequest *WorkflowRunRequest, agent *model.Agent, channel *model.Channel, modelName string) (*custom.WorkflowResponseData, error) {
 	// 获取元数据
-	meta := meta.GetByContext(c)
+	meta := GetByContext(c)
 	meta.APIType = model.GetApiType(channel.Type)
 	meta.OriginModelName = modelName
 	meta.ChannelId = int(channel.ChannelID)
@@ -996,7 +1003,7 @@ func executeCozeWorkflow(c *gin.Context, workflowRequest *WorkflowRunRequest, ag
 // executeDifyWorkflow 执行 DIFY 工作流
 func executeDifyWorkflow(c *gin.Context, workflowRequest *WorkflowRunRequest, agent *model.Agent, channel *model.Channel, modelName string) (*custom.WorkflowResponseData, error) {
 	// 获取元数据
-	meta := meta.GetByContext(c)
+	meta := GetByContext(c)
 	meta.APIType = model.GetApiType(channel.Type)
 	meta.OriginModelName = modelName
 	meta.ChannelId = int(channel.ChannelID)
@@ -1087,7 +1094,7 @@ func executeFastGPTWorkflow(c *gin.Context, workflowRequest *WorkflowRunRequest,
 	}
 
 	// 获取元数据
-	meta := meta.GetByContext(c)
+	meta := GetByContext(c)
 	meta.APIType = model.GetApiType(channel.Type)
 	meta.OriginModelName = modelName
 	meta.ChannelId = int(channel.ChannelID)
@@ -1172,7 +1179,7 @@ func executeAI53Workflow(c *gin.Context, workflowRequest *WorkflowRunRequest, ag
 	}
 
 	// 获取元数据
-	meta := meta.GetByContext(c)
+	meta := GetByContext(c)
 	meta.APIType = model.GetApiType(channel.Type)
 	meta.OriginModelName = modelName
 	meta.ChannelId = int(channel.ChannelID)
@@ -1419,6 +1426,97 @@ func calculateWorkflowTokens(workflowRequest *WorkflowRunRequest, response *cust
 	return promptTokens, completionTokens, totalTokens
 }
 
+// executeN8nWorkflow 执行 n8n 工作流
+func executeN8nWorkflow(c *gin.Context, workflowRequest *WorkflowRunRequest, agent *model.Agent, channel *model.Channel, modelName string) (*custom.WorkflowResponseData, error) {
+	// 检查 Agent 类型是否为工作流类型
+	if agent.AgentType != model.AgentTypeWorkflow {
+		return nil, fmt.Errorf("Agent 类型不是工作流类型，当前类型: %d", agent.AgentType)
+	}
+
+	// 获取元数据
+	meta := GetByContext(c)
+	meta.APIType = model.GetApiType(channel.Type)
+	meta.OriginModelName = modelName
+	meta.ChannelId = int(channel.ChannelID)
+	if channel.BaseURL != nil {
+		meta.BaseURL = *channel.BaseURL
+	}
+	meta.APIKey = channel.Key
+
+	// 应用模型映射
+	mappedModel, _ := getMappedModelName(modelName, meta.ModelMapping)
+	meta.ActualModelName = mappedModel
+
+	logger.SysLogf("n8n工作流执行 - 模型映射，OriginModel: %s, ActualModel: %s",
+		meta.OriginModelName, meta.ActualModelName)
+
+	// 创建工作流适配器
+	workflowAdaptor := &n8n.N8nWorkflowAdaptor{}
+	workflowAdaptor.Init(meta)
+
+	// 设置自定义配置
+	user_id := config.GetUserId(c)
+	conversation, err := GetSessionConversation(c)
+	if err == nil {
+		customConfig := &custom.CustomConfig{
+			UserId:                     "angethub_u" + fmt.Sprintf("%d", user_id),
+			ConversationId:             conversation.ChannelConversationID,
+			ConversationExpirationTime: conversation.ChannelConversationExpirationTime,
+			AIHubConversationId:        conversation.ConversationID,
+		}
+		workflowAdaptor.CustomConfig = customConfig
+	}
+
+	// 构建工作流请求
+	workflowID := extractWorkflowID(agent.Model, agent.CustomConfig)
+	if workflowID == "" {
+		return nil, fmt.Errorf("无法提取工作流ID")
+	}
+
+	// 转换工作流请求为 n8n 工作流请求
+	n8nRequest, err := workflowAdaptor.ConvertWorkflowRequest(workflowID, workflowRequest.Parameters)
+	if err != nil {
+		return nil, fmt.Errorf("转换n8n工作流请求失败: %v", err)
+	}
+
+	// 序列化请求
+	requestBody, err := json.Marshal(n8nRequest)
+	if err != nil {
+		return nil, fmt.Errorf("序列化n8n工作流请求失败: %v", err)
+	}
+
+	// 执行请求
+	resp, err := workflowAdaptor.DoRequest(c, meta, bytes.NewReader(requestBody))
+	if err != nil {
+		return nil, fmt.Errorf("执行n8n工作流请求失败: %v", err)
+	}
+
+	// 检查 HTTP 状态码
+	if resp.StatusCode >= 400 {
+		return nil, handleWorkflowError(resp, "n8n")
+	}
+
+	// 处理响应
+	workflowResponse, err := workflowAdaptor.ProcessResponse(resp)
+	if err != nil {
+		return nil, fmt.Errorf("处理n8n工作流响应失败: %v", err)
+	}
+
+	// 设置响应信息
+	workflowResponse.ChannelID = int(channel.ChannelID)
+	workflowResponse.ModelName = agent.Model
+
+	if len(workflowResponse.WorkflowOutputData) == 0 {
+		logger.SysLogf("⚠️ n8n工作流执行成功但输出字段为空 - ExecuteID: %s", workflowResponse.ExecuteID)
+		logger.SysLogf("🔍 n8n工作流详细输出数据: %+v", workflowResponse)
+	} else {
+		logger.SysLogf("✅ n8n工作流执行成功 - ExecuteID: %s, 输出字段数: %d",
+			workflowResponse.ExecuteID, len(workflowResponse.WorkflowOutputData))
+	}
+
+	return workflowResponse, nil
+}
+
 // getWorkflowChannelType 获取工作流的渠道类型
 func getWorkflowChannelType(response *custom.WorkflowResponseData) int {
 	// 从响应中获取渠道ID，然后查询渠道类型
@@ -1430,4 +1528,33 @@ func getWorkflowChannelType(response *custom.WorkflowResponseData) int {
 
 	// 默认返回 Coze 类型（当前主要支持的工作流类型）
 	return channeltype.Coze
+}
+
+func GetByContext(c *gin.Context) *relay_meta.Meta {
+	meta := relay_meta.Meta{
+		Mode:            relaymode.GetByPath(c.Request.URL.Path),
+		ChannelType:     c.GetInt(ctxkey.Channel),
+		ChannelId:       c.GetInt(ctxkey.ChannelId),
+		TokenId:         c.GetInt(ctxkey.TokenId),
+		TokenName:       c.GetString(ctxkey.TokenName),
+		UserId:          c.GetInt(ctxkey.Id),
+		Group:           c.GetString(ctxkey.Group),
+		ModelMapping:    c.GetStringMapString(ctxkey.ModelMapping),
+		OriginModelName: c.GetString(ctxkey.RequestModel),
+		BaseURL:         c.GetString(ctxkey.BaseURL),
+		APIKey:          strings.TrimPrefix(c.Request.Header.Get("Authorization"), "Bearer "),
+		RequestURLPath:  c.Request.URL.String(),
+		SystemPrompt:    c.GetString(ctxkey.SystemPrompt),
+	}
+	cfg, ok := c.Get(ctxkey.Config)
+	if ok {
+		meta.Config = cfg.(oneapi_model.ChannelConfig)
+	}
+	if meta.BaseURL == "" {
+		if meta.ChannelType >= 0 && meta.ChannelType < len(channeltype.ChannelBaseURLs) {
+			meta.BaseURL = channeltype.ChannelBaseURLs[meta.ChannelType]
+		}
+	}
+	meta.APIType = channeltype.ToAPIType(meta.ChannelType)
+	return &meta
 }

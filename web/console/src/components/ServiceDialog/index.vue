@@ -25,10 +25,19 @@
       </div>
       <div class="consult-ft px-[50px] py-[30px] max-md:px-4">
         <p
+          class="max-w-64"
           v-html="
-            `<span style='font-size: 15px;'>“</span>${$t('service.desc_1')}${title === $t('apply.contact_customer_service_v2') ? $t('action_renew') : title}<span style='font-size: 15px;'>”</span>`
+            `
+              <span style='font-size: 15px;'>“</span>
+              ${
+                title === $t('version.scan_consult')
+                  ? $t('service.desc_3') + $t('version.upgrade_renew')
+                  : $t('service.desc_1') + title
+              }
+              <span style='font-size: 15px;'>”</span>
+            `
           "
-        />
+        ></p>
         <!-- <p v-html="`<span style='font-size: 15px;'>“</span>${$t('service.desc_1')}<br />${$t('service.desc_2')}<span style='font-size: 15px;'>”</span>`" /> -->
       </div>
       <div class="consult-img right-[30px] max-md:right-[15px]">

@@ -1,6 +1,6 @@
 {
   "name": "53aihub-console",
-  "version": "0.1.6",
+  "version": "0.1.7",
   "description": "53aihub-console",
   "author": "53aihub",
   "homepage": "https://53ai.com/",
@@ -33,7 +33,6 @@
     "hub-ui-x": "^0.0.20",
     "pinia": "^2.3.1",
     "sortablejs": "^1.15.0",
-    "tiktoken": "^1.0.21",
     "vue": "~3.5.11",
     "vue-codemirror": "^6.1.1",
     "vue-cropper": "^1.0.9",

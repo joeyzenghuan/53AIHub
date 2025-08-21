@@ -398,12 +398,14 @@ const loadModelList = async () => {
 }
 
 const refresh = () => {
-  loadProviderList()
   loadModelList()
+  // #ifndef KM
+  loadProviderList()
   loadAgentListCount()
+  // #endif
 }
 const handleProviderAuthorize = ({ data = {} } = {}) => {
-  if ([PROVIDER_VALUE.COZE_CN].includes(data.value) && isInternalNetwork()) {
+  if ([PROVIDER_VALUE.COZE_CN, PROVIDER_VALUE.COZE_OSV].includes(data.value) && isInternalNetwork()) {
     return TipConfirm({
       title: window.$t('local_config_limited_tip'),
       content: window.$t('local_config_limited_desc', { url: window.location.href }),
@@ -411,6 +413,7 @@ const handleProviderAuthorize = ({ data = {} } = {}) => {
       showCancelButton: false,
     }).open()
   }
+
   if (data.auth) authorize_ref.value.open({ data })
   else agent_list_drawer_ref.value.open({ data, type: data.value })
 }

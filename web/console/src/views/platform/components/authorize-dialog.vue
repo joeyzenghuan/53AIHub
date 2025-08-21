@@ -8,18 +8,10 @@
     append-to-body
     @close="close"
   >
-    <ElForm
-      ref="form_ref"
-      :model="form"
-      :rules="formRules"
-      label-position="top"
-    >
+    <ElForm ref="form_ref" :model="form" :rules="formRules" label-position="top">
       <!-- 提示信息 -->
       <div class="w-full flex flex-col gap-3 bg-[#F6F9FC] p-5 mb-4 box-border text-sm text-[#4F5052]">
-        <div
-          class="whitespace-pre-wrap leading-7"
-          v-html="guideHtml"
-        />
+        <div class="whitespace-pre-wrap leading-7" v-html="guideHtml" />
         <ElIcon
           v-if="origin_data.value === PROVIDER_VALUE.COZE_CN"
           ref="copy_ref"
@@ -32,41 +24,21 @@
       </div>
 
       <template v-for="option in schemaOptions" :key="option.prop">
-        <ElFormItem
-          :label="option.label"
-          :prop="option.prop"
-        >
-          <ElInput
-            v-model="form[option.prop]"
-            size="large"
-            :placeholder="option.placeholder"
-          />
+        <ElFormItem :label="option.label" :prop="option.prop">
+          <ElInput v-model="form[option.prop]" size="large" :placeholder="option.placeholder" />
         </ElFormItem>
       </template>
     </ElForm>
 
     <template #footer>
-      <div
-        v-if="origin_data.value === PROVIDER_VALUE.COZE_CN"
-        class="text-center text-sm text-[#9A9A9A]"
-      >
+      <div v-if="origin_data.value === PROVIDER_VALUE.COZE_CN" class="text-center text-sm text-[#9A9A9A]">
         {{ $t('platform_auth.coze_cn.tip_1') }}
       </div>
       <div class="py-4 flex items-center justify-center">
-        <ElButton
-          class="w-[96px] h-[36px]"
-          type="primary"
-          :loading="saving"
-          @click="handleConfirm"
-        >
+        <ElButton class="w-[96px] h-[36px]" type="primary" :loading="saving" @click="handleConfirm">
           {{ $t('action_confirm') }}
         </ElButton>
-        <ElButton
-          class="w-[96px] h-[36px] text-[#1D1E1F]"
-          type="info"
-          plain
-          @click.stop="close"
-        >
+        <ElButton class="w-[96px] h-[36px] text-[#1D1E1F]" type="info" plain @click.stop="close">
           {{ $t('action_cancel') }}
         </ElButton>
       </div>
@@ -147,11 +119,13 @@ const PLATFORM_CONFIGS = {
     tip: {
       url: 'https://qianfan.cloud.baidu.com/appbuilder',
     },
-    fields: [{
-      label: 'module.platform_tool_api_key',
-      prop: 'api_key',
-      placeholder: 'module.platform_tool_api_key_placeholder',
-    }],
+    fields: [
+      {
+        label: 'module.platform_tool_api_key',
+        prop: 'api_key',
+        placeholder: 'module.platform_tool_api_key_placeholder',
+      },
+    ],
     transformData: (form: AuthForm) => ({
       access_token: form.api_key,
     }),
@@ -162,15 +136,18 @@ const PLATFORM_CONFIGS = {
       url: 'https://www.coze.cn/open/oauth/apps',
       needRedirectUrl: true,
     },
-    fields: [{
-      label: 'module.platform_auth_client_id',
-      prop: 'client_id',
-      placeholder: 'module.platform_auth_client_id_placeholder',
-    }, {
-      label: 'module.platform_auth_client_secret',
-      prop: 'client_secret',
-      placeholder: 'module.platform_auth_client_secret_placeholder',
-    }],
+    fields: [
+      {
+        label: 'module.platform_auth_client_id',
+        prop: 'client_id',
+        placeholder: 'module.platform_auth_client_id_placeholder',
+      },
+      {
+        label: 'module.platform_auth_client_secret',
+        prop: 'client_secret',
+        placeholder: 'module.platform_auth_client_secret_placeholder',
+      },
+    ],
     transformData: (form: AuthForm) => ({
       configs: {
         client_id: form.client_id,
@@ -178,26 +155,55 @@ const PLATFORM_CONFIGS = {
       },
     }),
     needsConfirmation: (form: AuthForm, origin: ProviderData) => {
-      return !origin.provider_id || (form.client_id !== origin.client_id || form.client_secret !== origin.client_secret)
+      return !origin.provider_id || form.client_id !== origin.client_id || form.client_secret !== origin.client_secret
     },
     getAuthUrl: (form: AuthForm, redirectUrl: string) => {
       return `https://www.coze.cn/api/permission/oauth2/authorize?response_type=code&client_id=${form.client_id}&redirect_uri=${encodeURIComponent(redirectUrl)}&state=coze_auth`
     },
+  },
+  [PROVIDER_VALUE.COZE_OSV]: {
+    i18n_key: 'coze_osv',
+    tip: {
+      url: 'https://www.53ai.com/',
+    },
+    fields: [
+      {
+        label: 'module.platform_tool_api_endpoint',
+        prop: 'base_url',
+        placeholder: 'module.platform_model_base_url_placeholder',
+      },
+      {
+        label: 'module.platform_tool_token',
+        prop: 'access_token',
+        placeholder: 'module.platform_tool_token_placeholder',
+      },
+    ],
+    setFormData: (form: AuthForm) => {
+      form.base_url = form.base_url.trim() || ''
+      form.access_token = form.access_token.trim()
+    },
+    transformData: (form: AuthForm) => ({
+      base_url: form.base_url,
+      access_token: form.access_token,
+    }),
   },
   [PROVIDER_VALUE['53AI']]: {
     i18n_key: '53ai',
     tip: {
       url: 'https://www.53ai.com/',
     },
-    fields: [{
-      label: 'module.platform_auth_url',
-      prop: 'base_url',
-      placeholder: 'module.platform_model_base_url_placeholder_53ai',
-    }, {
-      label: 'module.platform_auth_secret',
-      prop: 'access_token',
-      placeholder: 'module.platform_tool_api_key_placeholder',
-    }],
+    fields: [
+      {
+        label: 'module.platform_auth_url',
+        prop: 'base_url',
+        placeholder: 'module.platform_model_base_url_placeholder_53ai',
+      },
+      {
+        label: 'module.platform_auth_secret',
+        prop: 'access_token',
+        placeholder: 'module.platform_tool_api_key_placeholder',
+      },
+    ],
     setFormData: (form: AuthForm) => {
       form.base_url = form.base_url.trim() || 'https://api.53ai.com'
       form.access_token = form.access_token.trim()
@@ -210,13 +216,11 @@ const PLATFORM_CONFIGS = {
 }
 
 const guideHtml = computed(() => {
-  const {value} = origin_data.value
-  if (typeof value !== 'number')
-    return ''
+  const { value } = origin_data.value
+  if (typeof value !== 'number') return ''
 
   const config = PLATFORM_CONFIGS[value]
-  if (!config)
-    return ''
+  if (!config) return ''
 
   const tipParams: Record<string, string> = {
     url: `<a class='text-[#5A6D9E]' href='${config.tip.url}' target='_blank'>${config.tip.url}</a>`,
@@ -232,32 +236,34 @@ const guideHtml = computed(() => {
 })
 
 const schemaOptions = computed(() => {
-  const {value} = origin_data.value
-  if (typeof value !== 'number')
-    return []
+  const { value } = origin_data.value
+  if (typeof value !== 'number') return []
 
   const config = PLATFORM_CONFIGS[value]
-  return config?.fields.map(field => ({
-    label: window.$t(field.label),
-    prop: field.prop,
-    placeholder: window.$t(field.placeholder),
-  })) || []
+  return (
+    config?.fields.map(field => ({
+      label: window.$t(field.label),
+      prop: field.prop,
+      placeholder: window.$t(field.placeholder),
+    })) || []
+  )
 })
 
 // 表单验证规则
 const formRules = computed(() => {
   const rules: FormRules = {}
-  const {value} = origin_data.value
+  const { value } = origin_data.value
   if (typeof value === 'number' && PLATFORM_CONFIGS[value]) {
-    PLATFORM_CONFIGS[value].fields.forEach((field) => {
-      rules[field.prop] = [{
-        validator: (_, value: string, callback: Function) => {
-          if (!(value || '').trim())
-            return callback(new Error(window.$t(field.placeholder)))
-          callback()
+    PLATFORM_CONFIGS[value].fields.forEach(field => {
+      rules[field.prop] = [
+        {
+          validator: (_, value: string, callback: Function) => {
+            if (!(value || '').trim()) return callback(new Error(window.$t(field.placeholder)))
+            callback()
+          },
+          trigger: 'blur',
         },
-        trigger: 'blur',
-      }]
+      ]
     })
   }
   return rules
@@ -282,14 +288,13 @@ const open = async ({ data = {} as ProviderData } = {}) => {
   form.access_token = data.access_token || ''
 
   const config = PLATFORM_CONFIGS[data.value]
-  if (config?.setFormData)
-    config.setFormData(form)
+  if (config?.setFormData) config.setFormData(form)
 
   origin_data.value = data
   visible.value = true
 
   await nextTick()
-  const {value} = data
+  const { value } = data
   if (typeof value === 'number' && value === PROVIDER_VALUE.COZE_CN && copy_ref.value?.$el) {
     const copy_hook_el = form_ref.value?.$el.querySelector('.copy-hook')
     copy_hook_el?.appendChild(copy_ref.value.$el)
@@ -302,8 +307,7 @@ const close = () => {
 }
 
 const handleCopy = async (text: string) => {
-  if (!text)
-    return
+  if (!text) return
   await copyToClip(text)
   ElMessage.success(window.$t('action_copy_success'))
 }
@@ -321,17 +325,14 @@ const handleAuthorization = async (auth_url: string, provider_type: ProviderValu
 }
 
 const handleConfirm = async () => {
-  if (!form_ref.value)
-    return
+  if (!form_ref.value) return
 
   const valid = await form_ref.value.validate()
-  if (!valid)
-    return
+  if (!valid) return
 
   const providerType = origin_data.value.value as ProviderValueType
   const config = PLATFORM_CONFIGS[providerType]
-  if (!config)
-    return
+  if (!config) return
 
   const data: SaveData = {
     configs: {},
@@ -342,10 +343,7 @@ const handleConfirm = async () => {
   }
 
   if (config.needsConfirmation && config.needsConfirmation(form, origin_data.value)) {
-    await ElMessageBox.confirm(
-      window.$t('module.platform_auth_coze_confirm'),
-      window.$t('tip'),
-    )
+    await ElMessageBox.confirm(window.$t('module.platform_auth_coze_confirm'), window.$t('tip'))
   }
 
   try {
@@ -360,12 +358,10 @@ const handleConfirm = async () => {
     ElMessage.success(window.$t('action_save_success'))
     emits('success')
     close()
-  }
-  catch (error) {
+  } catch (error) {
     console.error('Save failed:', error)
     ElMessage.error(window.$t('action_save_failed'))
-  }
-  finally {
+  } finally {
     saving.value = false
   }
 }

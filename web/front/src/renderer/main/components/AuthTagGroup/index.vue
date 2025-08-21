@@ -89,7 +89,6 @@ const loading = ref(false)
 const subscriptionList = ref([])
 const fetchSubscriptionData = async () => {
   const { list = [] } = await subscriptionApi.list()
-  console.log('subscriptionList.value:', subscriptionList.value)
   subscriptionList.value = list
 }
 

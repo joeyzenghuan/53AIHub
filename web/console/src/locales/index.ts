@@ -15,24 +15,24 @@ import jaLocale from './ja.json'
 const messages = {
   'zh-cn': {
     ...zhLocale,
-    elementZhLocale
+    elementZhLocale,
   },
   'zh-tw': {
     ...twLocale,
-    elementZhTwLocale
+    elementZhTwLocale,
   },
   en: {
     ...enLocale,
-    elementEnLocale
+    elementEnLocale,
   },
   ja: {
     ...jaLocale,
-    elementJaLocale
-  }
+    elementJaLocale,
+  },
 }
 
 const browser_lang = navigator.language.toLowerCase()
-const is_zh = /^zh\b/.test(browser_lang)
+// const is_zh = /^zh\b/.test(browser_lang)
 const is_en = /^en\b/.test(browser_lang)
 const is_ja = /^ja\b/.test(browser_lang)
 const is_tw = /^tw\b/.test(browser_lang)
@@ -47,11 +47,12 @@ const i18n = createI18n({
   fallbackLocale: 'zh-cn',
   globalInjection: true, // 全局模式，可以直接使用 $t
   locale,
-  messages
+  messages,
 })
 
 HubUiX.setLang(locale)
 
 // 注册到全局，方便js上使用
+// @ts-expect-error
 window.$t = i18n.global.t
 export default i18n

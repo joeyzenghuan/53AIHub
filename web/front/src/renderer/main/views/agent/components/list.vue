@@ -25,6 +25,15 @@
           }
         "
       >
+        <div class="absolute top-0 right-0 bg-[#F4F4F7] flex items-center px-2 py-1 gap-1 rounded-bl-lg">
+          <SvgIcon
+            :name="item.custom_config_obj.agent_mode === 'chat' ? 'chat-agent' : 'completion-agent'"
+            class="h-3 w-[14px] text-[#939499]"
+          ></SvgIcon>
+          <p class="text-xs text-[#939499]">
+            {{ item.custom_config_obj.agent_mode === 'chat' ? $t('agent.dialogue_type') : $t('agent.applied_type') }}
+          </p>
+        </div>
         <el-image class="flex-none size-[50px] mr-4 rounded-full" :src="item.logo" fit="contain" />
         <div class="flex-1 overflow-hidden">
           <h3
@@ -57,6 +66,7 @@
 import { computed } from 'vue'
 import { useRouter, useRoute } from 'vue-router'
 import { useUserStore } from '@/stores/modules/user'
+import SvgIcon from '@/components/SvgIcon.vue'
 
 const props = withDefaults(
   defineProps<{
@@ -75,9 +85,10 @@ const router = useRouter()
 const route = useRoute()
 const userStore = useUserStore()
 const showList = computed(() => {
-  if (!props.keyword) return props.list
-  const filteredList = props.list.filter((item) => item.user_group_ids.length > 0)
-  return filteredList.filter((item) => {
+  if (!props.keyword) {
+    return props.list
+  }
+  return props.list.filter((item) => {
     return item.name.toLowerCase().includes(props.keyword.toLowerCase()) || item.description.toLowerCase().includes(props.keyword.toLowerCase())
   })
 })

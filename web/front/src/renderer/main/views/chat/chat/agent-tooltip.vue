@@ -36,7 +36,7 @@
         </el-tabs>
         <div class="h-[300px] overflow-y-auto mt-5">
           <div class="grid gap-4 grid-cols-2 max-md:grid-cols-1">
-            <template v-for="item in showAgentList" :key="item.name">
+            <template v-for="item in showAgentList" :key="item.agent_id">
               <div class="flex items-center p-3 bg-[#F8F9FA] rounded-lg cursor-pointer" @click="handleSelect(item)">
                 <el-avatar :size="36" :src="item.logo" class="mr-2" />
                 <div class="flex-1 overflow-hidden">
@@ -101,11 +101,19 @@ const state: {
 })
 
 const showAgentList = computed(() => {
+  const filterList = agentStore.agentList.filter((item) => item.user_group_ids.length > 0)
+  // if (!state.keyword) {
+  //   return state.group_id === 0 ? agentStore.agentList : agentStore.agentList.filter((item) => item.group_id === state.group_id)
+  // }
   if (!state.keyword) {
-    return state.group_id === 0 ? agentStore.agentList : agentStore.agentList.filter((item) => item.group_id === state.group_id)
+    return state.group_id === 0 ? filterList : filterList.filter((item) => item.group_id === state.group_id)
   }
   const keyword = state.keyword.toLowerCase().trim()
-  return agentStore.agentList.filter((item) => {
+  // return agentStore.agentList.filter((item) => {
+  //   const matchKeyword = item.name.toLowerCase().includes(keyword) || (item.description && item.description.toLowerCase().includes(keyword))
+  //   return (state.group_id === 0 || item.group_id === state.group_id) && matchKeyword
+  // })
+  return filterList.filter((item) => {
     const matchKeyword = item.name.toLowerCase().includes(keyword) || (item.description && item.description.toLowerCase().includes(keyword))
     return (state.group_id === 0 || item.group_id === state.group_id) && matchKeyword
   })

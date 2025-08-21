@@ -2,42 +2,45 @@
   <Layout class="px-[60px] py-8">
     <Header :title="$t('module.prompt')">
       <template #right>
-        <el-button type="primary" size="large" @click="handleMoreCommand('add')">
-          + {{ $t('action_add') }}
-        </el-button>
+        <el-button type="primary" size="large" @click="handleMoreCommand('add')"> + {{ $t('action_add') }} </el-button>
       </template>
     </Header>
     <div class="flex-1 overflow-y-auto bg-white rounded-lg px-10 py-6 mt-4">
       <div class="flex items-center justify-between mb-4">
         <div class="flex-1 w-0">
           <GroupTabs
-            ref="groupTabsRef" v-model="filter_form.group_id" type="dropdown" :group-type="GROUP_TYPE.PROMPT"
-            @change="refresh" @get-options="refresh"
+            ref="groupTabsRef"
+            v-model="filter_form.group_id"
+            type="dropdown"
+            :group-type="GROUP_TYPE.PROMPT"
+            @change="refresh"
+            @get-options="refresh"
           />
         </div>
         <div class="flex-none flex-center gap-3 ml-8">
           <ElInput
-            v-model="filter_form.keyword" size="large" clearable :placeholder="$t('prompt.search_placeholder')"
-            :suffix-icon="Search" @change="refresh"
+            v-model="filter_form.keyword"
+            size="large"
+            clearable
+            :placeholder="$t('prompt.search_placeholder')"
+            :suffix-icon="Search"
+            @change="refresh"
           />
-          <!-- <Search v-model="filter_form.keyword" placeholder="prompt.search_placeholder" @change="refresh" /> -->
-          <!-- <div class="flex items-center gap-1 whitespace-nowrap cursor-pointer text-[#576D9C]"
-						@click="groupTabsRef.open">
-						<svg-icon name="cate-manage" width="14px" height="14px" />
-						<div class="text-sm ">
-							{{ $t('group') }}
-						</div>
-					</div> -->
         </div>
       </div>
       <TablePlus
         header-row-class-name="rounded overflow-hidden"
-        header-cell-class-name="!bg-[#F6F7F8] !h-[60px] !border-none" :data="table_data" :total="table_total"
-        :loading="table_loading" :page="filter_form.page" :limit="filter_form.page_size"
-        @page-size-change="onTableSizeChange" @page-current-change="onTableCurrentChange"
+        header-cell-class-name="!bg-[#F6F7F8] !h-[60px] !border-none"
+        :data="table_data"
+        :total="table_total"
+        :loading="table_loading"
+        :page="filter_form.page"
+        :limit="filter_form.page_size"
+        @page-size-change="onTableSizeChange"
+        @page-current-change="onTableCurrentChange"
       >
         <ElTableColumn :label="$t('title')" min-width="140" prop="name" show-overflow-tooltip />
-        <ElTableColumn :label="$t('description')" min-width="180" show-overflow-tooltip>
+        <ElTableColumn :label="$t('description')" min-width="250" show-overflow-tooltip>
           <template #default="{ row }">
             <span :class="!row.description ? 'text-[#999]' : ''">
               {{ row.description || '--' }}
@@ -51,15 +54,12 @@
             </span>
           </template>
         </ElTableColumn>
-        <ElTableColumn :label="$t('sort')" width="80" show-overflow-tooltip>
-          <template #default="{ row = {} }">
-            {{ row.sort }}
-          </template>
-        </ElTableColumn>
-        <ElTableColumn :label="$t('action_enable')" width="80">
+        <ElTableColumn :label="$t('action_enable')" width="100">
           <template #default="{ row }">
             <ElSwitch
-              v-model="row.status" :active-value="1" :inactive-value="0"
+              v-model="row.status"
+              :active-value="1"
+              :inactive-value="0"
               @change="handleMoreCommand('update_status', row)"
             />
           </template>
@@ -92,7 +92,6 @@ import { promptApi } from '@/api/modules/prompt'
 
 import { GROUP_TYPE } from '@/constants/group'
 
-
 defineOptions({
   name: 'Prompt',
 })
@@ -114,20 +113,22 @@ const table_loading = ref(false)
 
 const fetchPromptData = async () => {
   table_loading.value = true
-  const { total = 0, list = [] } = await promptApi.list({
-    params: {
-      group_id: filter_form.group_id.join(','),
-      keyword: filter_form.keyword,
-      offset: (filter_form.page - 1) * filter_form.page_size,
-      limit: filter_form.page_size,
-    },
-  }).finally(() => {
-    table_loading.value = false
-  })
+  const { total = 0, list = [] } = await promptApi
+    .list({
+      params: {
+        group_id: filter_form.group_id.join(','),
+        keyword: filter_form.keyword,
+        offset: (filter_form.page - 1) * filter_form.page_size,
+        limit: filter_form.page_size,
+      },
+    })
+    .finally(() => {
+      table_loading.value = false
+    })
   table_total.value = total
   table_data.value = []
   await nextTick()
-  table_data.value = [...list].map((item) => {
+  table_data.value = [...list].map(item => {
     item.group_ids = item.group_ids || []
     let options = groupTabsRef.value.getData()
     options = options.filter(row => (item.group_ids || []).includes(row.group_id)) || {}
@@ -188,5 +189,4 @@ onUnmounted(() => {
 })
 </script>
 
-<style scoped>
-</style>
+<style scoped></style>

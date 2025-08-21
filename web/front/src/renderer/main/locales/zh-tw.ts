@@ -298,7 +298,8 @@ export default {
     no_available_agent: '暫無可用的智能體',
     completion_completed: '已完成深度思考',
     completion_thinking: '深度思考中...',
-    completion_next_action: '關聯場景做下一步操作'
+    completion_scene: '關聯場景：',
+    completion_next_action: '關聯場景：下一步操作'
   },
 
   // 知識庫相關
@@ -327,7 +328,9 @@ export default {
   },
 
   agent: {
-    no_data: '管理員還未發布智能體'
+    no_data: '管理員還未發布智能體',
+    dialogue_type: '對話型',
+    applied_type: '應用型'
   },
 
   prompt: {

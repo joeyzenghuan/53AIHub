@@ -76,6 +76,7 @@
         </template>
         <template v-else>
           <BaseConfig />
+          <RelateApp />
           <ExpandConfig />
         </template>
         <UseScope />
@@ -133,7 +134,7 @@ const agentTypeOptions = [
     value: AGENT_TYPES.DIFY_AGENT,
   },
   {
-    icon: 'workflow',
+    icon: 'completion-agent',
     label: window.$t('agent.dify.agent_type_workflow'),
     description: window.$t('agent.dify.agent_type_workflow_desc'),
     value: AGENT_TYPES.DIFY_WORKFLOW,

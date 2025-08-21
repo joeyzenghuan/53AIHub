@@ -31,8 +31,8 @@ const versionPlugin = () => {
       handler: async (options: { dir?: string }) => {
         const outDir = options.dir || 'dist'
         fs.writeFileSync(path.join(outDir, 'version.txt'), version)
-      }
-    }
+      },
+    },
   }
 }
 
@@ -41,14 +41,18 @@ function setupPlugins(env: ImportMetaEnv): PluginOption[] {
     // 条件编译插件 - 必须在其他插件之前执行
     conditionalCompilation({
       platform: env.VITE_PLATFORM,
-      debug: true // 强制开启调试模式
+      debug: true, // 强制开启调试模式
     }),
     vue({
       template: {
         compilerOptions: {
-          isCustomElement: (tag) => tag.startsWith('ww-open-data') || tag.startsWith('dt-open-data')
-        }
-      }
+          isCustomElement: tag => tag.startsWith('ww-open-data') || tag.startsWith('dt-open-data'),
+        },
+      },
+      script: {
+        defineModel: true,
+        propsDestructure: true,
+      },
     }),
     env.VITE_GLOB_APP_PWA === 'true' &&
       VitePWA({
@@ -58,35 +62,35 @@ function setupPlugins(env: ImportMetaEnv): PluginOption[] {
           short_name: '53aiHub',
           icons: [
             { src: 'pwa-140x140.png', sizes: '140x140', type: 'image/png' },
-            { src: 'pwa-210x210.png', sizes: '210x210', type: 'image/png' }
-          ]
-        }
+            { src: 'pwa-210x210.png', sizes: '210x210', type: 'image/png' },
+          ],
+        },
       }),
     AutoImport({
-      resolvers: [ElementPlusResolver()]
+      resolvers: [ElementPlusResolver()],
     }),
     Components({
-      resolvers: [ElementPlusResolver()]
+      resolvers: [ElementPlusResolver()],
     }),
     createSvgIconsPlugin({
       iconDirs: [path.resolve(process.cwd(), 'src/icons')],
-      symbolId: 'icon-[name]'
+      symbolId: 'icon-[name]',
     }),
     wasm(),
     topLevelAwait(),
-    versionPlugin()
+    versionPlugin(),
   ]
 }
 
-export default defineConfig((env) => {
+export default defineConfig(env => {
   const viteEnv = loadEnv(env.mode, process.cwd()) as unknown as ImportMetaEnv
   console.log(viteEnv)
   return {
     base: viteEnv.VITE_BASE_PATH || '/console',
     resolve: {
       alias: {
-        '@': path.resolve(process.cwd(), 'src')
-      }
+        '@': path.resolve(process.cwd(), 'src'),
+      },
     },
     plugins: setupPlugins(viteEnv),
     server: {
@@ -97,24 +101,24 @@ export default defineConfig((env) => {
         '/api': {
           target: viteEnv.VITE_APP_API_BASE_URL,
           changeOrigin: true, // 允许跨域
-          rewrite: (urlPath) => urlPath.replace('/api/', '/')
-        }
+          rewrite: urlPath => urlPath.replace('/api/', '/'),
+        },
       },
-      allowedHosts: ['hubtest.53ai.com', 'hub.53ai.com', 'kmtest.53ai.com', 'km.53ai.com']
+      allowedHosts: ['hubtest.53ai.com', 'hub.53ai.com', 'kmtest.53ai.com', 'km.53ai.com'],
     },
     build: {
       outDir: viteEnv.VITE_PLATFORM === 'web' ? 'dist' : `../../api/static/console`,
       reportCompressedSize: false,
       sourcemap: false,
       commonjsOptions: {
-        ignoreTryCatch: false
+        ignoreTryCatch: false,
       },
       assetsDir: 'static/images/',
       rollupOptions: {
         output: {
           chunkFileNames: 'static/js/[name]-[hash].js',
           entryFileNames: 'static/js/[name]-[hash].js',
-          assetFileNames: 'static/[ext]/[name]-[hash].[ext]'
+          assetFileNames: 'static/[ext]/[name]-[hash].[ext]',
           // 解决打包时Some chunks are larger警告
           // manualChunks(id) {
           //   if (id.includes('node_modules')) {
@@ -125,8 +129,8 @@ export default defineConfig((env) => {
           //       .toString()
           //   }
           // },
-        }
-      }
-    }
+        },
+      },
+    },
   }
 })

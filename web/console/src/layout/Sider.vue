@@ -68,6 +68,10 @@
                 {{ $t('module.chunk_setting') }}
               </el-menu-item>
             </el-menu-item-group>
+
+            <el-menu-item-group>
+              <el-menu-item index="/model"> 模型设置 </el-menu-item>
+            </el-menu-item-group>
           </el-sub-menu>
           <!-- #endif -->
 
@@ -84,17 +88,22 @@
               <el-menu-item v-if="enterprise_info.is_independent || enterprise_info.is_industry" index="/user/register">
                 {{ $t('register_user.title') }}
               </el-menu-item>
-              <!-- #endif -->
 
               <el-menu-item v-if="!isOpLocalEnv && !enterprise_info.is_independent" index="/user/internal">
                 {{ $t('internal_user.title') }}
               </el-menu-item>
 
-              <!-- #ifndef KM -->
               <el-menu-item index="/subscription">
                 {{ $t('module.subscription') }}
               </el-menu-item>
               <!-- #endif -->
+
+              <!-- #ifdef KM -->
+              <el-menu-item index="/user/internal">
+                {{ $t('internal_user.title') }}
+              </el-menu-item>
+              <!-- #endif -->
+
               <el-menu-item index="/user/admin">
                 {{ $t('admin_user.title') }}
               </el-menu-item>
@@ -135,6 +144,13 @@
               <el-menu-item v-if="!isOpLocalEnv && !enterprise_info.is_independent" index="/sso">
                 {{ $t('sso.title') }}
               </el-menu-item>
+
+              <!-- #ifdef KM -->
+              <el-menu-item index="/sso">
+                {{ $t('sso.title') }}
+              </el-menu-item>
+              <!-- #endif -->
+
               <el-menu-item index="/platform">
                 {{ $t('module.platform') }}
               </el-menu-item>

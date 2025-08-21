@@ -454,10 +454,17 @@ export const useAgentFormStore = defineStore('agent-form-store', {
         case AGENT_TYPE.COZE_AGENT_CN:
           data.model = custom_config.coze_bot_id || ''
           break
+        // case AGENT_TYPE.COZE_AGENT_OSV:
+
+        // case AGENT_TYPE.COZE_WORKFLOW_OSV:
+        //   const params = custom_config.coze_bot_url.split('/')
+        //   data.model =
+
         case AGENT_TYPE.COZE_WORKFLOW_CN:
           const params = new URLSearchParams(custom_config.coze_bot_url)
           data.model = `workflow-${params.get('workflow_id')}` || ''
           break
+
         case AGENT_TYPE.APP_BUILDER:
           data.model = custom_config.app_builder_bot_id || ''
           break

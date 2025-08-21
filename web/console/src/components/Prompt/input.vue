@@ -16,13 +16,23 @@
   />
   <!-- v-bind="{ ...$attrs }" -->
 
+  <!-- 隐藏的 Tooltip 模板 -->
+  <div v-show="false" ref="tooltipTemplate">
+    <div class="variable-tooltip" style="padding: 16px; min-width: 300px">
+      <div class="flex items-center gap-2">
+        <el-image v-if="agentInfo.icon" :src="agentInfo.icon" class="size-8 rounded" />
+        <p class="flex-1 text-sm text-[#1D1E1F] truncate">{{ agentInfo.name }}</p>
+      </div>
+    </div>
+  </div>
+
   <div v-if="showToken" class="px-2 py-px text-right text-[#182B50] text-opacity-60 text-xs">{{ token }}个token</div>
 </template>
 
 <script setup lang="ts">
 import { computed, nextTick, onMounted, onUnmounted, ref, watch } from 'vue'
 import { Codemirror } from 'vue-codemirror'
-import { get_encoding } from 'tiktoken'
+// 移除 tiktoken 导入
 import type { DecorationSet, Tooltip } from '@codemirror/view'
 import { Decoration, EditorView, MatchDecorator, ViewPlugin, WidgetType, keymap, showTooltip } from '@codemirror/view'
 import { StateEffect, StateField } from '@codemirror/state'
@@ -43,6 +53,10 @@ const props = withDefaults(
       }[]
     }[]
     wordWrap?: boolean
+    agentInfo?: {
+      icon: string
+      name: string
+    }
   }>(),
   {
     modelValue: '',
@@ -52,6 +66,7 @@ const props = withDefaults(
     showToken: false,
     variables: () => [],
     wordWrap: false,
+    agentInfo: () => ({ icon: '', name: '' }),
   }
 )
 
@@ -66,6 +81,7 @@ const emits = defineEmits<{
 const codemirrorRef = ref()
 const editorView = ref<EditorView | null>(null)
 const tooltipRef = ref<HTMLElement | null>(null)
+const tooltipTemplate = ref()
 
 const token = ref(0)
 const prompt = ref('')
@@ -157,6 +173,67 @@ const variablePlugin = ViewPlugin.fromClass(
   }
 )
 
+// 添加原生JavaScript token计算函数
+const calculateTokens = (text: string): number => {
+  if (!text || text.trim().length === 0) return 0
+
+  // 基于GPT tokenizer的简化规则
+  // 这个函数提供了一个相对准确的token估算
+  // 实际GPT tokenizer更复杂，但这个方法对于大多数用例已经足够准确
+
+  let tokenCount = 0
+  let i = 0
+
+  while (i < text.length) {
+    const char = text[i]
+    const charCode = char.charCodeAt(0)
+
+    if (charCode >= 0x4e00 && charCode <= 0x9fff) {
+      // 中文字符 - 每个中文字符通常对应1个token
+      tokenCount += 1
+      i++
+    } else if (charCode >= 48 && charCode <= 57) {
+      // 数字 0-9 - 连续数字通常被合并为一个token
+      let numLength = 0
+      while (i < text.length && text.charCodeAt(i) >= 48 && text.charCodeAt(i) <= 57) {
+        numLength++
+        i++
+      }
+      // 连续数字按长度计算，通常每3-4个数字对应1个token
+      tokenCount += Math.ceil(numLength / 3.5)
+    } else if ((charCode >= 65 && charCode <= 90) || (charCode >= 97 && charCode <= 122)) {
+      // 英文字母 - 查找单词边界
+      let wordLength = 0
+      while (
+        i < text.length &&
+        ((text.charCodeAt(i) >= 65 && text.charCodeAt(i) <= 90) ||
+          (text.charCodeAt(i) >= 97 && text.charCodeAt(i) <= 122))
+      ) {
+        wordLength++
+        i++
+      }
+      // 英文单词通常按长度计算，短单词1个token，长单词按比例
+      if (wordLength <= 3) {
+        tokenCount += 1
+      } else if (wordLength <= 6) {
+        tokenCount += 1.5
+      } else {
+        tokenCount += Math.ceil(wordLength / 4)
+      }
+    } else if (char === ' ' || char === '\n' || char === '\t') {
+      // 空白字符 - 通常不计入token
+      i++
+    } else {
+      // 其他字符（标点符号、特殊字符等）
+      // 标点符号通常与相邻字符合并为一个token
+      tokenCount += 0.3
+      i++
+    }
+  }
+
+  return Math.round(tokenCount)
+}
+
 let _tokenTimer: any
 const calcToken = () => {
   if (!props.showToken) return
@@ -164,10 +241,9 @@ const calcToken = () => {
   clearTimeout(_tokenTimer)
   _tokenTimer = setTimeout(() => {
     const content_html = prompt.value
-    const encoding = get_encoding('cl100k_base')
-    const tokens = encoding.encode(content_html)
-    encoding.free()
-    token.value = content_html.trim() ? tokens.length : 0
+    // 使用原生JavaScript计算token，替换tiktoken
+    const tokens = calculateTokens(content_html)
+    token.value = content_html.trim() ? tokens : 0
   }, 200)
 }
 
@@ -237,17 +313,19 @@ function hideTooltip() {
 }
 
 const showVarTooltip = (pos: number, to: number) => {
-  // 创建 tooltip 内容
-  const dom = document.createElement('div')
-  dom.className = 'variable-tooltip'
+  // 克隆模板中的 Tooltip
+  const template = tooltipTemplate.value.querySelector('.variable-tooltip')
+  const dom = template.cloneNode(true) as HTMLElement
   tooltipRef.value = dom
 
   props.variables.forEach(group => {
+    // 添加分组标题
     const groupTitle = document.createElement('div')
     groupTitle.className = 'tooltip-title'
     groupTitle.textContent = group.label
     dom.appendChild(groupTitle)
 
+    // 添加变量选项
     group.children.forEach(variable => {
       const item = document.createElement('div')
       item.className = 'tooltip-item'

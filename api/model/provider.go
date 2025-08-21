@@ -25,6 +25,7 @@ const (
 	ProviderTypeCozeCom    = 2
 	ProviderTypeAppBuilder = 3
 	ProviderType53AI       = 4
+	ProviderTypeCozeStudio = 5
 )
 
 // GetBaseURLByProviderType returns the base URL based on provider type
@@ -42,6 +43,9 @@ func (provider *Provider) GetBaseURLByProviderType() string {
 		return "https://qianfan.baidubce.com"
 	case ProviderType53AI:
 		return "https://api.53ai.com"
+	case ProviderTypeCozeStudio:
+		// coze-studio requires custom base_url, return empty if not set
+		return ""
 	default:
 		return ""
 	}

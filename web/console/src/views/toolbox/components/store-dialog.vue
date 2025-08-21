@@ -8,7 +8,7 @@
       >
         + {{ $t('commom.add_manual') }}
       </div>
-      <div class="text-base text-[#1D1E1F] font-medium mb-4">
+      <div class="text-base text-[#1D1E1F] font-medium mt-6 mb-4">
         {{ $t('commom.add_market') }}
       </div>
 

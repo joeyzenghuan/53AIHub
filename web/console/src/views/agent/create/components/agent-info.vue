@@ -1,16 +1,6 @@
 <template>
   <div class="flex items-center gap-4">
     <ElFormItem
-      :label="$t('group')"
-      class="flex-1"
-      prop="group_id"
-      :rules="generateInputRules({ message: 'form_select_placeholder' })"
-    >
-      <ElSelect v-model="store.form_data.group_id" size="large">
-        <ElOption v-for="item in store.group_options" :key="item.value" :value="item.value" :label="item.label" />
-      </ElSelect>
-    </ElFormItem>
-    <ElFormItem
       class="flex-1"
       :label="$t('name')"
       prop="name"
@@ -23,6 +13,16 @@
         maxlength="20"
         :placeholder="$t('form_input_placeholder')"
       />
+    </ElFormItem>
+    <ElFormItem
+      :label="$t('group')"
+      class="flex-1"
+      prop="group_id"
+      :rules="generateInputRules({ message: 'form_select_placeholder' })"
+    >
+      <ElSelect v-model="store.form_data.group_id" size="large">
+        <ElOption v-for="item in store.group_options" :key="item.value" :value="item.value" :label="item.label" />
+      </ElSelect>
     </ElFormItem>
   </div>
   <ElFormItem :label="$t('description')">
@@ -41,7 +41,7 @@
   <ElFormItem :label="$t('action_sort')" prop="sort" :rules="generateInputRules({ message: 'form_input_placeholder' })">
     <ElInputNumber
       v-model="store.form_data.sort"
-      class="!w-[300px]"
+      class="!w-[300px] el-input-number--left"
       size="large"
       :controls="false"
       :precision="0"

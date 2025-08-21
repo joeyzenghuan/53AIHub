@@ -5,6 +5,8 @@ const AGENT_TYPE = {
   PROMPT: 'prompt',
   COZE_AGENT_CN: 'coze_agent_cn',
   COZE_WORKFLOW_CN: 'coze_workflow_cn',
+  COZE_AGENT_OSV: 'coze_agent_osv',
+  COZE_WORKFLOW_OSV: 'coze_workflow_osv',
   APP_BUILDER: 'app_builder',
   '53AI_AGENT': '53ai_agent',
   '53AI_WORKFLOW': '53ai_workflow',
@@ -16,6 +18,7 @@ const AGENT_TYPE = {
   FASTGPT_AGENT: 'fastgpt_agent',
   FASTGPT_WORKFLOW: 'fastgpt_workflow',
   MAXKB_AGENT: 'maxkb_agent',
+  N8N_WORKFLOW: 'n8n_workflow',
 } as const
 
 const BACKEND_AGENT_TYPE = {
@@ -60,6 +63,24 @@ const PLATFORM_CONFIG = {
       {
         id: AGENT_TYPE.COZE_WORKFLOW_CN,
         name: AGENT_TYPE.COZE_WORKFLOW_CN,
+        mode: AGENT_MODES.COMPLETION,
+        visible: false,
+      },
+    ],
+  },
+  coze_osv: {
+    providerValue: 5,
+    channelValue: 1010,
+    category: 'intelligent_agent_platform',
+    auth: true,
+    agents: [
+      {
+        id: AGENT_TYPE.COZE_AGENT_OSV,
+        name: AGENT_TYPE.COZE_AGENT_OSV,
+      },
+      {
+        id: AGENT_TYPE.COZE_WORKFLOW_OSV,
+        name: AGENT_TYPE.COZE_WORKFLOW_OSV,
         mode: AGENT_MODES.COMPLETION,
         visible: false,
       },
@@ -176,6 +197,19 @@ const PLATFORM_CONFIG = {
       {
         id: AGENT_TYPE.MAXKB_AGENT,
         name: AGENT_TYPE.MAXKB_AGENT,
+      },
+    ],
+  },
+  n8n: {
+    providerValue: 1009,
+    channelValue: 1009,
+    category: 'intelligent_agent_platform',
+    auth: false,
+    agents: [
+      {
+        id: AGENT_TYPE.N8N_WORKFLOW,
+        name: AGENT_TYPE.N8N_WORKFLOW,
+        mode: AGENT_MODES.COMPLETION,
       },
     ],
   },
@@ -449,16 +483,18 @@ const CHANNEL_MAPPINGS = [
   ['XAI', 45],
   ['Replicate', 46],
   ['Dummy', 47],
-  ['dify', 1001],
-  ['53ai', 1002],
+  // ['dify', 1001],
+  // ['53ai', 1002],
+  // ['n8n', 1009],
 ] as const
 
 export const CHANNEL_TYPE_VALUE_MAP = new Map([
   ...CHANNEL_MAPPINGS,
+  ...Object.entries(PLATFORM_CONFIG).map(([key, value]) => [key, value.channelValue] as const),
   ...Object.entries(models).map(([key, value]) => [key, value.channelType] as const),
   ...Object.entries(agents).map(([key, value]) => [key, value.channelType] as const),
 ])
-
+console.log(CHANNEL_TYPE_VALUE_MAP)
 // 工具函数
 export const getProviderByAgentId = (agentId: AgentType) =>
   agents[agentId]?.providerId && providers[agents[agentId].providerId]

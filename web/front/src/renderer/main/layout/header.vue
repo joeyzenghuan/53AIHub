@@ -1,6 +1,6 @@
 <template>
   <!--  v-if="needLogin ? userStore.is_login : true" -->
-  <header class="flex-none h-[70px] border-b" :class="[type === 'homepage' ? 'nav-bg' : 'bg-white', sticky ? 'sticky left-0 top-0 z-[9]' : '']">
+  <header class="flex-none h-[70px] border-b sticky top-0" :class="[type === 'homepage' ? 'nav-bg' : 'bg-white']">
     <div class="mx-auto px-4 flex items-center justify-between h-full" :class="mainClass">
       <div class="flex-1 flex items-center gap-2 overflow-hidden">
         <slot name="before_prefix"></slot>

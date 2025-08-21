@@ -90,6 +90,7 @@ const state: {
 
 const showAgentList = computed(() => {
   let list = state.group_id === 0 ? agentStore.agentList : agentStore.agentList.filter((item) => item.group_id === state.group_id)
+  list = list.filter((item) => item.user_group_ids.length > 0)
   if (props.excludeIds.length) list = list.filter((item) => !props.excludeIds.includes(item.agent_id))
   if (props.showLimit) list = list.slice(0, props.showLimit)
   return list

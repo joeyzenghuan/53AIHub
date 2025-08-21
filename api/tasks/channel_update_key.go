@@ -45,6 +45,12 @@ func updateCozeCnKey() {
 
 	// Process each provider
 	for _, provider := range providers {
+		// Skip coze-studio providers as they use fixed AccessToken
+		if provider.ProviderType == model.ProviderTypeCozeStudio {
+			logger.SysLogf("Skipping coze-studio provider token refresh: %d name: %s", provider.ProviderID, provider.Name)
+			continue
+		}
+
 		logger.SysLogf("Refreshing provider token: %d name: %s", provider.ProviderID, provider.Name)
 
 		// Create service instance

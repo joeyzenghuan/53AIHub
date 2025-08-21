@@ -302,7 +302,8 @@ export default {
 
     completion_completed: '深層思考が完了しました',
     completion_thinking: '深度思考中...',
-    completion_next_action: '関連シナリオを次のステップに進める'
+    completion_scene: '関連シーン：',
+    completion_next_action: '関連シナリオ：次のアクション'
   },
 
   // ナレッジベース関連
@@ -331,7 +332,9 @@ export default {
   },
 
   agent: {
-    no_data: '管理者がまだエージェントを公開していません'
+    no_data: '管理者がまだエージェントを公開していません',
+    dialogue_type: '対話型',
+    applied_type: '応用型'
   },
 
   prompt: {

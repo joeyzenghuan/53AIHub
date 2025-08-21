@@ -335,6 +335,10 @@ func UpdatePayConfig(c *gin.Context) {
 			return
 		}
 	} else {
+		if paySetting.PayType == model.PayTypeAlipay && config.ApiHost == "" {
+			c.JSON(http.StatusBadRequest, model.ParamError.ToResponse("Please set api_host"))
+			return
+		}
 		paySetting.PayConfig = req.PayConfig
 	}
 	paySetting.ExtraConfig = req.ExtraConfig

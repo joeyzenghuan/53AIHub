@@ -459,7 +459,6 @@ const handleStartRunning = async () => {
     .run(data, {
       responseType: 'stream',
       onDownloadProgress: e => {
-        console.log(e)
         // processedLength = processStreamData(e, processedLength)
       },
       signal: abortController.value.signal,

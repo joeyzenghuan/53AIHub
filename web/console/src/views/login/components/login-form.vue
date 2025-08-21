@@ -121,7 +121,15 @@
       <ElFormItem
         class="relative"
         prop="password"
-        :rules="generateInputRules({ message: 'login.password_placeholder', validator: ['text', 'password'] })"
+        :rules="[
+          ...generateInputRules({ message: 'login.password_placeholder', validator: ['password'] }),
+          {
+            min: 8,
+            max: 20,
+            message: $t('login.password_length_v2'),
+            trigger: 'blur',
+          },
+        ]"
       >
         <template #label>
           <span class="text-[#1D1E1F]">{{ $t('password') }}</span>

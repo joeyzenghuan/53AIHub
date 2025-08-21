@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"encoding/json"
 	"net/http"
 	"strconv"
 
@@ -12,6 +13,15 @@ import (
 type SettingRequest struct {
 	Key   string `json:"key" example:"setting_key"`
 	Value string `json:"value" example:"setting_value"`
+}
+
+type UpdateDefaultLinksRequest struct {
+	Links []LinkItem `json:"links"` // 网站配置列表
+}
+
+type LinkItem struct {
+	AILink model.AILinkInfo `json:"ai_link"` // AI 链接信息
+	Delete bool             `json:"delete" example:"false" description:"Whether to delete this link"`
 }
 
 // @Summary Create Setting
@@ -188,4 +198,96 @@ func GetSettingByKey(c *gin.Context) {
 		return
 	}
 	c.JSON(http.StatusOK, model.Success.ToResponse(setting))
+}
+
+// @Summary 批量更新默认提示词链接
+// @Description 更新默认提示词链接，支持增删改操作
+// @Tags Setting
+// @Accept json
+// @Produce json
+// @Security BearerAuth
+// @Param request body UpdateDefaultLinksRequest true "默认提示词链接列表"
+// @Success 200 {object} model.CommonResponse "成功"
+// @Router /api/settings/default_links [post]
+func BatchUpdateDefaultPromptLinks(c *gin.Context) {
+	var req UpdateDefaultLinksRequest
+	if err := c.ShouldBindJSON(&req); err != nil {
+		c.JSON(http.StatusBadRequest, model.ParamError.ToResponse(err))
+		return
+	}
+
+	eid := config.GetEID(c)
+
+	// 获取当前设置
+	setting, err := model.GetSettingByEidAndKey(eid, string(model.DefaultPromptLinks))
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	var links []model.AILink
+	if setting != nil {
+		// 解析现有的 JSON 数据
+		if err := json.Unmarshal([]byte(setting.Value), &links); err != nil {
+			c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+			return
+		}
+	}
+
+	// 更新链接列表
+	updatedLinks := []model.AILinkInfo{}
+	for _, linkItem := range req.Links {
+		if linkItem.Delete {
+			// 删除操作：跳过删除的链接
+			continue
+		}
+		updatedLinks = append(updatedLinks, linkItem.AILink)
+	}
+
+	// 保存更新后的数据
+	linksJSON, err := json.Marshal(updatedLinks)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	if setting == nil {
+		// 如果设置不存在，则创建新设置
+		setting = &model.Setting{
+			Eid:   eid,
+			Key:   string(model.DefaultPromptLinks),
+			Value: string(linksJSON),
+		}
+		if err := model.CreateSetting(setting); err != nil {
+			c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+			return
+		}
+	} else {
+		// 更新现有设置
+		setting.Value = string(linksJSON)
+		if err := model.UpdateSetting(setting); err != nil {
+			c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+			return
+		}
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(nil))
+}
+
+// @Summary Get Default Prompt Links
+// @Description Retrieve the default website configuration stored in settings
+// @Tags Setting
+// @Produce json
+// @Security BearerAuth
+// @Success 200 {object} model.CommonResponse{data=[]model.AILink} "Default website configuration"
+// @Router /api/settings/default_links [get]
+func GetDefaultPromptLinks(c *gin.Context) {
+	eid := config.GetEID(c)
+	links, err := model.GetDefaultPromptLinks(eid)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	c.JSON(http.StatusOK, model.Success.ToResponse(links))
 }

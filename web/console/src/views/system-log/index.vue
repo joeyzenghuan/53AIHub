@@ -4,7 +4,7 @@
     <div class="flex-1 flex flex-col bg-white p-6 mt-3 box-border max-h-[calc(100vh-100px)] overflow-auto">
       <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
-          <div class="flex-none ">
+          <div class="flex-none">
             <FilterDateRange
               v-model="selectDate"
               size="large"
@@ -19,9 +19,7 @@
             clearable
             @change="onRefresh"
           >
-            <template #prefix>
-              {{ $t('system_log.log_action') }}:
-            </template>
+            <template #prefix> {{ $t('system_log.log_action') }}: </template>
             <ElOption v-for="item in actions" :key="item.value" :label="item.text" :value="item.value" />
           </ElSelect>
           <ElSelect
@@ -31,26 +29,23 @@
             clearable
             @change="onRefresh"
           >
-            <template #prefix>
-              {{ $t('system_log.log_module') }}:
-            </template>
+            <template #prefix> {{ $t('system_log.log_module') }}: </template>
             <ElOption v-for="item in modules" :key="item.value" :label="item.text" :value="item.value" />
           </ElSelect>
 
-          <FilterUser
-            v-model="userList"
-            class="flex-none max-w-[180px]"
-            type="user"
-            @change="onRefresh"
-          />
+          <FilterUser v-model="userList" class="flex-none max-w-[180px]" type="user" @change="onRefresh" />
         </div>
       </div>
 
       <div v-loading="tableLoading" class="flex-1 overflow-y-auto bg-white rounded-lg mt-4">
         <TablePlus
-          :data="tableData" :total="tableTotal" style="width: 100%"
-          header-row-class-name="rounded overflow-hidden" header-cell-class-name="!bg-[#F6F7F8] !h-[60px] !border-none"
-          @page-size-change="handleSizeChange" @page-current-change="handleCurrentChange"
+          :data="tableData"
+          :total="tableTotal"
+          style="width: 100%"
+          header-row-class-name="rounded overflow-hidden"
+          header-cell-class-name="!bg-[#F6F7F8] !h-[60px] !border-none"
+          @page-size-change="handleSizeChange"
+          @page-current-change="handleCurrentChange"
         >
           <ElTableColumn :label="$t('system_log.log_time')" min-width="160" prop="action_time" />
           <ElTableColumn :label="$t('system_log.log_action')" min-width="100" prop="action" show-overflow-tooltip>
@@ -60,10 +55,7 @@
               </span>
             </template>
           </ElTableColumn>
-          <ElTableColumn
-            :label="$t('system_log.log_module')" min-width="100" prop="module"
-            show-overflow-tooltip
-          >
+          <ElTableColumn :label="$t('system_log.log_module')" min-width="100" prop="module" show-overflow-tooltip>
             <template #default="{ row }">
               <span :class="{ 'text-[#9B9B9B]': !row.module }">
                 {{ getModuleLabel(row.module) }}
@@ -97,9 +89,14 @@ import { onMounted, reactive, ref } from 'vue'
 import FilterDateRange from '@/components/Filter/date-range.vue'
 import FilterUser from '@/components/Filter/user.vue'
 
-import { systemLogApi, type SystemLogItem, type ActionItem, type ModuleItem, type SystemLogListRequest } from '@/api/modules/system-log'
+import {
+  systemLogApi,
+  type SystemLogItem,
+  type ActionItem,
+  type ModuleItem,
+  type SystemLogListRequest,
+} from '@/api/modules/system-log'
 import { getSimpleDateFormatString } from '@/utils/moment'
-
 
 type UserItem = {
   user_id: number
@@ -136,18 +133,16 @@ const loadList = async (): Promise<void> => {
       ...filterForm,
       start_time: selectDate.value[0],
       end_time: selectDate.value[1],
-      user_id: userList.value.length
-        ? userList.value.map(item => item.user_id).join(',')
-        : undefined,
+      user_id: userList.value.length ? userList.value.map(item => item.user_id).join(',') : undefined,
     }
 
     const data = await systemLogApi.list(params)
-    tableData.value = (data.system_logs || []).map((item) => ({
+    tableData.value = (data.system_logs || []).map(item => ({
       ...item,
       action_time: getSimpleDateFormatString({
         date: item.action_time,
-        format: 'YYYY-MM-DD hh:mm'
-      })
+        format: 'YYYY-MM-DD hh:mm',
+      }),
     }))
     tableTotal.value = data.count || 0
   } catch (error) {
@@ -195,17 +190,11 @@ const handleCurrentChange = (page: number): void => {
 onMounted(async () => {
   tableLoading.value = true
   try {
-    await Promise.all([
-      loadList(),
-      loadActions(),
-      loadModules()
-    ])
+    await Promise.all([loadList(), loadActions(), loadModules()])
   } finally {
     tableLoading.value = false
   }
 })
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

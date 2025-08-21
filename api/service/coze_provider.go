@@ -20,6 +20,15 @@ func (ser *CozeService) GetCozeApiSdk() (*coze.CozeApi, error) {
 	var baseUrl string
 	if ser.Provider.ProviderType == model.ProviderTypeCozeCn {
 		baseUrl = coze.CozeCnUrl
+	} else if ser.Provider.ProviderType == model.ProviderTypeCozeCom {
+		baseUrl = coze.CozeComUrl
+	} else if ser.Provider.ProviderType == model.ProviderTypeCozeStudio {
+		// coze-studio uses custom base_url from Provider.BaseURL
+		if ser.Provider.BaseURL != nil && *ser.Provider.BaseURL != "" {
+			baseUrl = *ser.Provider.BaseURL
+		} else {
+			return nil, errors.New("coze-studio requires custom base_url")
+		}
 	} else {
 		baseUrl = coze.CozeComUrl
 	}
@@ -32,6 +41,11 @@ func (ser *CozeService) GetCozeApiSdk() (*coze.CozeApi, error) {
 func (ser *CozeService) HandlerAccessTokenByCode(coze string, callbackUrl string) error {
 	if ser.Provider.ProviderType != model.ProviderTypeCozeCn && ser.Provider.ProviderType != model.ProviderTypeCozeCom {
 		return errors.New("invalid provider type")
+	}
+
+	// coze-studio uses fixed AccessToken, skip OAuth flow
+	if ser.Provider.ProviderType == model.ProviderTypeCozeStudio {
+		return errors.New("coze-studio does not support OAuth flow")
 	}
 
 	api, err := ser.GetCozeApiSdk()
@@ -64,6 +78,11 @@ func (ser *CozeService) HandlerAccessTokenByCode(coze string, callbackUrl string
 func (ser *CozeService) HandlerAccessTokenByRefreshToken() error {
 	if ser.Provider.ProviderType != model.ProviderTypeCozeCn && ser.Provider.ProviderType != model.ProviderTypeCozeCom {
 		return errors.New("invalid provider type")
+	}
+
+	// coze-studio uses fixed AccessToken, skip refresh flow
+	if ser.Provider.ProviderType == model.ProviderTypeCozeStudio {
+		return errors.New("coze-studio does not support token refresh")
 	}
 	api, err := ser.GetCozeApiSdk()
 	if err != nil {
@@ -100,6 +119,11 @@ func (ser *CozeService) HandlerAccessTokenByRefreshToken() error {
 }
 
 func (ser *CozeService) CheckAndRefreshToken() (ok bool, err error) {
+	// coze-studio uses fixed AccessToken, no need to refresh
+	if ser.Provider.ProviderType == model.ProviderTypeCozeStudio {
+		return false, nil
+	}
+
 	if ser.Provider.ExpiresIn <= time.Now().Unix() {
 		logger.SysLogf("Coze RefreshToken: eid = %d", ser.Provider.Eid)
 		err := ser.HandlerAccessTokenByRefreshToken()

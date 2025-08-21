@@ -273,7 +273,7 @@
           <el-button :loading="loading" class="w-full" size="large" type="primary" @click="handleRun">{{ $t('chat.start_generate') }}</el-button>
         </div>
       </div>
-      <div class="flex-1 md:h-full bg-white rounded flex flex-col">
+      <div class="flex-1 overflow-y-auto md:h-full bg-white rounded flex flex-col">
         <h3 class="flex-none h-14 flex items-center px-4 md:px-7 text-base text-[#1D1E1F] border-b">
           {{ $t('chat.output') }}
         </h3>
@@ -307,27 +307,12 @@
               </div>
             </template>
           </template>
-
-          <template v-if="currentAgent.settings_obj?.relate_agents?.length && showOutput && !loading">
-            <el-divider>
-              <span class="text-sm text-secondary">{{ $t('chat.completion_next_action') }}</span>
-            </el-divider>
-            <div class="flex flex-wrap gap-3 items-center justify-center">
-              <template v-for="item in currentAgent.settings_obj?.relate_agents" :key="item.scene">
-                <div
-                  class="w-[280px] p-4 flex items-center gap-2 border rounded-md cursor-pointer hover:shadow-lg transition-all duration-300"
-                  @click="handleNextAgent(item)"
-                >
-                  <img class="size-10 rounded-md" :src="item.logo" />
-                  <div class="flex-1">
-                    <h6 class="text-sm text-primary">{{ item.name }}</h6>
-                    <p class="text-xs text-secondary">{{ item.description }}</p>
-                  </div>
-                </div>
-              </template>
-            </div>
-          </template>
         </div>
+        <template v-if="currentAgent.settings_obj?.relate_agents?.length && showOutput && !loading">
+          <div class="sticky top-[100%] pb-2">
+            <RelatedScene :is-workflow="true" :output="result" @init-agent="initAgent" />
+          </div>
+        </template>
 
         <!-- 输出 -->
         <!-- class="h-full" -->
@@ -359,7 +344,7 @@
 </template>
 
 <script setup lang="ts">
-import { computed, nextTick, ref, watchEffect } from 'vue'
+import { computed, ref, watchEffect, nextTick } from 'vue'
 import { Download, CopyDocument, Close, Warning } from '@element-plus/icons-vue'
 import type { FormInstance } from 'element-plus'
 import { ElMessage } from 'element-plus'
@@ -373,6 +358,7 @@ import { downloadFile } from '@/utils/file'
 import MainHeader from '@/layout/header.vue'
 import FileUpload from '@/components/Upload/index.vue'
 import Helper from '../helper.vue'
+import RelatedScene from '@/components/RelatedScene/index.vue'
 
 withDefaults(
   defineProps<{
@@ -528,30 +514,6 @@ const handleRun = async () => {
       return true
     }
   })
-}
-
-const handleNextAgent = (item) => {
-  const agent = convStore.findAgentByAgentId(item.agent_id)
-  if (agent) {
-    convStore.setNextAgentPrepare({
-      agent_id: item.agent_id,
-      execution_rule: item.execution_rule,
-      is_workflow: typeof item.is_workflow === 'boolean' ? item.is_workflow : true,
-      parameters: Object.keys(item.field_mapping).reduce((acc, key) => {
-        acc[key] = item.field_mapping[key].replace(/\{\#(.*?)\#\}/g, (match, p1) => {
-          return result.value.find((item) => item.variable === p1)?.value || ''
-        })
-        return acc
-      }, {})
-    })
-    result.value = []
-    resultStr.value = ''
-    showOutput.value = false
-    convStore.pushUsualAgent(agent)
-    convStore.setCurrentState(item.agent_id, 0)
-  } else {
-    ElMessage.warning(window.$t('chat.no_available_agent'))
-  }
 }
 
 const handleToggleGuide = () => {

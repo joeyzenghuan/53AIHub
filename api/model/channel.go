@@ -27,8 +27,10 @@ const (
 	ChannelApiAppBuilder = 1005
 	ChannelApiYuanqi     = 1006
 	// FastGpt 不是新的渠道，数据库里面还是 22，这里是为了替代 apitype 为0 只能走默认 openai 的问题
-	ChannelApiTypeFastGpt = 1007
-	ChannelApiTypeMaxKB   = 1008
+	ChannelApiTypeFastGpt    = 1007
+	ChannelApiTypeMaxKB      = 1008
+	ChannelApiTypeN8n        = 1009
+	ChannelApiTypeCozeStudio = 1010
 )
 
 // ChannelDescription 渠道描述结构体
@@ -46,6 +48,7 @@ var channelDescMap = map[string]string{
 	"coze_workflow_cn": "扣子工作流",
 	"coze_agent":       "Coze智能体",
 	"coze_workflow":    "Coze工作流",
+	"coze_studio":      "Coze Studio",
 	"dify_agent":       "Dify",
 	"dify_workflow":    "Dify工作流",
 	"app_builder":      "百度千帆Appbuilder",
