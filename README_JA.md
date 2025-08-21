@@ -66,6 +66,12 @@ AIエージェント、プロンプト、ツールの公開、管理、分類、
 
 [docker-compose.yml](docker/docker-compose.yaml) を使用すると簡単にインストールできます。事前に [Docker](https://docs.docker.com/get-docker/) と [Docker Compose](https://docs.docker.com/compose/install/) をインストールしてください。：
 
+1. `git clone` でリポジトリをクローン
+```bash
+git clone https://github.com/53ai/53aihub.git
+cd 53aihub
+```
+2. Docker Composeを実行
 ```bash
 cd docker
 docker compose up -d
