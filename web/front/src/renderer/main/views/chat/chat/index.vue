@@ -1,5 +1,5 @@
 <template>
-  <div class="flex gap-10 h-full bg-white relative" :class="[hideMenuHeader ? '' : 'overflow-hidden']">
+  <div class="flex gap-10 h-full bg-white relative">
     <div class="flex-1 flex flex-col h-full">
       <MainHeader v-if="!hideMenuHeader">
         <template #before_suffix>
@@ -114,6 +114,7 @@
                 </div>
               </template>
             </x-bubble-assistant>
+            <RelatedScene v-if="index === state.messageList.length - 1 && !message.loading" :output="message.answer" />
           </template>
         </x-bubble-list>
 
@@ -136,7 +137,7 @@
       </div>
 
       <!-- 底部输入区域 -->
-      <div class="py-5" :class="[showRecommend ? 'w-4/6 sticky bottom-0 bg-white' : 'w-11/12 md:w-4/5 max-w-[800px] mx-auto']">
+      <div class="py-5 sticky bottom-0 bg-white" :class="[showRecommend ? 'w-4/6' : 'w-11/12 md:w-4/5 max-w-[800px] mx-auto']">
         <div class="flex gap-2 mb-2.5">
           <AgentTooltip @select="onSelectAgent">
             <div class="h-8 px-2 rounded-full flex-center gap-1.5 bg-[#F1F2F3] cursor-pointer hover:bg-[#E1E2E3]">
@@ -229,9 +230,11 @@ import AuthTagGroup from '@/components/AuthTagGroup/index.vue'
 import MainHeader from '@/layout/header.vue'
 import AgentTooltip from './agent-tooltip.vue'
 import HistoryDrawer from './history.vue'
+import RelatedScene from '@/components/RelatedScene/index.vue'
 
 import { useAgentStore } from '@/stores/modules/agent'
 import { useConversationStore } from '@/stores/modules/conversation'
+import { useEnterpriseStore } from '@/stores/modules/enterprise'
 
 import { API_HOST } from '@/api/host'
 import chatApi from '@/api/modules/chat'
@@ -247,6 +250,7 @@ interface ExtendedMessage extends Conversation.Message {
 }
 const agentStore = useAgentStore()
 const convStore = useConversationStore()
+const enterpriseStore = useEnterpriseStore()
 
 withDefaults(
   defineProps<{
@@ -480,6 +484,10 @@ const loadList = async () => {
   const { conversation_id } = currentConv.value
   if (!conversation_id) return
 
+  if (!enterpriseStore.template_style_info.style_type) {
+    await enterpriseStore.initTemplateStyle()
+  }
+
   state.isLoadingMore = true
   state.offset = 0
   state.hasMore = true
@@ -617,6 +625,7 @@ onMounted(() => {
     const question = prepare.parameters.input
     senderRef.value?.setPrompt && senderRef.value?.setPrompt(question)
     if (prepare.execution_rule === 'auto') {
+      senderRef.value?.setPrompt('')
       handleSend(question, [])
     }
     convStore.setNextAgentPrepare({})

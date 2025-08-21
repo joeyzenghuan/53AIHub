@@ -5,7 +5,7 @@ import { PROVIDER_VALUE, type ProviderValueType } from '@/constants/platform'
 
 export const providerApi = {
   async list({
-    params = {}
+    params = {},
   }: {
     params: {
       providerType?: ProviderValueType
@@ -33,6 +33,7 @@ export const providerApi = {
       switch (item.provider_type) {
         case PROVIDER_VALUE.APP_BUILDER:
         case PROVIDER_VALUE['53AI']:
+        case PROVIDER_VALUE.COZE_OSV:
           item.authed_time = item.created_time
           break
       }
@@ -47,7 +48,7 @@ export const providerApi = {
       name: '',
       access_token: '',
       configs: {},
-      ...data
+      ...data,
     }
     const { provider_id } = data
     delete data.provider_id
@@ -60,7 +61,7 @@ export const providerApi = {
   },
   async delete({ data: { provider_id } }: { data: { provider_id: number } }) {
     return service.delete(`/api/providers/${provider_id}`).catch(handleError)
-  }
+  },
 }
 
 export default providerApi

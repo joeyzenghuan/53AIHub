@@ -3,7 +3,6 @@
     v-model="visible"
     :title="editable ? $t('action_edit') : $t('action_add')"
     size="840px"
-    style="transition: none"
     destroy-on-close
     append-to-body
     :close-on-click-modal="false"

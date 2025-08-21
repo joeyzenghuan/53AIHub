@@ -175,6 +175,14 @@ const routes: RouteRecordRaw[] = [
         },
       },
       {
+        path: '/model',
+        name: 'Model',
+        component: () => import('@/views/model/index.vue'),
+        meta: {
+          title: '模型设置',
+        },
+      },
+      {
         path: '/space',
         name: 'Space',
         component: () => import('@/views/space/index.vue'),
@@ -219,6 +227,16 @@ export const router = createRouter({
   scrollBehavior: () => ({ left: 0, top: 0 }),
 })
 
+// 重写back方法，如果history.state.back为true，则调用原来的back方法，否则重定向到首页
+const oldBack = router.back
+router.back = () => {
+  if (window.history.state.back) {
+    oldBack()
+  } else {
+    router.push('/')
+  }
+}
+
 export const gotoLogin = () => {
   const { isOpLocalEnv } = useEnv()
   let login_url = sessionStorage.getItem('from_origin') || ''
@@ -242,7 +260,7 @@ router.beforeEach(async (to, from, next) => {
     gotoLogin()
     return
   }
-
+  // #ifndef KM
   if (['RegisterUser', 'InternalUser'].includes(to.name)) {
     if (!enterprise_store.info.eid) await enterprise_store.loadSelfInfo()
     if (
@@ -257,6 +275,7 @@ router.beforeEach(async (to, from, next) => {
       return
     }
   }
+  // #endif
 
   next()
 })

@@ -34,6 +34,7 @@ interface ListParams {
   keyword?: string
   group_id?: string
   channel_types?: string
+  agent_types?: string
 }
 
 interface SaveParams {

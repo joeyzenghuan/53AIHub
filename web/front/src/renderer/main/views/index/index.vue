@@ -29,49 +29,26 @@
           </ElIcon>
         </template>
         <template #suffix>
-          <ElButton
-            type="primary"
-            size="large"
-            class="h-[36px] w-[94px] rounded-[32px]"
-            @click="handleSearch"
-          >
+          <ElButton type="primary" size="large" class="h-[36px] w-[94px] rounded-[32px]" @click="handleSearch">
             {{ $t('action.search') }}
           </ElButton>
         </template>
       </ElInput>
-      <div
-        class="mx-auto text-center text-base text-[#757880] mt-[42px] flex items-center justify-center gap-3"
-      >
-        <span>{{ $t('index.hot_search') }}: </span>
-        <div class="hover-text-theme cursor-pointer" @click="handleHotSearch('网页抓取')">
-          网页抓取
-        </div>
-        <div class="hover-text-theme cursor-pointer" @click="handleHotSearch('文件操作')">
-          文件操作
-        </div>
-        <div class="hover-text-theme cursor-pointer" @click="handleHotSearch('邮件发送')">
-          邮件发送
-        </div>
-        <div class="hover-text-theme cursor-pointer" @click="handleHotSearch('图片处理')">
-          图片处理
-        </div>
-        <div class="hover-text-theme cursor-pointer" @click="handleHotSearch('浏览器自动化')">
-          浏览器自动化
-        </div>
+      <div class="mx-auto text-center text-base text-[#757880] mt-[42px] flex items-center justify-center gap-3">
+        <span>{{ $t('index.hot_search') }}:</span>
+        <div class="hover-text-theme cursor-pointer" @click="handleHotSearch('网页抓取')">网页抓取</div>
+        <div class="hover-text-theme cursor-pointer" @click="handleHotSearch('文件操作')">文件操作</div>
+        <div class="hover-text-theme cursor-pointer" @click="handleHotSearch('邮件发送')">邮件发送</div>
+        <div class="hover-text-theme cursor-pointer" @click="handleHotSearch('图片处理')">图片处理</div>
+        <div class="hover-text-theme cursor-pointer" @click="handleHotSearch('浏览器自动化')">浏览器自动化</div>
       </div>
       <!-- 智能体 -->
-      <div
-        v-if="searchValue ? showAgentList.length > 0 : true"
-        class="w-11/12 lg:w-4/5 py-6 md:py-8 lg:py-10 mx-auto box-border"
-      >
+      <div v-if="searchValue ? showAgentList.length > 0 : true" class="w-11/12 lg:w-4/5 py-6 md:py-8 lg:py-10 mx-auto box-border">
         <p v-if="searchValue" class="text-sm md:text-base mt-3 line-clamp-2 text-regular">
           {{ $t('module.agent') }}
         </p>
         <template v-else>
-          <h2
-            class="text-xl md:text-2xl font-bold"
-            style="color: var(--el-text-color-primary, #1d1e1f)"
-          >
+          <h2 class="text-xl md:text-2xl font-bold" style="color: var(--el-text-color-primary, #1d1e1f)">
             {{ $t('index.agent_recommend') }}
           </h2>
           <p class="text-sm md:text-base mt-3 line-clamp-2 text-regular">
@@ -80,11 +57,7 @@
         </template>
 
         <!-- 功能卡片网格 -->
-        <AgentList
-          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mt-5 md:mt-8"
-          :list="showAgentList"
-        >
-        </AgentList>
+        <AgentList class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mt-5 md:mt-8" :list="showAgentList"></AgentList>
 
         <router-link
           v-if="!searchValue && showAgentList.length > 0"
@@ -98,9 +71,7 @@
       <div
         class="w-full py-6 md:py-8 lg:py-10 mx-auto box-border"
         :style="{
-          backgroundImage: !searchValue
-            ? `url(${$getPublicPath('/images/index/card_bg_v3.png')})`
-            : '',
+          backgroundImage: !searchValue ? `url(${$getPublicPath('/images/index/card_bg_v3.png')})` : '',
           backgroundPosition: 'center center',
           backgroundRepeat: 'no-repeat'
         }"
@@ -108,29 +79,19 @@
         <PromptView ref="promptRef" mode="index" hide-filter :show-limit="6" />
       </div>
       <!-- 工具箱 -->
-      <div
-        v-if="searchValue ? showToolkitList.length > 0 : true"
-        class="w-11/12 lg:w-4/5 py-6 md:py-8 lg:py-10 mx-auto box-border"
-      >
+      <div v-if="searchValue ? showToolkitList.length > 0 : true" class="w-11/12 lg:w-4/5 py-6 md:py-8 lg:py-10 mx-auto box-border">
         <p v-if="searchValue" class="text-sm md:text-base mt-3 line-clamp-2 text-regular">
           {{ $t('module.toolbox') }}
         </p>
         <template v-else>
-          <h2
-            class="text-xl md:text-2xl font-bold"
-            style="color: var(--el-text-color-primary, #1d1e1f)"
-          >
+          <h2 class="text-xl md:text-2xl font-bold" style="color: var(--el-text-color-primary, #1d1e1f)">
             {{ $t('index.toolbox_recommend') }}
           </h2>
           <p class="text-sm md:text-base mt-3 line-clamp-2 text-regular">
             {{ $t('index.toolbox_recommend_desc') }}
           </p>
         </template>
-        <ToolkitList
-          class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mt-7"
-          :list="showToolkitList"
-          only-all
-        />
+        <ToolkitList class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4 md:gap-5 mt-7" :list="showToolkitList" only-all />
 
         <router-link
           v-if="!searchValue && showToolkitList.length > 0"
@@ -164,10 +125,11 @@ const promptRef = ref<InstanceType<typeof PromptView>>()
 const searchValue = ref('')
 
 const showAgentList = computed(() => {
+  const filterList = agentStore.agentList.filter((item) => item.user_group_ids.length > 0)
   if (searchValue.value) {
-    return agentStore.agentList.filter((item) => item.name.includes(searchValue.value))
+    return filterList.filter((item) => item.name.includes(searchValue.value))
   }
-  return agentStore.agentList.slice(0, 6)
+  return filterList.slice(0, 6)
 })
 
 const showToolkitList = computed(() => {

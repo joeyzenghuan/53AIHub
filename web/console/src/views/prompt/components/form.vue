@@ -1,11 +1,7 @@
 <template>
-  <ElForm ref="formRef" class="py-0 px-3" :model="formData" label-position="top" label-width="120px">
+  <ElForm ref="formRef" class="py-0" :model="formData" label-position="top" label-width="120px">
     <!-- <h1 class="font-semibold text-[#1D1E1F]">{{ $t('basic_info') }}</h1> -->
-    <ElFormItem
-      :label="$t('group')"
-      prop="group_ids"
-      :rules="[{ required: true, message: $t('form_select_placeholder') }]"
-    >
+    <ElFormItem :label="$t('group')" prop="group_ids">
       <GroupSelect v-model="formData.group_ids" :group-type="GROUP_TYPE.PROMPT" default-first multiple clearable />
     </ElFormItem>
     <ElFormItem
@@ -15,7 +11,7 @@
     >
       <ElInputNumber
         v-model="formData.sort"
-        class="!w-[200px]"
+        class="!w-[200px] el-input-number--left"
         size="large"
         :controls="false"
         :precision="0"

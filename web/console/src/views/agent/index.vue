@@ -13,22 +13,93 @@
       </template>
     </Header>
 
-    <div class="flex items-center justify-between mt-5">
-      <div class="flex-1 w-0">
-        <GroupTabs ref="groupTabsRef" v-model="filter_form.group_id" :group-type="GROUP_TYPE.AGENT" @change="refresh" />
-      </div>
-      <div class="flex-none flex-center gap-3 ml-8">
-        <Search v-model="filter_form.keyword" placeholder="module.agent_search_placeholder" @change="refresh" />
-        <div class="flex items-center gap-1 whitespace-nowrap cursor-pointer text-[#576D9C]" @click="groupTabsRef.open">
-          <svg-icon name="cate-manage" width="14px" height="14px" />
-          <div class="text-sm">
-            {{ $t('group') }}
-          </div>
+    <div class="flex-1 overflow-y-auto bg-white rounded-lg px-10 py-6 mt-4">
+      <div class="flex items-center justify-between mb-4">
+        <div class="flex flex-1 w-0 gap-2">
+          <ElSelect
+            v-model="filter_form.group"
+            size="large"
+            :placeholder="$t('all')"
+            class="flex-none max-w-[150px]"
+            @change="refresh"
+          >
+            <template #prefix> {{ $t('internal_user.group.title') }}: </template>
+            <ElOption v-if="filter_form.group" :label="$t('all_group')" :value="''" class="min-w-[204px]" />
+            <ElOption
+              v-for="item in groupList"
+              :key="item.group_id"
+              :label="item.group_name"
+              :value="item.group_id"
+              class="min-w-[204px] bg-[#ffffff]"
+            />
+
+            <!-- 固定底部操作栏 -->
+            <template #footer>
+              <div class="flex justify-between items-center mx-2 px-1 pt-2 sticky bottom-0 bg-white z-10">
+                <div class="cursor-pointer text-[#5A6D9E] text-sm hover:opacity-80" @click="openDialog">
+                  {{ $t('group_management') }}
+                </div>
+              </div>
+            </template>
+          </ElSelect>
+
+          <!-- 一个智能体可以在多个分组中 -->
+          <!-- <GroupTabs
+          ref="groupTabsRef"
+          v-model="filter_form.group"
+          type="dropdown"
+          :group-type="GROUP_TYPE.AGENT"
+          :is-agent-group="true"
+          @change="refresh"
+          @get-options="refresh"
+          @open="openDialog"
+        /> -->
+
+          <ElSelect
+            v-model="filter_form.platform"
+            size="large"
+            class="flex-none max-w-[160px]"
+            clearable
+            :placeholder="$t('all')"
+            @change="refresh"
+          >
+            <template #prefix> {{ $t('module.platform_v2') }}: </template>
+            <ElOption v-if="filter_form.platform" :label="$t('module.all_platform')" :value="''" />
+            <ElOption
+              v-for="item in channels"
+              :key="item.label"
+              :label="$t(item.label)"
+              :value="item.label === 'provider_platform.prompt' ? '1,3,44,36' : item.channelType"
+            />
+          </ElSelect>
+
+          <ElSelect
+            v-model="filter_form.type"
+            size="large"
+            class="flex-none max-w-[160px]"
+            clearable
+            :placeholder="$t('all')"
+            @change="refresh"
+          >
+            <template #prefix> {{ $t('type') }}: </template>
+            <ElOption v-if="filter_form.type" :label="$t('all_type')" :value="''" />
+            <ElOption :label="$t('agent_type_completion_v2')" value="1" />
+            <ElOption :label="$t('agent_type_chat_v2')" value="0" />
+          </ElSelect>
+        </div>
+        <div class="flex-none flex-center gap-3 ml-8">
+          <!-- <Search v-model="filter_form.keyword" placeholder="module.agent_search_placeholder" @change="refresh" /> -->
+          <ElInput
+            v-model="filter_form.keyword"
+            size="large"
+            clearable
+            :suffix-icon="Search"
+            :placeholder="$t('agent.name_v2')"
+            @change="refresh"
+          />
         </div>
       </div>
-    </div>
 
-    <div class="flex-1 overflow-y-auto bg-white rounded-lg px-5 py-5 mt-4">
       <TablePlus
         header-row-class-name="rounded overflow-hidden"
         header-cell-class-name="!bg-[#F6F7F8] !h-[60px] !border-none"
@@ -55,6 +126,16 @@
             </div>
           </template>
         </ElTableColumn>
+        <ElTableColumn :label="$t('module.platform_v2')" min-width="140" show-overflow-tooltip>
+          <template #default="{ row = {} }">
+            {{ $t(`agent_app.${row.agent_type}`) || '--' }}
+          </template>
+        </ElTableColumn>
+        <ElTableColumn :label="$t('type')" min-width="140" show-overflow-tooltip>
+          <template #default="{ row = {} }">
+            {{ row.backend_agent_type === 0 ? $t('agent_type_chat_v2') : $t('agent_type_completion_v2') }}
+          </template>
+        </ElTableColumn>
         <ElTableColumn :label="$t('usage_range')" min-width="140" show-overflow-tooltip>
           <template #default="{ row }">
             <span :class="!row.user_group_names.length ? 'text-[#999]' : ''">
@@ -62,17 +143,7 @@
             </span>
           </template>
         </ElTableColumn>
-        <ElTableColumn :label="$t('type')" width="140" show-overflow-tooltip>
-          <template #default="{ row = {} }">
-            {{ $t(row.agent_type_label) || '--' }}
-          </template>
-        </ElTableColumn>
-        <ElTableColumn :label="$t('sort')" width="80" show-overflow-tooltip>
-          <template #default="{ row = {} }">
-            {{ row.sort }}
-          </template>
-        </ElTableColumn>
-        <ElTableColumn :label="$t('action_enable')" width="80">
+        <ElTableColumn :label="$t('action_enable')" min-width="80">
           <template #default="{ row }">
             <ElSwitch v-model="row.enable" @change="onAgentStatusChange({ data: row })" />
           </template>
@@ -91,21 +162,15 @@
     </div>
   </Layout>
 
-  <el-drawer
-    v-model="add_visible"
-    :title="$t('action_add')"
-    size="650px"
-    style="transition: none"
-    @opened="onAddOpened"
-  >
+  <el-drawer v-model="add_visible" :title="$t('action_add')" size="650px" @opened="onAddOpened">
     <ul class="w-full min-h-[300px] overflow-y-auto">
-      <li v-for="(item, itemIndex) in AGENT_APP_OPTIONS" :key="itemIndex">
+      <li v-for="(item, itemIndex) in filteredAgentOptions" :key="itemIndex">
         <h4 class="text-sm text-[#939499]">
           {{ $t(item.title) }}
         </h4>
-        <ul class="flex flex-col gap-5 pt-4 pb-6">
+        <ul class="flex flex-col gap-3 pt-4 pb-6">
           <li
-            v-for="row in item.children"
+            v-for="row in item.filteredChildren"
             :key="row.value"
             class="h-[72px] px-6 rounded flex items-center gap-3 bg-[#F8F9FA] cursor-pointer hover:shadow"
           >
@@ -123,20 +188,25 @@
   </el-drawer>
 
   <CreateDrawer ref="createDrawerRef" @success="row => onAgentAdd(row.agent_type, row, true)" />
+  <GroupDialog ref="dialogRef" :group-type="GROUP_TYPE.AGENT" />
 </template>
 
 <script setup name="Agent" lang="ts">
-import { nextTick, onMounted, onUnmounted, reactive, ref } from 'vue'
+import { nextTick, onMounted, onUnmounted, reactive, ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { Search } from '@element-plus/icons-vue'
 
+import { ElMessage } from 'element-plus'
 import CreateDrawer from '@/views/agent/create/drawer.vue'
+import GroupDialog from '@/components/GroupDialog/index.vue'
 
 import eventBus from '@/utils/event-bus'
 
 import { agentApi } from '@/api/modules/agent'
 import { providerApi } from '@/api/modules/provider'
 import { subscriptionApi } from '@/api/modules/subscription'
-import { getProvidersByAuth, getProviderByAgentId, AgentType } from '@/constants/platform/config'
+import { groupApi } from '@/api/modules/group'
+import { getProvidersByAuth, getProviderByAgentId, AgentType, channels } from '@/constants/platform/config'
 import { AGENT_APP_OPTIONS } from '@/constants/platform/agent'
 import { VERSION_MODULE } from '@/constants/enterprise'
 import { GROUP_TYPE } from '@/constants/group'
@@ -152,11 +222,13 @@ interface ProviderItem {
 }
 
 const router = useRouter()
-const groupTabsRef = ref()
 const createDrawerRef = ref()
+const dialogRef = ref()
 
 const filter_form = reactive({
-  group_id: '-1',
+  group: '',
+  platform: '',
+  type: '',
   keyword: '',
   page: 1,
   page_size: 10,
@@ -167,12 +239,43 @@ const table_total = ref(0)
 const table_loading = ref(false)
 const add_visible = ref(false)
 const subscriptionList = ref<SubscriptionItem[]>([])
+const groupList = ref<SubscriptionItem[]>([])
 
 const auth_providers = ref<ProviderItem[]>([])
+
+const openDialog = () => {
+  dialogRef.value?.open()
+}
+
+const filteredAgentOptions = computed(() => {
+  const authMap = new Map(auth_providers.value.map(provider => [provider.provider_type, provider.is_auth]))
+  return AGENT_APP_OPTIONS.map(item => {
+    const filteredChildren = item.children.filter(row => {
+      const provider = getProviderByAgentId(row.value)
+
+      if (!provider?.auth) {
+        return true
+      }
+      // 需要授权的应用，检查是否已授权
+      return authMap.get(provider.id) === true
+    })
+
+    return {
+      ...item,
+      filteredChildren,
+    }
+  }).filter(item => {
+    return item.filteredChildren.length > 0
+  })
+})
 
 const loadSubscriptionList = async () => {
   if (!subscriptionList.value.length)
     subscriptionList.value = await subscriptionApi.list({ params: { offset: 0, limit: 1000 } })
+}
+
+const loadGroupList = async () => {
+  if (!groupList.value.length) groupList.value = await groupApi.list({ params: { group_type: GROUP_TYPE.AGENT } })
 }
 
 const loadAllTotal = async () => {
@@ -189,11 +292,14 @@ const loadAllTotal = async () => {
 const loadListData = async () => {
   table_loading.value = true
   await loadSubscriptionList()
+  await loadGroupList()
 
   try {
     const { count = 0, agents = [] } = await agentApi.list({
       params: {
-        group_id: filter_form.group_id,
+        group_id: filter_form.group,
+        channel_types: filter_form.platform,
+        agent_types: filter_form.type,
         keyword: filter_form.keyword,
         offset: (filter_form.page - 1) * filter_form.page_size,
         limit: filter_form.page_size,

@@ -26,132 +26,137 @@
           </ElTooltip>
         </template>
       </MainHeader>
-      <section class="w-full max-w-[1280px] py-6 px-3 md:px-8 lg:px-10 mx-auto box-border" :class="mainClass">
-        <h1 class="text-2xl md:text-3xl font-semibold text-primary w-full flex items-center justify-between md:justify-start">
-          <span>
-            {{ detailData.name }}
-          </span>
-          <ElTooltip :content="$t('chat.usage_guide')">
-            <div
-              class="h-[26px] px-2 rounded-full flex items-center justify-center gap-1.5 text-sm text-primary cursor-pointer hover:bg-[#E1E2E3] md:hidden"
-              @click="isUseCase = true"
-            >
-              <div class="size-4">
-                <svg-icon name="layout-split" size="18"></svg-icon>
+      <div class="flex gap-8">
+        <section class="w-full min-w-0 max-w-[1280px] py-6 px-3 md:px-8 lg:px-10 mx-auto box-border" :class="mainClass">
+          <h1 class="text-2xl md:text-3xl font-semibold text-primary w-full flex items-center justify-between md:justify-start">
+            <span>
+              {{ detailData.name }}
+            </span>
+            <ElTooltip :content="$t('chat.usage_guide')">
+              <div
+                class="h-[26px] px-2 rounded-full flex items-center justify-center gap-1.5 text-sm text-primary cursor-pointer hover:bg-[#E1E2E3] md:hidden"
+                @click="isUseCase = true"
+              >
+                <div class="size-4">
+                  <svg-icon name="layout-split" size="18"></svg-icon>
+                </div>
               </div>
+            </ElTooltip>
+          </h1>
+          <p class="text-placeholder my-4 text-wrap break-words whitespace-pre-wrap" v-text="detailData.description" />
+          <AuthTagGroup :model-value="detailData.group_ids" />
+          <h2
+            v-if="!hideContentTitle"
+            class="text-base md:text-xl font-semibold text-primary mt-8 w-full flex items-center justify-between md:justify-start"
+          >
+            <span>
+              {{ $t('prompt.content') }}
+            </span>
+            <div class="md:hidden">
+              <!-- <ElButton class="!border-none h-[36px]" type="primary" plain>{{ $t('action.add') }}</ElButton> -->
+              <ElButton
+                v-if="(detailData.group_ids || []).some((id) => (userStore.info.group_ids || []).includes(id))"
+                v-copy="detailData.content"
+                class="h-[36px]"
+                type="primary"
+              >
+                {{ $t('action.copy') }}
+              </ElButton>
+              <ElButton v-copy="locationHref" class="!bg-[#F9FAFB] h-[36px] !ml-2" plain>
+                {{ $t('action.share') }}
+              </ElButton>
             </div>
-          </ElTooltip>
-        </h1>
-        <p class="text-placeholder my-4 text-wrap break-words whitespace-pre-wrap" v-text="detailData.description" />
-        <AuthTagGroup :model-value="detailData.group_ids" />
-        <h2
-          v-if="!hideContentTitle"
-          class="text-base md:text-xl font-semibold text-primary mt-8 w-full flex items-center justify-between md:justify-start"
-        >
-          <span>
-            {{ $t('prompt.content') }}
-          </span>
-          <div class="md:hidden">
-            <!-- <ElButton class="!border-none h-[36px]" type="primary" plain>{{ $t('action.add') }}</ElButton> -->
-            <ElButton
-              v-if="(detailData.group_ids || []).some((id) => (userStore.info.group_ids || []).includes(id))"
-              v-copy="detailData.content"
-              class="h-[36px]"
-              type="primary"
-            >
-              {{ $t('action.copy') }}
-            </ElButton>
-            <ElButton v-copy="locationHref" class="!bg-[#F9FAFB] h-[36px] !ml-2" plain>
-              {{ $t('action.share') }}
-            </ElButton>
-          </div>
-        </h2>
-        <section class="w-full mt-4 flex gap-8">
-          <div class="flex-1 w-0 max-h-max relative overflow-hidden group">
-            <div class="rounded-md bg-[#F9FAFB]">
-              <template v-if="(detailData.group_ids || []).some((id) => (userStore.info.group_ids || []).includes(id))">
-                <div class="absolute top-4 right-4 z-[2] invisible md:group-hover:visible">
-                  <!-- <ElButton class="!border-none h-[36px]" type="primary" plain>{{ $t('action.add') }}</ElButton> -->
-                  <ElButton v-copy="detailData.content" class="!bg-[#F9FAFB] h-[36px]" plain>
-                    {{ $t('action.copy') }}
-                  </ElButton>
-                  <ElButton v-copy="locationHref" class="!bg-[#F9FAFB] h-[36px] !ml-2" plain>
-                    {{ $t('action.share') }}
-                  </ElButton>
-                </div>
-                <PromptInput :model-value="detailData.content" disabled style="min-height: max-content" show-line />
-              </template>
-              <div v-else class="relative border rounded">
-                <div class="blur-md">
-                  <PromptInput :model-value="virtualPrompt" disabled style="min-height: max-content" show-line />
-                </div>
-                <div class="absolute inset-0"></div>
-                <div class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-10 px-5 bg-[#6F7275] rounded-full flex items-center gap-1">
-                  <svg-icon name="lock" color="#fff"></svg-icon>
-                  <span class="text-sm text-white">{{ $t('prompt.auth_tip') }}</span>
-                </div>
-              </div>
-            </div>
-
-            <template v-if="(detailData.group_ids || []).some((id) => (userStore.info.group_ids || []).includes(id))">
-              <el-divider v-if="detailData.ai_links_data && detailData.ai_links_data.length">
-                <span class="text-sm text-regular">{{ $t('prompt.let_use_prompt') }}</span>
-              </el-divider>
-              <div v-if="detailData.ai_links_data && detailData.ai_links_data.length" class="flex items-center justify-center gap-4 flex-wrap">
-                <template v-for="item in detailData.ai_links_data" :key="item.url">
-                  <a
-                    v-copy="detailData.content"
-                    class="w-20 h-16 flex flex-col items-center justify-center gap-2 cursor-pointer"
-                    :href="item.url"
-                    target="_blank"
-                    @click.prevent="handleClick"
-                  >
-                    <div class="size-8 rounded-full border overflow-hidden flex items-center justify-center">
-                      <img :src="item.logo" class="size-6 rounded-full" />
-                    </div>
-                    <p class="text-primary text-sm whitespace-nowrap">{{ item.name }}</p>
-                  </a>
-                </template>
-              </div>
-            </template>
-          </div>
-          <div v-if="showRecommend" class="flex-none w-2/6 box-border relative flex flex-col gap-4">
-            <h2 class="flex-none text-base font-semibold text-regular">{{ $t('common.related_prompt') }}</h2>
-            <div v-if="detailData.prompt_id" class="flex-1 overflow-y-auto flex flex-col gap-2.5">
-              <template v-for="item in relatedPromptList" :key="item.agent_id">
-                <router-link
-                  class="flex-none h-24 rounded p-4 cursor-pointer group hover:shadow-md transition-all duration-300"
-                  :style="{
-                    backgroundImage: `url(${$getPublicPath('/images/index/card_bg_v4.png')})`,
-                    backgroundSize: '100% 100%',
-                    backgroundPosition: 'center center',
-                    backgroundRepeat: 'no-repeat'
-                  }"
-                  :to="{
-                    name: route.path.includes('/index') ? 'HomePromptDetail' : 'PromptDetail',
-                    params: { prompt_id: item.prompt_id }
-                  }"
-                >
-                  <div class="flex items-center justify-between gap-2">
-                    <span class="text-sm text-primary">{{ item.name }}</span>
-                    <ElButton
-                      v-if="(item.group_ids || []).some((id) => (userStore.info.group_ids || []).includes(id))"
-                      v-copy="item.content"
-                      size="small"
-                      class="invisible group-hover:visible !px-2"
-                    >
+          </h2>
+          <section class="w-full mt-4 flex gap-8">
+            <div class="flex-1 w-0 max-h-max relative overflow-hidden group">
+              <div class="rounded-md bg-[#F9FAFB]">
+                <template v-if="(detailData.group_ids || []).some((id) => (userStore.info.group_ids || []).includes(id))">
+                  <div class="absolute top-4 right-4 z-[2] invisible md:group-hover:visible">
+                    <!-- <ElButton class="!border-none h-[36px]" type="primary" plain>{{ $t('action.add') }}</ElButton> -->
+                    <ElButton v-copy="detailData.content" class="!bg-[#F9FAFB] h-[36px]" plain>
                       {{ $t('action.copy') }}
                     </ElButton>
+                    <ElButton v-copy="locationHref" class="!bg-[#F9FAFB] h-[36px] !ml-2" plain>
+                      {{ $t('action.share') }}
+                    </ElButton>
                   </div>
-                  <div class="text-sm text-regular line-clamp-2 mt-1.5" :title="item.description">
-                    {{ item.description || '--' }}
+                  <PromptInput :model-value="detailData.content" disabled style="min-height: max-content" show-line />
+                </template>
+                <div v-else class="relative border rounded">
+                  <div class="blur-md">
+                    <PromptInput :model-value="virtualPrompt" disabled style="min-height: max-content" show-line />
                   </div>
-                </router-link>
+                  <div class="absolute inset-0"></div>
+                  <div
+                    class="absolute left-1/2 top-1/2 -translate-x-1/2 -translate-y-1/2 h-10 px-5 bg-[#6F7275] rounded-full flex items-center gap-1"
+                  >
+                    <svg-icon name="lock" color="#fff"></svg-icon>
+                    <span class="text-sm text-white">{{ $t('prompt.auth_tip') }}</span>
+                  </div>
+                </div>
+              </div>
+
+              <template v-if="(detailData.group_ids || []).some((id) => (userStore.info.group_ids || []).includes(id))">
+                <el-divider v-if="detailData.ai_links_data && detailData.ai_links_data.length">
+                  <span class="text-sm text-regular">{{ $t('prompt.let_use_prompt') }}</span>
+                </el-divider>
+                <div v-if="detailData.ai_links_data && detailData.ai_links_data.length" class="flex items-center justify-center gap-4 flex-wrap">
+                  <template v-for="item in detailData.ai_links_data" :key="item.url">
+                    <a
+                      v-copy="detailData.content"
+                      class="w-20 h-16 flex flex-col items-center justify-center gap-2 cursor-pointer"
+                      :href="item.url"
+                      target="_blank"
+                      @click.prevent="handleClick"
+                    >
+                      <div class="size-8 rounded-full border overflow-hidden flex items-center justify-center">
+                        <img :src="item.logo" class="size-6 rounded-full" />
+                      </div>
+                      <p class="text-primary text-sm whitespace-nowrap">{{ item.name }}</p>
+                    </a>
+                  </template>
+                </div>
               </template>
             </div>
-          </div>
+          </section>
         </section>
-      </section>
+
+        <div v-if="showRecommend" class="flex-none w-2/6 box-border relative flex flex-col gap-4 mt-8">
+          <h2 class="flex-none text-base font-semibold text-regular">{{ $t('common.related_prompt') }}</h2>
+          <div v-if="detailData.prompt_id" class="flex-1 overflow-y-auto flex flex-col gap-2.5">
+            <template v-for="item in relatedPromptList" :key="item.agent_id">
+              <router-link
+                class="flex-none h-24 rounded p-4 cursor-pointer group hover:shadow-md transition-all duration-300"
+                :style="{
+                  backgroundImage: `url(${$getPublicPath('/images/index/card_bg_v4.png')})`,
+                  backgroundSize: '100% 100%',
+                  backgroundPosition: 'center center',
+                  backgroundRepeat: 'no-repeat'
+                }"
+                :to="{
+                  name: route.path.includes('/index') ? 'HomePromptDetail' : 'PromptDetail',
+                  params: { prompt_id: item.prompt_id }
+                }"
+              >
+                <div class="flex items-center justify-between gap-2">
+                  <span class="text-sm text-primary">{{ item.name }}</span>
+                  <ElButton
+                    v-if="(item.group_ids || []).some((id) => (userStore.info.group_ids || []).includes(id))"
+                    v-copy="item.content"
+                    size="small"
+                    class="invisible group-hover:visible !px-2"
+                  >
+                    {{ $t('action.copy') }}
+                  </ElButton>
+                </div>
+                <div class="text-sm text-regular line-clamp-2 mt-1.5" :title="item.description">
+                  {{ item.description || '--' }}
+                </div>
+              </router-link>
+            </template>
+          </div>
+        </div>
+      </div>
     </template>
 
     <Transition name="slide">

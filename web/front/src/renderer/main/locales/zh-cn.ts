@@ -302,7 +302,8 @@ export default {
     no_available_agent: '暂无可用的智能体',
     completion_completed: '已完成深度思考',
     completion_thinking: '深度思考中...',
-    completion_next_action: '关联场景做下一步操作'
+    completion_scene: '关联场景：',
+    completion_next_action: '关联场景：下一步操作'
   },
 
   // 知识库相关
@@ -331,7 +332,9 @@ export default {
   },
 
   agent: {
-    no_data: '管理员还未发布智能体'
+    no_data: '管理员还未发布智能体',
+    dialogue_type: '对话型',
+    applied_type: '应用型'
   },
 
   prompt: {

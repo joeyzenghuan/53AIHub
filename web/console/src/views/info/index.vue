@@ -37,7 +37,7 @@
           <div class="mt-4 w-full flex items-center gap-4">
             <ElImage
               v-if="form.ico"
-              class="h-[24px] rounded overflow-hidden"
+              class="h-[24px] w-6 rounded overflow-hidden"
               :src="form.ico"
               :preview-src-list="[form.ico]"
               fit="contain"
@@ -296,7 +296,6 @@ const loadedHandler = () => {
 
 onMounted(() => {
   eventBus.on('enterprise-info-loaded', loadedHandler)
-  console.log(enterprise_info.value.copyright.toLowerCase())
 })
 onUnmounted(() => {
   eventBus.off('enterprise-info-loaded', loadedHandler)
@@ -317,8 +316,6 @@ watch(
     if (!['software', 'website'].includes(form.template_type)) form.template_type = 'website'
     form.layout_type = (enterprise_info.value.layout_type !== 1 && enterprise_info.value.layout_type) || 'loose'
     if (+enterprise_info.value.eid) loadedHandler()
-    console.log(form.copyright)
-    console.log(enterprise_info.value.copyright)
   },
   {
     immediate: true,

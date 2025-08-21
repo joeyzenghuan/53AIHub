@@ -26,3 +26,4 @@ send-build-msg.sh
 .envhub
 53AIHub
 AI_TASK.txt
+.tasks/*

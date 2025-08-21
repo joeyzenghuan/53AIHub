@@ -1,15 +1,15 @@
 import { defineStore } from 'pinia'
 import { channelApi } from '@/api/modules/channel'
+import { deepCopy } from '@/utils'
 
 export const useChannelStore = defineStore('channel-store', {
   state: () => ({
     channel_list: [],
-    model_list_map: new Map(),
+    channel_models: [],
   }),
   actions: {
     async loadListData({ reset = true } = {}) {
-      if (reset || !this.channel_list.length)
-        this.channel_list = await channelApi.list()
+      if (reset || !this.channel_list.length) this.channel_list = await channelApi.list()
       return JSON.parse(JSON.stringify(this.channel_list))
     },
     async save({ data = {} } = {}) {
@@ -18,19 +18,14 @@ export const useChannelStore = defineStore('channel-store', {
     async delete({ data: { channel_id } }: { data: { channel_id: number } }) {
       return channelApi.delete({ data })
     },
-    async loadModelList({ reset = false, owner = 'all' } = {}) {
-      if (reset)
-        this.model_list_map.set(owner, [])
-      if (!this.model_list_map.get(owner) || !this.model_list_map.get(owner).length) {
+    async loadChannelModels(owner = 'all') {
+      if (!this.channel_models.length) {
         const list = await channelApi.modelList({ params: { owner } })
-        list.forEach((item = {}) => {
-          const model_list = this.model_list_map.get(item.owned_by) || []
-          model_list.push(item)
-          this.model_list_map.set(item.owned_by, model_list)
-        })
-        this.model_list_map.set('all', list)
+        this.channel_models = list
       }
-      return JSON.parse(JSON.stringify(this.model_list_map.get(owner) || []))
+      if (owner === 'all') return deepCopy(this.channel_models)
+      const list = this.channel_models.filter((item: any) => item.owned_by === owner)
+      return deepCopy(list)
     },
     async loadCozeWorkspaceList() {
       const list = await channelApi.cozeWorkspaceList()

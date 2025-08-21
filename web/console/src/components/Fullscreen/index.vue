@@ -91,7 +91,7 @@ watch(
 )
 
 // 生命周期
-let stopResizeObserver: (() => void) | undefined
+let stopResizeObserver: any
 
 onMounted(async () => {
   await nextTick()
@@ -104,7 +104,7 @@ onMounted(async () => {
 
 onUnmounted(() => {
   if (stopResizeObserver) {
-    stopResizeObserver()
+    stopResizeObserver.stop()
   }
 })
 

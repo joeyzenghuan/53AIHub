@@ -15,6 +15,7 @@
     "verification_code_error": "验证码不正确"
   },
   "response_message": {
+    "unknown_error": "未知错误",
     "user_not_found": "用户不存在",
     "username_or_password_is_incorrect": "用户名或密码错误",
     "operate_too_fast": "操作过快，请稍后再试"
@@ -46,6 +47,7 @@
     "system": "系统管理",
     "library": "全部知识库",
     "chunk_setting": "语料拆分",
+    "model_setting": "模型设置",
     "dialogue_digital_employee": "AI员工",
     "dialogue_prompt": "提示词",
     "dialogue_large_model": "大模型",
@@ -99,6 +101,8 @@
     "website_info_template": "站点风格",
     "website_info_layout": "网站布局",
     "platform": "平台接入",
+    "platform_v2": "平台",
+    "all_platform": "全部平台",
     "platform_delete_confirm": "确定删除该智能体平台吗？",
     "platform_tools": "拓展工具",
     "platform_auth_client_id": "客户端ID",
@@ -111,12 +115,16 @@
     "platform_search_online": "联网搜索",
     "platform_search_online_desc": "通过博查搜索网络内容，可总结摘要",
     "platform_search_online_delete_confirm": "确定删除该拓展工具吗？",
+    "platform_tool_token": "令牌",
+    "platform_tool_api_endpoint": "API Endpoint",
     "platform_tool_api_key": "API Key",
     "platform_tool_api_key_placeholder": "输入您的API Key",
+    "platform_tool_token_placeholder": "输入您的令牌",
     "platform_model": "通用大模型",
     "platform_model_add": "选择模型接入",
     "platform_model_organization_id": "组织 ID",
     "platform_model_organization_id_placeholder": "输入您的组织 ID",
+    "platform_model_webhook_url": "Webhook URL",
     "platform_model_base_url": "API Base",
     "platform_model_base_url_azure": "API 域名",
     "platform_model_base_url_maxkb": "Base URL",
@@ -242,6 +250,7 @@
     "account_length": "账号长度必须在 4-20 个字符之间",
     "account_format": "账号必须以字母开头，只能包含字母、数字和下划线",
     "password_length": "密码长度需在 8-20 个字符之间，可以是字母、数字、符号组合",
+    "password_length_v2": "密码长度需在 8-20 个字符之间",
     "password_format": "密码必须包含大小写字母和数字",
     "password_not_match": "两次输入的密码不一致",
     "reset_password": "重置密码",
@@ -286,7 +295,8 @@
     "title": "立即开通",
     "consult_name": "首席客服顾问",
     "desc_1": "您好，扫码联系您的专属顾问，",
-    "desc_2": "开通使用"
+    "desc_2": "开通使用",
+    "desc_3": "您好，微信扫码联系您的专属顾问，"
   },
   "website_version": {
     "free": "创业版",
@@ -428,28 +438,43 @@
     },
     "53ai": {
       "tip": "前往 53AI（{url}） 第一步：登录后，点击左侧导航栏的 \"设置\"\n第二步：在\"企业信息\"下点击生成Secret Key\n第三步：生成后，复制Sercet Key填入下列表单。"
+    },
+    "n8n": {
+      "tip": "前往n8n官网并登录（{url}）",
+      "tip_1": "第一步：在「Personal」下，点击创建一个工作流，再点击添加节点「On webhook call」；",
+      "tip_2": "第二步：在Webhook节点的编辑弹窗内，复制Webhook URLs 填入表单，Authentication选择「{headerAuth}」，然后在点击「Creat new credential」;",
+      "tip_3": "第三步：“Name”固定填入： {authorization}\n“Value”对应的是渠道的 key 字段，可以是随机字符串，字符数请控制在64位内；",
+      "tip_4": "第四步：“Respond”选择：{select}"
+    },
+    "coze_osv": {
+      "tip": "前往 设置-API授权-个人访问令牌 \n第一步：点击添加新令牌\n第二步：填写令牌名称，设置过期时间，权限全部勾选，选择所有工作空间并确定\n第三步：复制令牌填入下列表单"
     }
   },
   "agent_app": {
-    "prompt": "通过Prompt创建",
-    "53ai_agent": "53AI Studio",
-    "53ai_workflow": "53AI工作流",
+    "prompt": "Prompt",
+    "prompt_v2": "通过Prompt创建",
+    "53ai_agent": "53AI",
+    "53ai_workflow": "53AI",
     "coze_agent_cn": "扣子",
-    "coze_workflow_cn": "扣子工作流",
+    "coze_workflow_cn": "扣子",
+    "coze_agent_osv": "coze studio 开源版",
+    "coze_workflow_osv": "coze studio 开源版",
     "coze_agent": "Coze智能体",
     "coze_workflow": "Coze工作流",
     "dify_agent": "Dify",
-    "dify_workflow": "Dify工作流",
+    "dify_workflow": "Dify",
     "app_builder": "百度千帆Appbuilder",
     "yuanqi": "腾讯元器",
     "bailian": "阿里百炼",
     "volcengine": "火山方舟",
     "fastgpt_agent": "FastGPT",
-    "fastgpt_workflow": "FastGPT工作流",
+    "fastgpt_workflow": "FastGPT",
     "maxkb_agent": "MaxKB",
+    "n8n_workflow": "n8n",
     "check_agent_config_tip": "请检查智能体配置是否正确"
   },
   "provider_platform": {
+    "prompt": "Prompt",
     "openai": "OpenAI",
     "deepseek": "深度求索",
     "coze": "Coze",
@@ -460,6 +485,7 @@
     "dark_moon": "月之暗面",
     "tongyi": "通义千问",
     "coze_cn": "扣子",
+    "coze_osv": "coze-studio开源版",
     "app_builder": "百度千帆AppBuilder",
     "dify": "Dify",
     "53ai": "53AI",
@@ -467,7 +493,8 @@
     "volcengine": "火山方舟",
     "yuanqi": "腾讯元器",
     "fastgpt": "FastGPT",
-    "maxkb": "MaxKB"
+    "maxkb": "MaxKB",
+    "n8n": "n8n"
   },
   "register_user": {
     "title": "注册用户"
@@ -523,7 +550,9 @@
       "disabled": "禁用账号",
       "disabled_success": "已禁用",
       "enable": "激活账号",
-      "enable_success": "已激活"
+      "enable_success": "已激活",
+      "disabled_account": "禁用账号",
+      "enable_account": "激活账号"
     },
     "department": {
       "add": "添加部门",
@@ -730,7 +759,7 @@
   "monthly": "月",
   "month": "月",
   "expired_time": "到期时间",
-  "basic_info": "基础信息",
+  "basic_info": "基本信息",
   "connected": "已接入",
   "connecting": "接入中",
   "not_connected": "未接入",
@@ -768,6 +797,7 @@
   "description": "描述",
   "pictorial_image": "示图",
   "type": "类型",
+  "all_type": "全部类型",
   "usage_record": "使用记录",
   "usage_guide": "使用指引",
   "dialogue_record": "对话记录",
@@ -809,6 +839,7 @@
   "usage_case_desc": "为你的应用添加使用案例，让用户更加容易上手",
   "input": "输入",
   "output": "输出",
+  "output_variable": "输出变量",
   "usage_scene": "使用场景",
   "usage_scene_desc": "为你的应用添加更多使用场景",
   "image": "图片",
@@ -882,6 +913,7 @@
   "yuanqi": "腾讯元器",
   "bailian": "阿里百炼",
   "volcengine": "火山方舟",
+  "n8n": "n8n",
   "sort": "排序",
   "official_website": "首页",
   "apply_open": "申请开通",
@@ -903,7 +935,9 @@
   "api_key": "API Key",
   "agent_type": "智能体类型",
   "agent_type_chat": "对话型应用",
+  "agent_type_chat_v2": "对话型",
   "agent_type_completion": "workflow型应用",
+  "agent_type_completion_v2": "应用型",
   "agent_type_workflow": "工作流编排对话型应用",
   "agent_file_parse": "文档解析",
   "agent_image_parse": "图片视觉",
@@ -972,6 +1006,7 @@
     "scan_consult": "扫码咨询",
     "upgrade_tip": "升级提示",
     "upgrade": "升级版本",
+    "upgrade_renew": "升级版本/续期",
     "not_support": "当前版本不支持",
     "agent_limit": "智能体添加数量达上限，请升级后尝试添加",
     "upgrade_hide_logo": "升级至企业版，开启隐藏技术支持Logo"
@@ -1024,10 +1059,14 @@
   },
   "message_status": {
     "create_success": "已创建",
-    "save_success": "已保存"
+    "save_success": "已保存",
+    "logic_reasoning_required": "请选择逻辑推理模型",
+    "vector_embedding_required": "请选择向量嵌入模型",
+    "rerank_model_required": "请选择rerank模型"
   },
   "agent": {
     "name": "智能体",
+    "name_v2": "智能体名称",
     "base_info": "基础信息",
     "input_variable": "输入",
     "output_variable": "输出",
@@ -1042,6 +1081,7 @@
     "coze": {
       "workspace": "工作空间",
       "workflow_link": "扣子工作流\"编辑状态\"的链接",
+      "agent_link": "扣子智能体\"编辑状态\"的链接",
       "agent_type_chat": "对话型（智能体）",
       "agent_type_chat_desc": "用户与大模型进行对话，由一个大模型自主思考决策，适用于较为简单的业务逻辑。",
       "agent_type_workflow": "应用型（工作流）",
@@ -1060,10 +1100,10 @@
       "agent_type_workflow_desc": "工作流是一系列可执行指令的集合，用于实现业务逻辑或完成特定任务。 "
     },
     "fastgpt": {
-      "agent_type_chat": "简易应用",
+      "agent_type_chat": "对话型（简易应用/工作流）",
       "agent_type_chat_desc": "用户与大模型进行对话，由一个大模型自主思考决策，适用于较为简单的业务逻辑。",
-      "agent_type_workflow": "工作流",
-      "agent_type_workflow_desc": "工作流是一系列可执行指令的集合，用于实现业务逻辑或完成特定任务。 "
+      "agent_type_workflow": "应用型（插件）",
+      "agent_type_workflow_desc": "可以自定义输入和输出的工作流，通常用于封装重复使用的工作流。"
     },
     "relate_app": {
       "title": "关联场景",

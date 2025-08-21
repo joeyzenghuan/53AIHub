@@ -1,6 +1,11 @@
 package model
 
-import "errors"
+import (
+	"encoding/json"
+	"errors"
+
+	"gorm.io/gorm"
+)
 
 type Setting struct {
 	SettingID int64  `json:"setting_id" gorm:"primaryKey;autoIncrement"`
@@ -15,6 +20,10 @@ type SettingKey string
 const (
 	ThirdPartyStatisticHeader SettingKey = "third_party_statistic_header"
 	ThirdPartyStatisticCss    SettingKey = "third_party_statistic_css"
+)
+
+const (
+	DefaultPromptLinks string = "default_prompt_links" // 添加默认网站配置的 key
 )
 
 type SettingGroup []SettingKey
@@ -90,4 +99,56 @@ func GetSettingByEidAndKey(eid int64, key string) (*Setting, error) {
 		return nil, result.Error
 	}
 	return &setting, nil
+}
+
+// 添加解析 JSON 的辅助函数
+func GetDefaultPromptLinks(eid int64) ([]AILinkInfo, error) {
+	var setting Setting
+	err := DB.Where("eid = ? AND `key` = ?", eid, DefaultPromptLinks).First(&setting).Error
+	if err != nil {
+		if errors.Is(err, gorm.ErrRecordNotFound) {
+			// 如果记录未找到，从 GetDefaultGroupData 中提取数据
+			defaultGroups := GetDefaultGroupData()
+
+			// 定义需要的链接名称，并存储到 map 中
+			requiredLinkNames := map[string]bool{
+				"豆包":       true,
+				"腾讯元宝":     true,
+				"百度AI+":    true,
+				"ChatGPT":  true,
+				"Kimi":     true,
+				"DeekSeek": true,
+			}
+
+			// 提取需要的链接数据
+			var defaultLinks []AILinkInfo
+			for _, group := range defaultGroups {
+				for _, link := range group.Links {
+					if requiredLinkNames[link.Name] {
+						defaultLinks = append(defaultLinks, link)
+					}
+				}
+			}
+			data, _ := json.Marshal(defaultLinks)
+			setting = Setting{
+				Eid:   eid,
+				Key:   DefaultPromptLinks,
+				Value: string(data),
+			}
+			if err := CreateSetting(&setting); err != nil {
+				return nil, err
+			}
+			// 重新从数据库中获取设置
+			err = DB.Where("eid = ? AND `key` = ?", eid, DefaultPromptLinks).First(&setting).Error
+			if err != nil {
+				return nil, err
+			}
+		}
+	}
+	// 还需要把setting.eid传入links中
+	var links []AILinkInfo
+	if err := json.Unmarshal([]byte(setting.Value), &links); err != nil {
+		return nil, err
+	}
+	return links, nil
 }

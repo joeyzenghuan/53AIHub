@@ -115,6 +115,8 @@ func SetApiRouter(router *gin.Engine) {
 		settingRoute.GET("", middleware.UserTokenAuth(model.RoleAdminUser), controller.GetSettings)
 		settingRoute.GET("/group/:group_name", controller.GetSettingsByGroup)
 		settingRoute.GET("/key/:key", controller.GetSettingByKey)
+		settingRoute.POST("/default_links", middleware.UserTokenAuth(model.RoleGuestUser), controller.BatchUpdateDefaultPromptLinks) // 批量更新默认提示词链接
+		settingRoute.GET("/default_links", middleware.UserTokenAuth(model.RoleGuestUser), controller.GetDefaultPromptLinks)          // 获取默认提示词链接
 	}
 
 	channelGroup := apiRouter.Group("/channels")
@@ -208,6 +210,7 @@ func SetApiRouter(router *gin.Engine) {
 	{
 		apiV1Router.POST("/chat/completions", controller.Relay)
 		apiV1Router.POST("/workflow/run", controller.WorkflowRun)
+		apiV1Router.POST("/rerank", controller.Rerank)
 	}
 
 	paySettingRouter := apiRouter.Group("/pay_settings")

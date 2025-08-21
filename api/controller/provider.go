@@ -39,7 +39,7 @@ func validateCozeConfig(providerType int64, configStr string) error {
 func checkSaveAccessToken(ProviderType int64, req ProviderRequest) (bool, error) {
 	saveAccessToken := false
 	switch ProviderType {
-	case model.ProviderTypeAppBuilder, model.ProviderType53AI:
+	case model.ProviderTypeAppBuilder, model.ProviderType53AI, model.ProviderTypeCozeStudio:
 		if req.AccessToken == "" {
 			return saveAccessToken, errors.New("access_token is required for provider")
 		}

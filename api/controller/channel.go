@@ -21,6 +21,7 @@ type ChannelRequest struct {
 	Priority     *int64  `json:"priority"`
 	BaseURL      *string `json:"base_url"`
 	Other        *string `json:"other"`
+	ProviderID   *int64  `json:"provider_id" example:"181"`
 }
 
 // @Summary Create channel
@@ -51,6 +52,12 @@ func CreateChannel(c *gin.Context) {
 		Priority:     req.Priority,
 		BaseURL:      req.BaseURL,
 		Other:        req.Other,
+		ProviderID:   0, // Default to 0 if not provided
+	}
+
+	// Set ProviderID if provided in request
+	if req.ProviderID != nil {
+		channel.ProviderID = *req.ProviderID
 	}
 
 	channel.Models = model.ProcessModelNames(req.Models, channel.Type)
@@ -130,6 +137,11 @@ func UpdateChannel(c *gin.Context) {
 	channel.Priority = req.Priority
 	channel.BaseURL = req.BaseURL
 	channel.Other = req.Other
+
+	// Update ProviderID if provided in request
+	if req.ProviderID != nil {
+		channel.ProviderID = *req.ProviderID
+	}
 
 	if err := model.UpdateChannel(channel); err != nil {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))

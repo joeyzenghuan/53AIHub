@@ -15,6 +15,8 @@ const components = {
   [AGENT_TYPES.PROMPT]: defineAsyncComponent(() => import('./prompt.vue')),
   [AGENT_TYPES.COZE_AGENT_CN]: defineAsyncComponent(() => import('./coze-cn.vue')),
   [AGENT_TYPES.COZE_WORKFLOW_CN]: defineAsyncComponent(() => import('./coze-cn.vue')),
+  [AGENT_TYPES.COZE_AGENT_OSV]: defineAsyncComponent(() => import('./coze-osv.vue')),
+  [AGENT_TYPES.COZE_WORKFLOW_OSV]: defineAsyncComponent(() => import('./coze-osv.vue')),
   [AGENT_TYPES.DIFY_AGENT]: defineAsyncComponent(() => import('./dify-agent.vue')),
   [AGENT_TYPES.DIFY_WORKFLOW]: defineAsyncComponent(() => import('./dify-agent.vue')),
   [AGENT_TYPES['53AI_AGENT']]: defineAsyncComponent(() => import('./53ai-agent.vue')),
@@ -26,6 +28,7 @@ const components = {
   [AGENT_TYPES.FASTGPT_AGENT]: defineAsyncComponent(() => import('./fastgpt-agent.vue')),
   [AGENT_TYPES.FASTGPT_WORKFLOW]: defineAsyncComponent(() => import('./fastgpt-agent.vue')),
   [AGENT_TYPES.MAXKB_AGENT]: defineAsyncComponent(() => import('./maxkb-agent.vue')),
+  [AGENT_TYPES.N8N_WORKFLOW]: defineAsyncComponent(() => import('./n8n.vue')),
 }
 
 const viewRef = ref()

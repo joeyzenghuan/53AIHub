@@ -38,6 +38,12 @@ const (
 	TradeStateRevoked    = "REVOKED"    // Order revoked (only for payment code)
 	TradeStateUserPaying = "USERPAYING" // User is paying (only for payment code)
 	TradeStatePayError   = "PAYERROR"   // Payment failed (only for payment code)
+
+	// alipay trade_state constants
+	TradeStateWaitBuyerPay = "WAIT_BUYER_PAY" // Waiting for buyer to pay
+	TradeStateTradeClosed  = "TRADE_CLOSED"  // Trade closed
+	TradeStateTradeSuccess = "TRADE_SUCCESS" // Trade succeeded
+	TradeStateTradeFinish  = "TRADE_FINISHED" // Trade finished
 )
 
 // Order represents an order record

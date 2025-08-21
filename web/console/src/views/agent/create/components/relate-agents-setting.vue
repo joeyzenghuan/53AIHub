@@ -21,6 +21,7 @@
                     :placeholder="$t('form.set_variable_placeholder')"
                     style="height: 100%"
                     :variables="variables"
+                    :agent-info="agentInfo"
                   />
                 </div>
               </div>
@@ -73,6 +74,7 @@ import { ref, computed } from 'vue'
 import { useAgentFormStore } from '../store'
 import { deepCopy } from '@/utils'
 import PromptInput from '@/components/Prompt/input.vue'
+import { AGENT_MODES } from '@/constants/platform/config'
 
 const store = useAgentFormStore()
 
@@ -81,11 +83,20 @@ const emit = defineEmits<{
 }>()
 
 const variables = computed(() => {
+  const isChatAgent = store.agent_option_data.mode === AGENT_MODES.CHAT
+  if (isChatAgent) {
+    return [
+      {
+        label: window.$t('output_variable'),
+        children: [{ label: '{#text#}', value: '{#text#}' }],
+      },
+    ]
+  }
   return [
     {
-      label: window.$t('agent.output_variable'),
+      label: window.$t('output_variable'),
       children: store.form_data.settings.output_fields.map(item => ({
-        label: item.label,
+        label: `{#${item.label}#}`,
         value: `{#${item.variable}#}`,
       })),
     },
@@ -94,11 +105,17 @@ const variables = computed(() => {
 
 const visible = ref(false)
 const agent = ref<Agent.RelateAgent>({} as Agent.RelateAgent)
+const agentInfo = ref({
+  icon: '',
+  name: '',
+})
 
 const promptInputRef = ref()
 const open = (item: Agent.RelateAgent) => {
   agent.value = deepCopy(item)
   visible.value = true
+  agentInfo.value.icon = store.form_data.logo
+  agentInfo.value.name = store.form_data.name
 }
 
 const close = () => {

@@ -57,7 +57,8 @@ export const useConversationStore = defineStore('conversation-store', {
           name: '',
           logo: '',
           agent_id: 0,
-          configs: '{}'
+          configs: '{}',
+          custom_config_obj: {}
         }
       )
     },

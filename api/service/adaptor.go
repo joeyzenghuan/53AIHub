@@ -12,6 +12,7 @@ import (
 	"github.com/53AI/53AIHub/service/hub_adaptor/coze"
 	"github.com/53AI/53AIHub/service/hub_adaptor/custom"
 	"github.com/53AI/53AIHub/service/hub_adaptor/dify"
+	"github.com/53AI/53AIHub/service/hub_adaptor/n8n"
 	Hub_openai "github.com/53AI/53AIHub/service/hub_adaptor/openai"
 	"github.com/53AI/53AIHub/service/hub_adaptor/yuanqi"
 	"github.com/songquanpeng/one-api/relay/adaptor"
@@ -91,6 +92,10 @@ func GetAdaptor(apiType int) adaptor.Adaptor {
 		return &Hub_openai.Adaptor{}
 	case model.ChannelApiTypeMaxKB:
 		return &Hub_openai.Adaptor{}
+	case model.ChannelApiTypeN8n:
+		return &n8n.Adaptor{}
+	case model.ChannelApiTypeCozeStudio:
+		return &coze.Adaptor{}
 	}
 
 	return nil
@@ -126,6 +131,8 @@ func SetCustomConfig(a *adaptor.Adaptor, customConfig *custom.CustomConfig) erro
 		v.CustomConfig.ConversationId = fmt.Sprintf("53AIHub_%d", customConfig.AIHubConversationId)
 	case *yuanqi.Adaptor:
 		v.CustomConfig = customConfig
+	case *n8n.Adaptor:
+		v.CustomConfig = customConfig
 	}
 	return nil
 }
@@ -145,6 +152,8 @@ func GetCustomConfig(a *adaptor.Adaptor) *custom.CustomConfig {
 	case *bailian.Adaptor:
 		return v.CustomConfig
 	case *yuanqi.Adaptor:
+		return v.CustomConfig
+	case *n8n.Adaptor:
 		return v.CustomConfig
 	}
 	return nil

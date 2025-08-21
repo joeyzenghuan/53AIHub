@@ -1,29 +1,32 @@
 // 使用枚举替代常量
-export enum ResponseCode {
-  SUCCESS = 0,
-  PARAM_ERROR = 1,
-  DATABASE_ERROR = 2,
-  NETWORK_ERROR = 3,
-  SYSTEM_ERROR = 4,
-  AUTH_ERROR = 5,
-  NOT_FOUND_ERROR = 6,
-  UNAUTHORIZED_ERROR = 7,
-  FILE_ERROR = 8,
-  FORBIDDEN_ERROR = 9,
-  AGENT_ERROR = 10,
-  TOKEN_EXPIRED_ERROR = 11,
-  VERIFICATION_CODE_ERROR = -14,
+export const ResponseCode = {
+  SUCCESS: 0,
+  PARAM_ERROR: 1,
+  DATABASE_ERROR: 2,
+  NETWORK_ERROR: 3,
+  SYSTEM_ERROR: 4,
+  AUTH_ERROR: 5,
+  NOT_FOUND_ERROR: 6,
+  UNAUTHORIZED_ERROR: 7,
+  FILE_ERROR: 8,
+  FORBIDDEN_ERROR: 9,
+  AGENT_ERROR: 10,
+  TOKEN_EXPIRED_ERROR: 11,
+  VERIFICATION_CODE_ERROR: -14,
 }
 
-export enum ResponseStatus {
-  BAD_REQUEST = 400,
-  UNAUTHORIZED = 401,
-  FORBIDDEN = 403,
-  NOT_FOUND = 404,
-  INTERNAL_SERVER_ERROR = 500,
-  BAD_GATEWAY = 502,
-  SERVICE_UNAVAILABLE = 503,
-  GATEWAY_TIMEOUT = 504,
+export const ResponseStatus = {
+  SUCCESS: 200,
+  CREATED: 201,
+  NO_CONTENT: 204,
+  BAD_REQUEST: 400,
+  UNAUTHORIZED: 401,
+  FORBIDDEN: 403,
+  NOT_FOUND: 404,
+  INTERNAL_SERVER_ERROR: 500,
+  BAD_GATEWAY: 502,
+  SERVICE_UNAVAILABLE: 503,
+  GATEWAY_TIMEOUT: 504,
 }
 
 export const RESPONSE_CODE_MESSAGE_MAP = new Map([
@@ -56,7 +59,10 @@ export const ERROR_MESSAGES = new Map([
 
 export const RESPONSE_MESSAGE_MAP = new Map([
   ['unauthorized: user not found', 'response_message.user_not_found'],
-  ['unauthorized: username or password is incorrect', 'response_message.username_or_password_is_incorrect'],
+  [
+    'unauthorized: username or password is incorrect',
+    'response_message.username_or_password_is_incorrect',
+  ],
   ['operate too fast', 'response_message.operate_too_fast'],
 ])
 

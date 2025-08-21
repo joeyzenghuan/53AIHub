@@ -204,7 +204,6 @@ export const channelApi = {
       .catch(handleError)
     let list = models.map((item: ModelItem) => {
       const id = item.id || item.value || ''
-      const ownedBy = item.owned_by || ''
       return {
         ...item,
         id,
@@ -212,6 +211,7 @@ export const channelApi = {
         label: item.label || MODEL_ALIAS_MAP.get(id) || '',
       }
     })
+    // #ifndef KM
     list = list.filter(
       item =>
         ![CHANNEL_TYPE.OPENAI, CHANNEL_TYPE.SILICONFLOW, CHANNEL_TYPE.DEEPSEEK].includes(
@@ -245,6 +245,7 @@ export const channelApi = {
       })),
     ]
     list.push(...manual_list)
+    // #endif
     return list
   },
 

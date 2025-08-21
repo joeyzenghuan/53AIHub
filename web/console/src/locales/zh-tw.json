@@ -15,6 +15,7 @@
     "verification_code_error": "驗證碼錯誤"
   },
   "response_message": {
+    "unknown_error": "未知錯誤",
     "user_not_found": "用戶不存在",
     "username_or_password_is_incorrect": "用戶名或密碼錯誤",
     "operate_too_fast": "操作過快，請稍後再試"
@@ -45,6 +46,7 @@
     "prompt": "提示詞",
     "library": "全部知識庫",
     "chunk_setting": "語料拆分",
+    "model_setting": "模型設定",
     "system": "系統管理",
     "dialogue_digital_employee": "AI員工",
     "dialogue_prompt": "提示詞",
@@ -99,6 +101,8 @@
     "website_info_template": "站點模板",
     "website_info_layout": "網站佈局",
     "platform": "平台接入",
+    "platform_v2": "平台",
+    "all_platform": "全部平台",
     "platform_delete_confirm": "確定刪除該智能體平台嗎？",
     "platform_tools": "拓展工具",
     "platform_auth_client_id": "客戶端ID",
@@ -237,6 +241,7 @@
     "account_length": "賬號長度必須在 4-20 個字符之間",
     "account_format": "賬號必須以字母開頭，只能包含字母、數字和下劃線",
     "password_length": "密碼長度需在 8-20 個字元之間，可以是字母、數字、符號組合",
+    "password_length_v2": "密碼長度需在 8-20 個字元之間",
     "password_format": "密碼必須包含大小寫字母和數字",
     "password_not_match": "兩次輸入的密碼不一致",
     "reset_password": "重置密碼",
@@ -281,7 +286,8 @@
     "title": "立即開通",
     "consult_name": "首席客服顧問",
     "desc_1": "您好，掃碼聯繫您的專屬顧問，",
-    "desc_2": "開通使用"
+    "desc_2": "開通使用",
+    "desc_3": "您好，微信掃碼聯繫您的專屬顧問，"
   },
   "website_version": {
     "free": "創業版",
@@ -425,25 +431,27 @@
     }
   },
   "agent_app": {
-    "prompt": "通過Prompt創建",
-    "53ai_agent": "53AI智能體",
-    "53ai_workflow": "53AI工作流",
-    "coze_agent_cn": "扣子智能體",
-    "coze_workflow_cn": "扣子工作流",
+    "prompt": "Prompt",
+    "prompt_v2": "通過Prompt創建",
+    "53ai_agent": "53AI",
+    "53ai_workflow": "53AI",
+    "coze_agent_cn": "扣子",
+    "coze_workflow_cn": "扣子",
     "coze_agent": "Coze智能體",
     "coze_workflow": "Coze工作流",
-    "dify_agent": "Dify智能體",
-    "dify_workflow": "Dify工作流",
+    "dify_agent": "Dify",
+    "dify_workflow": "Dify",
     "app_builder": "千帆Appbuilder",
     "yuanqi": "腾讯元器",
     "bailian": "阿里百煉",
     "volcengine": "火山方舟",
     "fastgpt_agent": "FastGPT",
-    "fastgpt_workflow": "FastGPT工作流",
+    "fastgpt_workflow": "FastGPT",
     "maxkb_agent": "MaxKB",
     "check_agent_config_tip": "請檢查智能體配置是否正確"
   },
   "provider_platform": {
+    "prompt": "Prompt",
     "openai": "OpenAI",
     "deepseek": "DeepSeek",
     "coze": "Coze",
@@ -762,6 +770,7 @@
   "description": "描述",
   "pictorial_image": "示圖",
   "type": "類型",
+  "all_type": "全部類型",
   "usage_record": "使用記錄",
   "usage_guide": "使用指引",
   "dialogue_record": "對話記錄",
@@ -803,6 +812,7 @@
   "usage_case_desc": "為你的應用添加使用案例，讓用戶更加容易上手",
   "input": "輸入",
   "output": "輸出",
+  "output_variable": "輸出變量",
   "usage_scene": "使用場景",
   "usage_scene_desc": "為你的應用添加更多使用場景",
   "image": "圖片",
@@ -897,7 +907,9 @@
   "api_key": "API Key",
   "agent_type": "智能體類型",
   "agent_type_chat": "對話型應用",
+  "agent_type_chat_v2": "對話型",
   "agent_type_completion": "workflow型應用",
+  "agent_type_completion_v2": "應用型",
   "agent_type_workflow": "工作流編排對話型應用",
   "agent_file_parse": "文檔解析",
   "agent_image_parse": "圖片視覺",
@@ -965,6 +977,7 @@
     "title": "版本",
     "scan_consult": "掃碼咨詢",
     "upgrade_tip": "升級提示",
+    "upgrade_renew": "升級版本/續期",
     "upgrade": "升級版本",
     "not_support": "當前版本不支持",
     "agent_limit": "智能體添加數量達上限，請升級後嘗試添加",
@@ -1014,10 +1027,14 @@
   },
   "message_status": {
     "create_success": "已創建",
-    "save_success": "已保存"
+    "save_success": "已保存",
+    "logic_reasoning_required": "請選擇邏輯推理模型",
+    "vector_embedding_required": "請選擇向量嵌入模型",
+    "rerank_model_required": "請選擇rerank模型"
   },
   "agent": {
     "name": "智能體",
+    "name_v2": "智能體名稱",
     "base_info": "基礎信息",
     "input_variable": "輸入",
     "output_variable": "輸出",
@@ -1050,10 +1067,10 @@
       "agent_type_workflow_desc": "工作流是一系列可執行指令的集合，用於實現業務邏輯或完成特定任務。"
     },
     "fastgpt": {
-      "agent_type_chat": "對話型應用",
+      "agent_type_chat": "對話型（簡易應用/工作流）",
       "agent_type_chat_desc": "用戶與大模型進行對話，由一個大模型自主思考決策，適用於較為簡單的業務邏輯。",
-      "agent_type_workflow": "工作流編排對話型應用",
-      "agent_type_workflow_desc": "工作流是一系列可執行指令的集合，用於實現業務邏輯或完成特定任務。"
+      "agent_type_workflow": "應用型（插件）",
+      "agent_type_workflow_desc": "可以自定義輸入和輸出的工作流，通常用於封裝重複使用的工作流。"
     },
     "relate_app": {
       "title": "關聯場景",

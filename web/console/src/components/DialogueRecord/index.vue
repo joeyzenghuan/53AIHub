@@ -191,7 +191,6 @@ const getCommonParams = () => {
   const params = {
     sort_by: filterForm.sort_by,
   }
-  console.log(props.type)
   if (filterForm.keyword) options.params = filterForm.keyword
   if (filterForm.date[0]) params.created_at_start = getDateTimestamp(filterForm.date[0])
   if (filterForm.date[1]) params.created_at_end = getDateTimestamp(filterForm.date[1])

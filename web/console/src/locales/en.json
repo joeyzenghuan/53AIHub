@@ -15,6 +15,7 @@
     "verification_code_error": "Verification Code Error"
   },
   "response_message": {
+    "unknown_error": "Unknown Error",
     "user_not_found": "User Not Found",
     "username_or_password_is_incorrect": "Username or Password is Incorrect",
     "operate_too_fast": "Operate Too Fast, Please Try Again Later"
@@ -45,6 +46,7 @@
     "prompt": "Prompts",
     "library": "All Knowledge",
     "chunk_setting": "Chunk",
+    "model_setting": "Model Settings",
     "system": "System Management",
     "dialogue_digital_employee": "AI Employee",
     "dialogue_prompt": "Prompts",
@@ -99,6 +101,8 @@
     "website_info_template": "Site Template",
     "website_info_layout": "Website Layout",
     "platform": "Platform Integration",
+    "platform_v2": "Platform",
+    "all_platform": "All Platform",
     "platform_delete_confirm": "Are you sure you want to delete this agent platform?",
     "platform_tools": "Extended Tools",
     "platform_auth_client_id": "Client ID",
@@ -120,10 +124,17 @@
     "platform_model_base_url": "API Base",
     "platform_model_base_url_azure": "API Domain",
     "platform_model_base_url_maxkb": "Base URL",
+    "platform_model_base_url_azure_placeholder": "Enter your API domain, e.g. https://example.com/xxx",
+    "platform_model_name": "Deployment Name",
+    "platform_model_name_placeholder": "Enter your deployment name, matching the Azure deployment name",
+    "platform_model_other": "API Version",
+    "platform_model_other_placeholder": "Enter your API version",
     "platform_model_base_url_placeholder": "Enter your API Base, e.g. https://api.openai.com",
     "platform_model_base_url_placeholder_53ai": "Enter your API Base, e.g. https://api.53ai.com",
-    "platform_model_api_endpoint": "Custom API endpoint",
-    "platform_model_api_endpoint_placeholder": "Enter your custom API endpoint, e.g. https://api.deepseek.com/v1 or https://api.deepseek.com",
+    "platform_model_api_endpoint": "Custom API endpoint address",
+    "platform_model_api_endpoint_placeholder": "Enter your custom API endpoint address, e.g. https://api.deepseek.com/v1 or https://api.deepseek.com",
+    "platform_model_models_azure": "Base Model",
+    "platform_model_models_azure_placeholder": "Select your base model",
     "platform_model_models": "Enabled Models",
     "platform_model_models_empty": "No available models",
     "platform_model_models_total": "{total} models",
@@ -236,6 +247,7 @@
     "account_length": "Account length must be between 4 and 20 characters",
     "account_format": "Account must start with a letter, and can only contain letters, numbers, and underscores",
     "password_length": "Password length must be between 8-20 characters and can include letters, numbers, and symbols",
+    "password_length_v2": "Password length must be between 8-20 characters",
     "password_format": "Password must contain uppercase and lowercase letters and numbers",
     "password_not_match": "The two passwords you entered do not match",
     "reset_password": "Reset Password",
@@ -280,7 +292,8 @@
     "title": "Open Now",
     "consult_name": "Chief Customer Service Consultant",
     "desc_1": "Hello, scan the QR code to contact your exclusive consultant",
-    "desc_2": "Open and Use"
+    "desc_2": "Open and Use",
+    "desc_3": "Hello, scan the WeChat QR code to contact your exclusive consultant,"
   },
   "website_version": {
     "free": "Startup Version",
@@ -418,28 +431,33 @@
     },
     "app_builder": {
       "tip": "Go to Baidu Cloud - App Builder（{url}） \nStep 1: Login and click \"API Key\" on the left navigation bar \nStep 2: Click \"Create API Key\"（\"Service\" select \"AppBuilder\", configure application resources as needed）\nStep 3: Complete creation, copy the API Key and fill it in the form below."
+    },
+    "53ai": {
+      "tip": "Go to 53AI（{url}） \nStep 1: Login and click \"Settings\" on the left navigation bar \nStep 2: Click \"Generate Secret Key\" under \"Enterprise Information\" \nStep 3: After generation, copy the Sercet Key and fill it in the form below."
     }
   },
   "agent_app": {
-    "prompt": "Create via Prompt",
-    "53ai_agent": "53AI Agent",
-    "53ai_workflow": "53AI Workflow",
-    "coze_agent_cn": "Coze Agent",
-    "coze_workflow_cn": "Coze Workflow",
+    "prompt": "Prompt",
+    "prompt_v2": "Create via Prompt",
+    "53ai_agent": "53AI",
+    "53ai_workflow": "53AI",
+    "coze_agent_cn": "Coze",
+    "coze_workflow_cn": "Coze",
     "coze_agent": "Coze Agent",
     "coze_workflow": "Coze Workflow",
-    "dify_agent": "Dify Agent",
-    "dify_workflow": "Dify Workflow",
+    "dify_agent": "Dify",
+    "dify_workflow": "Dify",
     "app_builder": "Qianfan Appbuilder",
     "yuanqi": "Tencent Yuanqi",
     "bailian": "Alibaba Bailian",
     "volcengine": "Volcengine",
     "fastgpt_agent": "FastGPT",
-    "fastgpt_workflow": "FastGPT Workflow",
+    "fastgpt_workflow": "FastGPT",
     "maxkb_agent": "MaxKB",
     "check_agent_config_tip": "Please check if the agent configuration is correct"
   },
   "provider_platform": {
+    "prompt": "Prompt",
     "openai": "OpenAI",
     "deepseek": "DeepSeek",
     "coze": "Coze",
@@ -513,7 +531,9 @@
       "disabled": "Disable",
       "disabled_success": "Disabled",
       "enable": "Enable",
-      "enable_success": "Enabled"
+      "enable_success": "Enabled",
+      "disabled_account": "Disabled Account",
+      "enable_account": "Enable Account"
     },
     "department": {
       "add": "Add Department",
@@ -756,6 +776,7 @@
   "description": "Description",
   "pictorial_image": "Pictorial Image",
   "type": "Type",
+  "all_type": "All Type",
   "usage_record": "Usage Record",
   "usage_guide": "Usage Guide",
   "dialogue_record": "Dialogue Record",
@@ -797,6 +818,7 @@
   "usage_case_desc": "Add usage cases to your application to make it easier for users to get started",
   "input": "Input",
   "output": "Output",
+  "output_variable": "Output Variables",
   "usage_scene": "Usage Scene",
   "usage_scene_desc": "Add more usage scenes to your application to make it easier for users to get started",
   "image": "Image",
@@ -818,6 +840,8 @@
   "group_management": "Group Management",
   "display_order": "Display Order",
   "permission_setting": "Permission Setting",
+  "expand_setting": "Expand Setting",
+  "base_setting": "Welcome",
   "visible_range": "Visible Range",
   "dialogue_frequency": "Dialogue Frequency",
   "dialogue_total": "Dialogue Total",
@@ -889,7 +913,9 @@
   "api_key": "API Key",
   "agent_type": "Intelligent Agent Type",
   "agent_type_chat": "Chat Application",
+  "agent_type_chat_v2": "Chat Type",
   "agent_type_completion": "Workflow Application",
+  "agent_type_completion_v2": "Application Type",
   "agent_type_workflow": "Workflow Orchestration Application",
   "app_type": "Application Type",
   "how_get": "How to get",
@@ -961,6 +987,7 @@
     "scan_consult": "Scan Consult",
     "upgrade_tip": "Upgrade Tip",
     "upgrade": "Upgrade Version",
+    "upgrade_renew": "Upgrade version/Renew",
     "not_support": "Current Version Not Support",
     "agent_limit": "Agent Add Limit, Please Upgrade to Add",
     "upgrade_hide_logo": "Upgrade to the enterprise version to enable hiding the technical support logo"
@@ -979,6 +1006,9 @@
     "description": "Description",
     "description_placeholder": "Please enter description",
     "delete_tip": "There are {total} knowledge bases in the current space, please clear the knowledge bases before deleting the space",
+    "delete_confirm": "Are you sure you want to delete the space?",
+    "delete_confirm_tip": "Please note! This operation will clear all content in the space. <br> Please enter the space name to be deleted: {name}",
+    "delete_confirm_tip_placeholder": "Please enter the space name to be deleted",
     "system": "System",
     "system_space_delete_tip": "System space, cannot be deleted"
   },
@@ -1009,10 +1039,14 @@
   },
   "message_status": {
     "create_success": "Created",
-    "save_success": "Saved"
+    "save_success": "Saved",
+    "logic_reasoning_required": "Please select logic reasoning model",
+    "vector_embedding_required": "Please select vector embedding model",
+    "rerank_model_required": "Please select rerank model"
   },
   "agent": {
     "name": "Agent",
+    "name_v2": "Intelligent Agent Name",
     "base_info": "Base Info",
     "input_variable": "Input",
     "output_variable": "Output",
@@ -1045,10 +1079,10 @@
       "agent_type_workflow_desc": "Workflow is a collection of executable instructions, used to implement business logic or complete specific tasks."
     },
     "fastgpt": {
-      "agent_type_chat": "Chat Application",
+      "agent_type_chat": "Chat Type (Simple Application/Workflow)",
       "agent_type_chat_desc": "User interacts with a large model, which is autonomous and decision-making, suitable for simple business logic.",
-      "agent_type_workflow": "Workflow Orchestration Application",
-      "agent_type_workflow_desc": "Workflow is a collection of executable instructions, used to implement business logic or complete specific tasks."
+      "agent_type_workflow": "Application Type (Plugin)",
+      "agent_type_workflow_desc": "Customizable input and output workflows, usually used to encapsulate reusable workflows."
     },
     "relate_app": {
       "title": "Relate App",

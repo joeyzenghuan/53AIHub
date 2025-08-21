@@ -6,14 +6,22 @@
       </template>
     </Header>
 
-    <div v-loading="loading" class="flex-1 overflow-y-auto flex bg-white mt-4 py-[67px] box-border px-[76px] rounded-lg">
+    <div
+      v-loading="loading"
+      class="flex-1 overflow-y-auto flex bg-white mt-4 py-[67px] box-border px-[76px] rounded-lg"
+    >
       <div class="flex-1">
         <div class="flex items-center gap-4">
           <img class="h-[70px] object-contain" :src="enterpriseInfo.logo" alt="" />
           <h3 class="text-2xl text-[#1D1E1F] font-semibold">
             {{ enterpriseInfo.name }}
           </h3>
-          <SvgIcon v-router.push="{ name: 'Info' }" class="cursor-pointer hover:opacity-60" name="edit" color="#2563EB" />
+          <SvgIcon
+            v-router.push="{ name: 'Info' }"
+            class="cursor-pointer hover:opacity-60"
+            name="edit"
+            color="#2563EB"
+          />
         </div>
         <div class="text-sm text-[#9A9A9A] mt-3">
           {{ enterpriseInfo.description || '' }}
@@ -70,7 +78,13 @@
               <div class="text-base text-[#1D1E1F]">
                 {{ enterpriseStore.version.name }}
               </div>
-              <el-button v-if="enterpriseInfo.version <= 3" link type="primary" class="text-base" @click="handleService('upgrade')">
+              <el-button
+                v-if="enterpriseInfo.version <= 3"
+                link
+                type="primary"
+                class="text-base"
+                @click="handleService('upgrade')"
+              >
                 {{ $t('action_upgrade') }}
               </el-button>
             </div>
@@ -80,7 +94,9 @@
               {{ $t('module.agent') }}
             </div>
             <div class="flex items-center gap-3">
-              <div class="text-base text-[#1D1E1F]">{{ formatNumber(+indexInfo.agent_count || 0) }} / {{ getModuleMax(VERSION_MODULE.AGENT) }}</div>
+              <div class="text-base text-[#1D1E1F]">
+                {{ formatNumber(+indexInfo.agent_count || 0) }} / {{ getModuleMax(VERSION_MODULE.AGENT) }}
+              </div>
             </div>
           </div>
           <div class="flex items-center gap-8">
@@ -127,7 +143,13 @@
               <div class="text-base text-[#1D1E1F]">
                 {{ enterpriseInfo.expired_time || $t('apply.expired_time_forever') }}
               </div>
-              <el-button v-if="enterpriseInfo.expired_time" link type="primary" class="text-base" @click="handleService('renew')">
+              <el-button
+                v-if="enterpriseInfo.expired_time"
+                link
+                type="primary"
+                class="text-base"
+                @click="handleService('renew')"
+              >
                 {{ $t('action_renew_v2') }}
               </el-button>
             </div>
@@ -168,7 +190,10 @@
       {{ $t('copyright_desc', { year }) }}
     </div>
 
-    <ServiceDialog v-model:visible="service.visible" :title="service.type === 'upgrade' ? $t('action_upgrade') : $t('action_renew_v2')" />
+    <ServiceDialog
+      v-model:visible="service.visible"
+      :title="service.type === 'upgrade' ? $t('action_upgrade') : $t('version.scan_consult')"
+    />
   </div>
 </template>
 
@@ -188,13 +213,13 @@ const loading = ref(false)
 const indexInfo = ref({})
 const service = ref({
   type: 'upgrade',
-  visible: false
+  visible: false,
 })
 
 const userInfo = computed(() => userStore.info)
 const enterpriseInfo = computed(() => enterpriseStore.info)
 const isSaasLogin = computed(() => userStore.is_saas_login)
-const defaultDomain = computed(() => `${window.location.origin  }/#/index`)
+const defaultDomain = computed(() => `${window.location.origin}/#/index`)
 const domainUrl = computed(() => (isOpLocalEnv.value ? defaultDomain.value : enterpriseInfo.value.domain))
 
 const formatNumber = (num = 0) => num.toString().replace(/\B(?=(\d{3})+(?!\d))/g, ',')

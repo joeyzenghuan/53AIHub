@@ -3,17 +3,22 @@
     <ElForm ref="form_ref" :model="store.form_data" label-width="104px" label-position="top">
       <template v-if="showChannelConfig">
         <h3 class="text-base text-[#1D1E1F] mb-3">
-          {{ $t('agent_app.prompt') }}
+          {{ $t('agent_app.prompt_v2') }}
         </h3>
 
         <div class="text-base text-[#1D1E1F] font-medium mb-4">
           {{ $t('access_model') }}
         </div>
         <ElFormItem label-width="0" prop="model" :rules="generateInputRules({ message: 'form_select_placeholder' })">
-          <SelectPlus v-model="store.form_data.model" size="large" :options="store.model_options" @change="onModelChange">
+          <SelectPlus
+            v-model="store.form_data.model"
+            size="large"
+            :options="store.model_options"
+            @change="onModelChange"
+          >
             <template #item_after="{ data }">
               <el-tooltip v-if="data.vision" :content="$t('support_image')" placement="top">
-                <div class="flex-center inline-flex align-middle ml-1 w-4 h-4 bg-[#FDF8EB] rounded-sm ">
+                <div class="flex-center inline-flex align-middle ml-1 w-4 h-4 bg-[#FDF8EB] rounded-sm">
                   <el-icon size="10px" color="#F0A105">
                     <View />
                   </el-icon>
@@ -56,7 +61,10 @@
                     </el-tooltip>
                     <div class="flex-none h-4 w-px border-r border-[#E1E2E6]" />
                     <el-tooltip placement="top" :content="$t('generate_tip')">
-                      <span class="text-[#182B50] px-1 cursor-pointer opacity-60 pointer-events-none" @click.stop="onGenerate">
+                      <span
+                        class="text-[#182B50] px-1 cursor-pointer opacity-60 pointer-events-none"
+                        @click.stop="onGenerate"
+                      >
                         <svg-icon name="magic-stick" width="18px" />
                       </span>
                     </el-tooltip>
@@ -72,12 +80,18 @@
                     </el-tooltip>
                   </div>
                 </div>
-                <PromptInput v-model="store.form_data.prompt" :style="{ 'flex': isFullscreen ? '1' : 'auto' }" style="height: 280px; min-height: max-content;" show-line />
+                <PromptInput
+                  v-model="store.form_data.prompt"
+                  :style="{ flex: isFullscreen ? '1' : 'auto' }"
+                  style="height: 280px; min-height: max-content"
+                  show-line
+                />
               </div>
             </template>
           </Fullscreen>
         </ElFormItem>
         <BaseConfig />
+        <RelateApp />
         <ExpandConfig />
         <UseScope />
       </template>
@@ -94,6 +108,7 @@ import AgentInfo from '../components/agent-info.vue'
 import BaseConfig from '../components/base-config.vue'
 import ExpandConfig from '../components/expand-config.vue'
 import UseScope from '../components/use-scope.vue'
+import RelateApp from '../components/relate-agents.vue'
 import { useAgentFormStore } from '../store'
 import PromptInput from '@/components/Prompt/input.vue'
 // import LimitConfig from '../components/limit-config.vue'
@@ -118,10 +133,9 @@ const onGenerate = () => {
   return ElMessage.warning(window.$t('feature_coming_soon'))
 }
 
-const onModelChange = (data) => {
-  const {option} = data
-  if (!option.vision)
-    store.form_data.custom_config.image_parse.enable = false
+const onModelChange = data => {
+  const { option } = data
+  if (!option.vision) store.form_data.custom_config.image_parse.enable = false
 }
 const onCopy = async (text = '') => {
   await copyToClip(text)
@@ -134,6 +148,4 @@ defineExpose({
 })
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

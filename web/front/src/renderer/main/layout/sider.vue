@@ -392,7 +392,8 @@ const convForm = reactive({
 })
 
 const usualAgents = computed(() => {
-  const agents = state.agentCollapsed ? convStore.usual_agents : convStore.usual_agents.slice(0, SHOW_USUAL_AGENT_LEN)
+  const filterList = convStore.usual_agents.filter((item) => item.user_group_ids.length > 0)
+  const agents = state.agentCollapsed ? filterList : filterList.slice(0, SHOW_USUAL_AGENT_LEN)
   return agents
 })
 const currentAgent = computed(() => convStore.currentAgent)

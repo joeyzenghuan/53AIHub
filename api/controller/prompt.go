@@ -1,6 +1,7 @@
 package controller
 
 import (
+	"encoding/json"
 	"errors"
 	"net/http"
 	"strconv"
@@ -29,15 +30,16 @@ type PromptsResponse struct {
 
 // PromptRequest 定义创建或更新提示词的请求参数
 type PromptRequest struct {
-	Name                 string  `json:"name" binding:"required"`      // 提示词名称
-	Content              string  `json:"content"`                      // 提示词内容
-	Description          string  `json:"description"`                  // 提示词描述
-	GroupIds             []int64 `json:"group_ids" binding:"required"` // 所属分组IDs
-	SubscriptionGroupIds []int64 `json:"subscription_group_ids"`       // 订阅分组IDs
-	UserGroupIds         []int64 `json:"user_group_ids"`               // 用户分组IDs
-	Sort                 int     `json:"sort"`                         // 排序
-	CustomConfig         string  `json:"custom_config"`                // 自定义配置
-	Status               int     `form:"status" json:"status"`         // 状态，0未启用，1正常，2删除
+	Name                 string     `json:"name" binding:"required"`                                                                                                                                                                                                                                                                                                                                                                                 // 提示词名称
+	Content              string     `json:"content"`                                                                                                                                                                                                                                                                                                                                                                                                 // 提示词内容
+	Description          string     `json:"description"`                                                                                                                                                                                                                                                                                                                                                                                             // 提示词描述
+	GroupIds             []int64    `json:"group_ids" binding:"required"`                                                                                                                                                                                                                                                                                                                                                                            // 所属分组IDs
+	SubscriptionGroupIds []int64    `json:"subscription_group_ids"`                                                                                                                                                                                                                                                                                                                                                                                  // 订阅分组IDs
+	UserGroupIds         []int64    `json:"user_group_ids"`                                                                                                                                                                                                                                                                                                                                                                                          // 用户分组IDs
+	Sort                 int        `json:"sort"`                                                                                                                                                                                                                                                                                                                                                                                                    // 排序
+	CustomConfig         string     `json:"custom_config"`                                                                                                                                                                                                                                                                                                                                                                                           // 自定义配置
+	Status               int        `form:"status" json:"status"`                                                                                                                                                                                                                                                                                                                                                                                    // 状态，0未启用，1正常，2删除
+	AILinks              []LinkItem `json:"ai_links" example:"[{\"ai_link\":{\"name\":\"link1\",\"logo\":\"https://example.com/logo1.png\",\"url\":\"https://example.com/link1\",\"description\":\"Description for link1\",\"sort\":0},\"delete\":false},{\"ai_link\":{\"name\":\"link2\",\"logo\":\"https://example.com/logo2.png\",\"url\":\"https://example.com/link2\",\"description\":\"Description for link2\",\"sort\":1},\"delete\":true}]"` // 网站配置列表，支持增删改
 }
 
 // GetPrompts 获取提示词列表
@@ -98,6 +100,16 @@ func GetPrompts(c *gin.Context) {
 
 	// 加载每个提示词的分组信息
 	for _, prompt := range prompts {
+		// 反序列化 AILinks 字段
+		var links []model.AILinkInfo
+		if prompt.AILinks != "" {
+			if err := json.Unmarshal([]byte(prompt.AILinks), &links); err != nil {
+				// 记录日志并使用默认值
+				links = []model.AILinkInfo{}
+			}
+		}
+		prompt.AILinksData = links // 将解析后的数据赋值到 AILinksData
+
 		if err := prompt.LoadPromptGroups(); err != nil {
 			c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(nil))
 			return
@@ -149,6 +161,25 @@ func CreatePrompt(c *gin.Context) {
 		return
 	}
 
+	// 获取默认网站配置
+	defaultLinks, err := model.GetDefaultPromptLinks(eid)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(err))
+		return
+	}
+
+	// 如果 defaultLinks 或 promptReq.AILinks 为空，设置为空数组
+	if defaultLinks == nil {
+		defaultLinks = []model.AILinkInfo{}
+	}
+
+	// 序列化 AILinks 为 JSON 字符串
+	linksJSON, err := json.Marshal(defaultLinks)
+	if err != nil {
+		c.JSON(http.StatusInternalServerError, model.ParamError.ToResponse(err))
+		return
+	}
+
 	// 创建提示词对象
 	prompt := &model.Prompt{
 		Name:         promptReq.Name,
@@ -160,6 +191,8 @@ func CreatePrompt(c *gin.Context) {
 		Eid:          eid,
 		Sort:         promptReq.Sort,
 		CustomConfig: promptReq.CustomConfig,
+		AILinks:      string(linksJSON),
+		AILinksData:  defaultLinks, // 使用默认链接
 	}
 
 	// 开始事务
@@ -279,6 +312,16 @@ func GetPrompt(c *gin.Context) {
 		return
 	}
 
+	// 反序列化 AILinks 字段
+	var links []model.AILinkInfo
+	if prompt.AILinks != "" {
+		if err := json.Unmarshal([]byte(prompt.AILinks), &links); err != nil {
+			// 记录日志并使用默认值
+			links = []model.AILinkInfo{}
+		}
+	}
+	prompt.AILinksData = links
+
 	if err := prompt.LoadIsLiked(config.GetUserId(c)); err != nil {
 		c.JSON(http.StatusInternalServerError, model.DBError.ToResponse(nil))
 		return
@@ -292,14 +335,18 @@ func GetPrompt(c *gin.Context) {
 
 // UpdatePrompt 更新提示词
 // @Summary 更新提示词
-// @Description 更新提示词信息
+// @Description 更新提示词信息，包括提示词的名称、内容、描述、排序、自定义配置、状态，以及分组关联和网站配置的增删改。
 // @Tags Prompt
 // @Accept json
 // @Produce json
 // @Security BearerAuth
 // @Param pid path int true "提示词ID"
-// @Param request body PromptRequest true "提示词信息"
-// @Success 200 {object} model.CommonResponse{data=model.Prompt} "成功"
+// @Param request body PromptRequest true "提示词信息，包括分组关联和网站配置的增删改"
+// @Success 200 {object} model.CommonResponse{data=model.Prompt} "成功返回更新后的提示词信息"
+// @Failure 400 {object} model.CommonResponse "请求参数错误"
+// @Failure 403 {object} model.CommonResponse "权限不足"
+// @Failure 404 {object} model.CommonResponse "提示词不存在或不属于当前企业"
+// @Failure 500 {object} model.CommonResponse "服务器内部错误"
 // @Router /api/prompts/{pid} [put]
 func UpdatePrompt(c *gin.Context) {
 	promptID, err := strconv.Atoi(c.Param("pid"))
@@ -346,6 +393,24 @@ func UpdatePrompt(c *gin.Context) {
 	prompt.Sort = promptReq.Sort
 	prompt.CustomConfig = promptReq.CustomConfig
 	prompt.Status = promptReq.Status
+
+	// 处理 AILinks 的增删改
+	var updatedLinks []model.AILinkInfo
+	for _, linkItem := range promptReq.AILinks {
+		if linkItem.Delete {
+			continue
+		}
+		updatedLinks = append(updatedLinks, linkItem.AILink)
+	}
+
+	// 序列化更新后的 AILinks 为 JSON 字符串
+	linksJSON, err := json.Marshal(updatedLinks)
+	if err != nil {
+		tx.Rollback()
+		c.JSON(http.StatusInternalServerError, model.ParamError.ToResponse(err))
+		return
+	}
+	prompt.AILinks = string(linksJSON)
 
 	if err := tx.Save(prompt).Error; err != nil {
 		tx.Rollback()

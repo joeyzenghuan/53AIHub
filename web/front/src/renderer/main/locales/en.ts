@@ -306,7 +306,8 @@ export default {
 
     completion_completed: 'Deep thinking completed',
     completion_thinking: 'Deep thinking...',
-    completion_next_action: 'Related scenarios to take the next step'
+    completion_scene: 'Related Scenes:',
+    completion_next_action: 'Related Scenarios: Next Action'
   },
 
   // Knowledge Base Related
@@ -336,7 +337,9 @@ export default {
   },
 
   agent: {
-    no_data: 'No data'
+    no_data: 'No data',
+    dialogue_type: 'Conversational',
+    applied_type: 'Applied'
   },
 
   prompt: {

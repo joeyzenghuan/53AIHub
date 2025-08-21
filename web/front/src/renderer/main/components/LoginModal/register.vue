@@ -92,7 +92,12 @@
       </template>
     </el-form-item>
 
-    <el-form-item :label="$t('form.verify_code')" prop="verify_code" :rules="[register_way === 'email' ? emailCodeRule : codeRule]">
+    <el-form-item
+      v-if="!isOpLocalEnv"
+      :label="$t('form.verify_code')"
+      prop="verify_code"
+      :rules="[register_way === 'email' ? emailCodeRule : codeRule]"
+    >
       <div class="flex items-center" style="width: 100%">
         <el-input
           v-model="form.verify_code"

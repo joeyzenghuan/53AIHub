@@ -10,40 +10,46 @@
             <template #reference>
               <div class="flex-center text-[#9A9A9A] gap-1 ml-1">
                 <svg-icon name="help" width="14" color="#999" />
-                <span class="text-sm ">{{ $t('how_get') }}</span>
+                <span class="text-sm">{{ $t('how_get') }}</span>
               </div>
             </template>
             <div
               class="whitespace-pre-wrap text-sm text-[#333] leading-6"
-              v-html="$t('maxkb_agent_get_tip', { url: `<a class='text-[#5A6D9E] underline' href='https://maxkb.cn/' target='_blank'>https://maxkb.cn/</a>` })"
+              v-html="
+                $t('maxkb_agent_get_tip', {
+                  url: `<a class='text-[#5A6D9E] underline' href='https://maxkb.cn/' target='_blank'>https://maxkb.cn/</a>`,
+                })
+              "
             />
           </ElPopover>
         </div>
       </div>
       <ElForm ref="channelFormRef" :model="channelForm" label-position="top" class="mt-3">
         <ElFormItem
-          :label="$t('module.platform_model_base_url_maxkb')" prop="base_url"
+          :label="$t('module.platform_model_base_url_maxkb')"
+          prop="base_url"
           :rules="generateInputRules({ message: 'form_input_placeholder', validator: ['text', 'link'] })"
         >
-          <ElInput
-            v-model="channelForm.base_url" size="large" :placeholder="$t('form_input_placeholder')"
-          />
+          <ElInput v-model="channelForm.base_url" size="large" :placeholder="$t('form_input_placeholder')" />
         </ElFormItem>
         <ElFormItem
-          label="Key" prop="key"
+          label="API Key"
+          prop="key"
           :rules="generateInputRules({ message: 'form_input_placeholder', validator: ['text'] })"
         >
-          <ElInput
-            v-model="channelForm.key" size="large" :placeholder="$t('form_input_placeholder')"
-          />
+          <ElInput v-model="channelForm.key" size="large" :placeholder="$t('form_input_placeholder')" />
         </ElFormItem>
         <ElFormItem
-          :label="$t('agent_type')" prop="config.agent_type"
+          :label="$t('agent_type')"
+          prop="config.agent_type"
           :rules="generateInputRules({ message: 'form_input_placeholder' })"
         >
           <ElSelect
-            v-model="channelForm.config.agent_type" class="max-w-[360px]" size="large"
-            :placeholder="$t('form_select_placeholder')" :disabled="channelEditable"
+            v-model="channelForm.config.agent_type"
+            class="max-w-[360px]"
+            size="large"
+            :placeholder="$t('form_select_placeholder')"
+            :disabled="channelEditable"
           >
             <ElOption value="chat" :label="$t('agent_type_chat')" />
             <!-- <ElOption value="completion" :label="$t('agent_type_completion')" />
@@ -53,9 +59,7 @@
       </ElForm>
     </template>
 
-    <ElForm
-      ref="agentFormRef" :model="agentFormStore.form_data" label-width="104px" label-position="top"
-    >
+    <ElForm ref="agentFormRef" :model="agentFormStore.form_data" label-width="104px" label-position="top">
       <template v-if="showChannelConfig">
         <div class="text-base text-[#1D1E1F] font-medium mt-6 mb-4">
           {{ $t('basic_info') }}
@@ -64,6 +68,7 @@
       </template>
       <template v-else>
         <BaseConfig />
+        <RelateApp />
         <ExpandConfig />
         <UseScope />
       </template>
@@ -77,6 +82,7 @@ import AgentInfo from '../components/agent-info.vue'
 import BaseConfig from '../components/base-config.vue'
 import ExpandConfig from '../components/expand-config.vue'
 import UseScope from '../components/use-scope.vue'
+import RelateApp from '../components/relate-agents.vue'
 
 import { useAgentFormStore } from '../store'
 import { generateInputRules } from '@/utils/form-rule'
@@ -109,8 +115,7 @@ const agentFormRef = ref()
 
 const onChannelSave = async () => {
   const valid = await channelFormRef.value.validate()
-  if (!valid)
-    return
+  if (!valid) return
   if (!channelForm.model) {
     channelForm.model = md5(`${channelForm.key}_${channelForm.base_url}`)
   }
@@ -128,8 +133,7 @@ const onChannelSave = async () => {
     data: saveData,
   })
   Object.assign(channelInfo.value, resultData)
-  if (!saveData.channel_id)
-    saveData.channel_id = resultData.channel_id
+  if (!saveData.channel_id) saveData.channel_id = resultData.channel_id
   agentFormStore.form_data.custom_config.channel_config = saveData
   agentFormStore.form_data.model = models[0]
   channelEditable.value = true
@@ -140,18 +144,22 @@ const validateForm = async () => {
   return agentFormRef.value && agentFormRef.value.validate()
 }
 
-watch(() => agentFormStore.agent_data, ({ channel_config = {} } = {}) => {
-  channelEditable.value = !!+channel_config.channel_id
-  channelInfo.value.channel_id = +channel_config.channel_id || 0
-  channelInfo.value.key = channelForm.key = channel_config.key || ''
-  channelInfo.value.base_url = channelForm.base_url = channel_config.base_url || ''
-  channelInfo.value.models = channelForm.models = channel_config.models || []
-  channelInfo.value.model = channelForm.model = channelForm.models[0] || ''
-  channelInfo.value.config = channelForm.config = {
-    ...(channel_config.config || {}),
-    agent_type: channel_config.config?.agent_type || 'chat',
-  }
-}, { immediate: true, deep: true })
+watch(
+  () => agentFormStore.agent_data,
+  ({ channel_config = {} } = {}) => {
+    channelEditable.value = !!+channel_config.channel_id
+    channelInfo.value.channel_id = +channel_config.channel_id || 0
+    channelInfo.value.key = channelForm.key = channel_config.key || ''
+    channelInfo.value.base_url = channelForm.base_url = channel_config.base_url || ''
+    channelInfo.value.models = channelForm.models = channel_config.models || []
+    channelInfo.value.model = channelForm.model = channelForm.models[0] || ''
+    channelInfo.value.config = channelForm.config = {
+      ...(channel_config.config || {}),
+      agent_type: channel_config.config?.agent_type || 'chat',
+    }
+  },
+  { immediate: true, deep: true }
+)
 
 defineExpose({
   validateForm,
@@ -159,6 +167,4 @@ defineExpose({
 })
 </script>
 
-<style scoped>
-
-</style>
+<style scoped></style>

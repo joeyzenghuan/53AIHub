@@ -74,6 +74,7 @@
         </template>
         <template v-else>
           <BaseConfig />
+          <RelateApp />
           <ExpandConfig />
         </template>
         <UseScope />
@@ -129,7 +130,7 @@ const agentTypeOptions = [
     value: AGENT_TYPES.FASTGPT_AGENT,
   },
   {
-    icon: 'workflow',
+    icon: 'completion-agent',
     label: window.$t('agent.fastgpt.agent_type_workflow'),
     description: window.$t('agent.fastgpt.agent_type_workflow_desc'),
     value: AGENT_TYPES.FASTGPT_WORKFLOW,

@@ -22,8 +22,26 @@ func SetupContextForSelectedChannel(c *gin.Context, channel *model.Channel, mode
 	// }
 	c.Set(ctxkey.ModelMapping, channel.GetModelMapping())
 	c.Set(ctxkey.OriginalModel, modelName) // for retry
-	c.Request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", channel.Key))
-	c.Set(ctxkey.BaseURL, channel.GetBaseURL())
+
+	// Check if channel has provider_id and use provider's credentials for coze-studio
+	apiKey := channel.Key
+	baseURL := channel.GetBaseURL()
+
+	if channel.ProviderID != 0 {
+		provider, err := model.GetProviderByID(channel.ProviderID, channel.Eid)
+		if err == nil {
+			// For coze-studio, use provider's AccessToken and BaseURL
+			if provider.ProviderType == model.ProviderTypeCozeStudio {
+				apiKey = provider.AccessToken
+				if provider.BaseURL != nil && *provider.BaseURL != "" {
+					baseURL = *provider.BaseURL
+				}
+			}
+		}
+	}
+
+	c.Request.Header.Set("Authorization", fmt.Sprintf("Bearer %s", apiKey))
+	c.Set(ctxkey.BaseURL, baseURL)
 	cfg, _ := channel.LoadConfig()
 	// this is for backward compatibility
 	if channel.Other != nil {

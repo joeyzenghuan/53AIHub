@@ -15,6 +15,7 @@
     "verification_code_error": "驗證碼錯誤"
   },
   "response_message": {
+    "unknown_error": "未知エラー",
     "user_not_found": "ユーザーが見つかりません",
     "username_or_password_is_incorrect": "ユーザー名またはパスワードが間違っています",
     "operate_too_fast": "操作が速すぎます。後でもう一度試してください"
@@ -44,6 +45,7 @@
     "bot": "インテリジェントエージェント",
     "library": "全部知識庫",
     "chunk_setting": "語料分割",
+    "model_setting": "モデル設定",
     "system": "システム管理",
     "dialogue_digital_employee": "AIスタッフ",
     "dialogue_prompt": "プロンプト",
@@ -98,6 +100,8 @@
     "website_info_template": "サイトテンプレート",
     "website_info_layout": "ウェブサイトレイアウト",
     "platform": "プラットフォーム連携",
+    "platform_v2": "プラットフォーム",
+    "all_platform": "すべてのプラットフォーム",
     "platform_delete_confirm": "このインテリジェントエージェントプラットフォームを削除してもよろしいですか？",
     "platform_tools": "拡張ツール",
     "platform_auth_client_id": "クライアントID",
@@ -234,6 +238,7 @@
     "account_length": "アカウント長さは4から20文字の間である必要があります",
     "account_format": "アカウントは英字で始まり、英字、数字、および下線のみを含める必要があります",
     "password_length": "パスワードの長さは8～20文字で、英字、数字、記号の組み合わせが可能です",
+    "password_length_v2": "パスワードの長さは8～20文字で",
     "password_format": "パスワードは大文字と小文字の英字と数字を含める必要があります",
     "password_not_match": "2回入力したパスワードが一致しません",
     "reset_password": "パスワードをリセット",
@@ -278,7 +283,8 @@
     "title": "即時開通",
     "consult_name": "首席顧客サービスコンサルタント",
     "desc_1": "お好きなタイミングでお問い合わせください",
-    "desc_2": "開通使用"
+    "desc_2": "開通使用",
+    "desc_3": "こんにちは、WeChat の QR コードをスキャンして専属コンサルタントに連絡してください,"
   },
   "website_version": {
     "free": "スタートアップ版",
@@ -422,25 +428,27 @@
     }
   },
   "agent_app": {
-    "prompt": "プロンプトで作成",
-    "53ai_agent": "53AIインテリジェントエージェント",
-    "53ai_workflow": "53AIアプリケーションインテリジェント",
-    "coze_agent_cn": "Cozeインテリジェントエージェント",
-    "coze_workflow_cn": "Cozeアプリケーションインテリジェント",
+    "prompt": "Prompt",
+    "prompt_v2": "プロンプトで作成",
+    "53ai_agent": "53AI",
+    "53ai_workflow": "53AI",
+    "coze_agent_cn": "Coze",
+    "coze_workflow_cn": "Coze",
     "coze_agent": "Cozeインテリジェントエージェント",
     "coze_workflow": "Cozeアプリケーションインテリジェント",
-    "dify_agent": "Difyインテリジェントエージェント",
-    "dify_workflow": "Difyアプリケーションインテリジェント",
+    "dify_agent": "Dify",
+    "dify_workflow": "Dify",
     "app_builder": "千帆Appbuilder",
     "yuanqi": "Tencent Yuanqi",
     "bailian": "Alibaba Bailian",
     "volcengine": "Volcengine",
     "fastgpt_agent": "FastGPT",
-    "fastgpt_workflow": "FastGPTアプリケーションインテリジェント",
+    "fastgpt_workflow": "FastGPT",
     "maxkb_agent": "MaxKB",
     "check_agent_config_tip": "智能体配置が正しいか確認してください"
   },
   "provider_platform": {
+    "prompt": "Prompt",
     "openai": "OpenAI",
     "deepseek": "DeepSeek",
     "coze": "Coze",
@@ -758,6 +766,7 @@
   "description": "説明",
   "pictorial_image": "示図",
   "type": "タイプ",
+  "all_type": "すべてのタイプ",
   "usage_record": "使用記録",
   "usage_guide": "使用ガイド",
   "dialogue_record": "対話記録",
@@ -799,6 +808,7 @@
   "usage_case_desc": "アプリケーションに使用例を追加して、ユーザーがより容易に開始できるようにします",
   "input": "入力",
   "output": "出力",
+  "output_variable": "出力変数",
   "usage_scene": "使用シナリオ",
   "usage_scene_desc": "アプリケーションに使用シナリオを追加して、ユーザーがより容易に開始できるようにします",
   "image": "画像",
@@ -893,7 +903,9 @@
   "api_key": "API Key",
   "agent_type": "インテリジェントエージェントタイプ",
   "agent_type_chat": "会話型アプリケーション",
+  "agent_type_chat_v2": "チャットタイプ",
   "agent_type_completion": "ワークフロー型アプリケーション",
+  "agent_type_completion_v2": "アプリケーションタイプ",
   "agent_type_workflow": "ワークフロー編排会話型アプリケーション",
 
   "agent_file_parse": "ドキュメント解析",
@@ -964,6 +976,7 @@
     "scan_consult": "スキャン相談",
     "upgrade_tip": "アップグレードヒント",
     "upgrade": "アップグレードバージョン",
+    "upgrade_renew": "バージョンアップ / 更新",
     "not_support": "現在のバージョンはサポートされていません",
     "agent_limit": "アジェント追加制限、アップグレードして追加してください",
     "upgrade_hide_logo": "エンタープライズ版にアップグレードし、技術サポートのロゴを非表示にする機能を有効にします"
@@ -1012,10 +1025,14 @@
   },
   "message_status": {
     "create_success": "作成済み",
-    "save_success": "保存済み"
+    "save_success": "保存済み",
+    "logic_reasoning_required": "請選擇邏輯推理模型",
+    "vector_embedding_required": "請選擇向量嵌入模型",
+    "rerank_model_required": "請選擇rerank模型"
   },
   "agent": {
     "name": "エージェント",
+    "name_v2": "インテリジェントエージェント名",
     "base_info": "基礎情報",
     "input_variable": "入力",
     "output_variable": "出力",
@@ -1048,10 +1065,10 @@
       "agent_type_workflow_desc": "ワークフローは一連の実行可能な命令の集合で、業務ロジックや特定のタスクを実現するために使用されます。"
     },
     "fastgpt": {
-      "agent_type_chat": "会話型アプリケーション",
+      "agent_type_chat": "対話型（簡易アプリケーション/ワークフロー）",
       "agent_type_chat_desc": "ユーザーが大模型と対話し、大模型が自主的に判断決定する。シンプルな業務ロジックに適しています。",
-      "agent_type_workflow": "ワークフロー編排会話型アプリケーション",
-      "agent_type_workflow_desc": "ワークフローは一連の実行可能な命令の集合で、業務ロジックや特定のタスクを実現するために使用されます。"
+      "agent_type_workflow": "アプリケーション型（プラグイン）",
+      "agent_type_workflow_desc": "入力と出力をカスタマイズ可能なワークフローで、通常は繰り返し使用されるワークフローをパッケージ化するために使用されます。"
     },
     "relate_app": {
       "title": "関連シナリオ",

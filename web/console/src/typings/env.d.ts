@@ -1,46 +1,24 @@
 /// <reference types="vite/client" />
+/// <reference types="vue/macros-global" />
 
-// 类型声明，避免ts错误
-declare global {
-  interface Window {
-    $t: (key: string, ...args: any[]) => string
-  }
-  interface ElMessageBox {
-    confirm(message: string, title: string, options?: any): Promise<any>
-  }
-  interface ElMessage {
-    success(message: string): void
-    warning(message: string): void
-    info(message: string): void
-    error(message: string): void
-  }
-
-  // 扩展 HTMLElement 以支持版本指令相关属性
-  interface HTMLElement {
-    _versionParams?: any
-    _originalDisplay?: string
-    _versionHandler?: (event: Event) => boolean
-    _versionHoverHandler?: {
-      mouseenter: () => void
-      mouseleave: () => void
-    }
-    _versionTooltip?: {
-      app: any
-      mountNode: HTMLElement
-      tooltipInstance?: any
-      show: () => void
-      hide: () => void
-      destroy: () => void
-    }
-  }
+// Vue模板类型支持
+declare module '*.vue' {
+  import type { DefineComponent } from 'vue'
+  const component: DefineComponent<{}, {}, any>
+  export default component
 }
 
-// declare module '@vue/runtime-core' {
-//   interface ComponentCustomProperties {
-//     $t: (key: string, ...args: any[]) => string
-//     // 获取真实路径
-//     $getRealPath: ({ url }: { url: string }) => string
-//     vCopy: string
-//     vDebounce: boolean
-//   }
-// }
+// 全局类型声明
+declare global {
+  interface ImportMetaEnv {
+    readonly VITE_APP_TITLE: string
+    readonly VITE_APP_API_BASE_URL: string
+    readonly VITE_PLATFORM: string
+    readonly VITE_BASE_PATH: string
+    readonly VITE_GLOB_APP_PWA: string
+  }
+
+  interface ImportMeta {
+    readonly env: ImportMetaEnv
+  }
+}

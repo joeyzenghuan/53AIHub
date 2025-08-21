@@ -735,6 +735,41 @@ func QueryOrderStatus(c *gin.Context) {
 				// Keep in cache, do nothing
 			}
 		}
+	} else if order.PayType == model.PayTypeAlipay {
+		// Get Alipay order status
+		status, transactionId, originalStatus, payTime, err := queryAlipayOrderStatusWithOriginal(eid, order)
+		if err == nil {
+			response.OriginalStatus = originalStatus
+			response.OriginalStatusDesc = getTradeStateDesc(originalStatus)
+
+			// Handle different payment states
+			if status == model.OrderStatusPaid {
+				// Payment successful, create or update order with payment time
+				updatedOrder, err := createOrUpdateOrderFromCacheWithTime(eid, orderId, model.OrderStatusPaid, transactionId, payTime)
+				if err == nil {
+					order = updatedOrder
+					xlog.Info("Order updated with payment time:", time.UnixMilli(payTime).Format(time.RFC3339))
+				} else {
+					xlog.Error("Failed to update order:", err)
+				}
+			} else if originalStatus == model.TradeStateWaitBuyerPay {
+				// User is paying, record this status but don't mark as paid
+				xlog.Info("User is paying for order:", orderId)
+
+				// If order is not in database yet, create it with pending status
+				if order.ID == 0 {
+					updatedOrder, err := createOrUpdateOrderFromCache(eid, orderId, model.OrderStatusPending, "")
+					if err == nil {
+						order = updatedOrder
+					} else {
+						xlog.Error("Failed to create order record for user paying:", err)
+					}
+				}
+			} else if status == model.OrderStatusPending && order.ID == 0 {
+				// Order still pending and not in database
+				// Keep in cache, do nothing
+			}
+		}
 	}
 
 	// If order status is pending, check payment status
@@ -793,6 +828,14 @@ func getTradeStateDesc(tradeState string) string {
 		return "User is Paying"
 	case model.TradeStatePayError:
 		return "Payment Failed"
+	case model.TradeStateWaitBuyerPay:
+		return "Waiting for Payment"
+	case model.TradeStateTradeClosed:
+		return "Order Closed"
+	case model.TradeStateTradeSuccess:
+		return "Payment Success"
+	case model.TradeStateTradeFinish:
+		return "Payment Success"
 	default:
 		return "Unknown Status"
 	}
@@ -852,6 +895,60 @@ func queryWechatOrderStatusWithOriginal(eid int64, orderId string) (int, string,
 	}
 
 	return model.OrderStatusPending, "", wxRsp.Response.TradeState, 0, nil
+}
+
+// Query Alipay order status and return original status
+func queryAlipayOrderStatusWithOriginal(eid int64, order *model.Order) (int, string, string, int64, error) {
+	// Get Alipay payment settings
+	paySetting, err := model.GetPaySettingByType(eid, model.PayTypeAlipay)
+	if err != nil {
+		return 0, "", "", 0, err
+	}
+
+	factory := &payment.PaymentFactory{}
+	newPayment, err := factory.NewPayment(order.PayType)
+	if err != nil {
+		return 0, "", "", 0, err
+	}
+
+	// Query order status
+	rsp, err := newPayment.QueryPaymentStatus(order, paySetting)
+	if err != nil {
+		return 0, "", "", 0, err
+	}
+
+	aliRsp, ok := rsp.(*alipayV2.TradeQueryResponse)
+	if !ok {
+		return 0, "", "", 0, fmt.Errorf("invalid response type")
+	}
+
+	var payTime int64
+	if aliRsp.Response.SendPayDate != "" {
+		// Alipay timestamp format is "yyyy-MM-dd HH:mm:ss"
+		layout := "2006-01-02 15:04:05"
+		successTime, err := time.Parse(layout, aliRsp.Response.SendPayDate)
+		if err != nil {
+			xlog.Error("Failed to parse success time:", err)
+			payTime = time.Now().UTC().UnixMilli()
+		} else {
+			payTime = successTime.UnixMilli()
+			xlog.Info("Using payment success time from Alipay:", aliRsp.Response.SendPayDate)
+		}
+	} else {
+		payTime = time.Now().UTC().UnixMilli()
+	}
+
+	// Check payment status
+	switch aliRsp.Response.TradeStatus {
+	case model.TradeStateTradeSuccess, model.TradeStateTradeFinish:
+		return model.OrderStatusPaid, aliRsp.Response.TradeNo, aliRsp.Response.TradeStatus, payTime, nil
+	case model.TradeStateWaitBuyerPay:
+		return model.OrderStatusPending, "", aliRsp.Response.TradeStatus, 0, nil
+	case model.TradeStateTradeClosed:
+		return model.OrderStatusClosed, "", aliRsp.Response.TradeStatus, 0, nil
+	}
+
+	return model.OrderStatusPending, "", aliRsp.Response.TradeStatus, 0, nil
 }
 
 // PayTypeStatus represents the status information of a payment type
