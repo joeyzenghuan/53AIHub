@@ -66,6 +66,12 @@ Minimum configuration for installing 53AI Hub:
 
 The simplest way to install 53AI Hub Community Edition is to run our docker/docker-compose.yaml file. Before running the installation command, ensure that https://docs.docker.com/get-docker/ and https://docs.docker.com/compose/install/ are installed on your machine. :
 
+1. Clone the repository
+```bash
+git clone https://github.com/53ai/53aihub.git
+cd 53aihub
+```
+2. Run the following command
 ```bash
 cd docker
 docker compose up -d
