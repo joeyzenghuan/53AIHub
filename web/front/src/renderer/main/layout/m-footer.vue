@@ -5,7 +5,8 @@
       class="w-full flex justify-center items-center gap-1.5 text-xs text-placeholder my-4"
     >
       <span>本网站由</span>
-      <img :src="$getPublicPath(`/images/53ai-hub-v2.png`)" class="flex-none w-[72px] object-cover" />
+      <span>DXJ</span>
+      <!-- <img :src="$getPublicPath(`/images/53ai-hub-v2.png`)" class="flex-none w-[72px] object-cover" /> -->
       <span>提供技术支持</span>
     </div>
     <div v-else class="h-12"></div>
@@ -108,7 +109,8 @@
       </div>
       <div class="w-full flex justify-center items-center gap-1.5 text-xs absolute bottom-5 left-0 right-0">
         <span>本网站由</span>
-        <img :src="$getPublicPath(`/images/53ai-hub.png`)" class="flex-none w-[72px] object-cover" />
+        <span>DXJ</span>
+        <!-- <img :src="$getPublicPath(`/images/53ai-hub.png`)" class="flex-none w-[72px] object-cover" /> -->
         <span>提供技术支持</span>
       </div>
     </div>
