@@ -6,12 +6,6 @@ WORKDIR /app
 # 设置GOPROXY为中国大陆代理
 ENV GOPROXY=https://goproxy.cn,direct
 
-# 安装构建依赖(使用阿里云Debian镜像源)
-RUN echo "deb https://mirrors.aliyun.com/debian/ bookworm main contrib non-free\n\
-deb https://mirrors.aliyun.com/debian/ bookworm-updates main contrib non-free\n\
-deb https://mirrors.aliyun.com/debian-security bookworm-security main" > /etc/apt/sources.list && \
-    apt-get update && apt-get install -y gcc libc6-dev
-
 # 复制go.mod和go.sum文件
 COPY go.mod go.sum ./
 
@@ -21,20 +15,33 @@ RUN go mod download
 # 复制源代码
 COPY . .
 
-# 构建应用 (修正CGO设置)
-RUN CGO_ENABLED=1 go build -a -o /app/53AIHub -ldflags '-X "github.com/53AI/53AIHub/config.VersionTime=$(date +%Y%m%d%H%M%S)" -extldflags "-static"' ./main.go
+# 构建应用 (使用纯Go构建，禁用CGO)
+RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /app/53AIHub -ldflags '-X "github.com/53AI/53AIHub/config.VersionTime=$(date +%Y%m%d%H%M%S)" -w -s' ./main.go
 
 # 使用精简的Alpine镜像作为运行时
 FROM alpine:3.18
 
-# 安装SQLite运行时依赖和C库
-RUN apk --no-cache add ca-certificates sqlite libc6-compat
+# 安装必要的运行时依赖
+RUN apk --no-cache add ca-certificates tzdata
+
+# 创建非root用户
+RUN addgroup -g 1001 -S appgroup && \
+    adduser -u 1001 -S appuser -G appgroup
 
 # 从构建阶段复制可执行文件
-COPY --from=builder /app/53AIHub /app/
+COPY --from=builder /app/53AIHub /app/53AIHub
+
+# 更改文件所有者
+RUN chown -R appuser:appgroup /app
+
+# 切换到非root用户
+USER appuser
+
+# 设置工作目录
+WORKDIR /app
 
 # 暴露端口
 EXPOSE 3000
 
 # 设置启动命令
-CMD ["/app/53AIHub"]
+CMD ["./53AIHub"]

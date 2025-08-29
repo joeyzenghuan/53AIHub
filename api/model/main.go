@@ -11,7 +11,7 @@ import (
 	"github.com/53AI/53AIHub/config"
 	"gorm.io/driver/mysql"
 
-	"gorm.io/driver/sqlite"
+	"github.com/glebarez/sqlite"
 	"gorm.io/gorm"
 )
 
