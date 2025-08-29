@@ -7,13 +7,13 @@ WORKDIR /app
 ENV GOPROXY=https://goproxy.cn,direct
 
 # 复制go.mod和go.sum文件
-COPY go.mod go.sum ./
+COPY api/go.mod api/go.sum ./
 
 # 下载依赖
 RUN go mod download
 
-# 复制源代码
-COPY . .
+# 复制api目录的源代码
+COPY api/ .
 
 # 构建应用 (使用纯Go构建，禁用CGO)
 RUN CGO_ENABLED=0 GOOS=linux go build -a -installsuffix cgo -o /app/53AIHub -ldflags '-X "github.com/53AI/53AIHub/config.VersionTime=$(date +%Y%m%d%H%M%S)" -w -s' ./main.go

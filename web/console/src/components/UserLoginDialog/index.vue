@@ -133,16 +133,6 @@ defineExpose({
         <ElButton type="primary" round v-debounce class="w-full mt-8 !h-10" :disabled="!form.username || !form.password" @click="onLogin">
           {{ $t('action_login') }}
         </ElButton>
-				<div class="text-xs text-[#9A9A9A] text-center mt-5" v-html="$t('login.agree_and_policy', {
-					agree: `<span class=\'agree-hook\'></span>`,
-					policy: `<span class=\'policy-hook\'></span>`,
-				})" />
-				<ElButton ref="agree_ref" type="text" class="text-[#4F5052] text-xs bg-transparent mx-1 -mt-0.5 underline underline-offset-4" @click="onAgree">
-					{{ $t('login.agree') }}
-				</ElButton>
-				<ElButton ref="policy_ref" type="text" class="text-[#4F5052] text-xs bg-transparent mx-1 -mt-0.5 underline underline-offset-4" @click="onPolicy">
-					{{ $t('login.policy') }}
-				</ElButton>
 			</ElForm>
     </div>
 	</ElDialog>

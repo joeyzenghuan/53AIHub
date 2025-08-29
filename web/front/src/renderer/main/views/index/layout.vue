@@ -16,7 +16,7 @@
             <template #default>
               <ElMenu router mode="horizontal" :default-active="activeMenuItem">
                 <ElMenuItem
-                  v-for="item in navigationStore.navigations"
+                  v-for="item in navigationStore.navigations.filter(nav => nav.jump_path !== '/toolkit')"
                   :key="item.navigation_id"
                   class="relative !cursor-pointer !opacity-100 hover-text-theme-important"
                   :index="item.menu_path"
@@ -170,7 +170,8 @@ watch(
     } else if (path.includes('/prompt')) {
       activeMenuItem.value = navigationStore.navigations[2].menu_path
     } else if (path.includes('/toolkit')) {
-      activeMenuItem.value = navigationStore.navigations[3].menu_path
+      // 不设置活动菜单项，因为toolkit已被隐藏
+      activeMenuItem.value = undefined
     } else {
       activeMenuItem.value = navigationStore.navigations[0].menu_path
     }

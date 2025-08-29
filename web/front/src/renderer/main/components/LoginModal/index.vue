@@ -29,13 +29,6 @@
     <template v-if="login_way === LOGIN_WAY.wechat_login || login_way === LOGIN_WAY.wecom_login">
       <WechatView v-if="login_way === LOGIN_WAY.wechat_login" height="292px" @oauth-success="handleOauthSuccess" />
       <WecomView v-else height="292px" />
-
-      <div class="text-xs text-[#9A9A9A] text-center">
-        {{ $t('login.agree') }}
-        <a class="text-[#4F5052] cursor-pointer underline">{{ $t('login.terms_of_service') }}</a>
-        {{ $t('action.and') }}
-        <a class="text-[#4F5052] cursor-pointer underline">{{ $t('login.privacy_policy') }}</a>
-      </div>
     </template>
     <template v-else>
       <!-- 密码登陆的form表单 -->
@@ -127,13 +120,6 @@
       </el-form>
 
       <div v-if="login_way !== 'bind_mobile'" class="flex items-center justify-between mt-3 max-md:flex-col max-md:gap-2">
-        <!-- 底部协议 -->
-        <div v-if="['password_login', 'message_login', 'wechat_login'].includes(login_way)" class="text-xs text-[#9A9A9A] flex">
-          {{ $t('login.agree') }}
-          <a class="text-[#4F5052] cursor-pointer underline">{{ $t('login.terms_of_service') }}</a>
-          {{ $t('action.and') }}
-          <a class="text-[#4F5052] cursor-pointer underline">{{ $t('login.privacy_policy') }}</a>
-        </div>
         <div class="flex items-center justify-end">
           <el-button class="mr-1" link type="primary" @click="handleRegister">
             {{ $t('action.user_register') }}

@@ -156,14 +156,6 @@
   <el-button v-debounce type="primary" round class="w-full mt-5 !h-10" @click="handleSubmit">
     {{ $t('action.register') }}
   </el-button>
-
-  <!-- 底部协议 -->
-  <div class="text-xs text-[#9A9A9A] text-center mt-5">
-    {{ $t('register.agree') }}
-    <a class="text-[#4F5052] cursor-pointer underline">{{ $t('register.terms_of_service') }}</a>
-    {{ $t('action.and') }}
-    <a class="text-[#4F5052] cursor-pointer underline">{{ $t('register.privacy_policy') }}</a>
-  </div>
 </template>
 
 <script setup lang="ts">

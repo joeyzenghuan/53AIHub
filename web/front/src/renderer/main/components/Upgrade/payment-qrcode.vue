@@ -24,10 +24,6 @@
           <div class="mt-3 text-lg text-primary">
             {{ $t('subscription.pay_by_wechat') }}
           </div>
-          <div
-            class="mt-2 text-xs text-[#666666]"
-            v-html="$t('subscription.pay_policy', { policy: `<a style='color: #2F74FF;' href='#' target='_blank'>《隐私政策协议》</a>` })"
-          />
         </template>
         <template v-else>
           <ElImage class="mt-3 size-[180px]" :src="pay_url" fit="cover" />

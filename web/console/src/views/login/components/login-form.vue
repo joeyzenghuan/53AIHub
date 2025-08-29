@@ -197,15 +197,6 @@
         <SvgIcon class="mr-2" name="google" width="28" />
         {{ $t('login.google_login_v2') }}
       </ElButton>
-      <div
-        class="text-xs text-[#9A9A9A] text-center"
-        v-html="
-          $t('login.agree_and_policy', {
-            agree: `<span class=\'agree-hook cursor-pointer text-[#4F5052] text-xs mx-1 -mt-0.5 underline underline-offset-4\'>${$t('login.agree')}</span>`,
-            policy: `<span class=\'policy-hook cursor-pointer text-[#4F5052] text-xs mx-1 -mt-0.5 underline underline-offset-4\'>${$t('login.policy')}</span>`,
-          })
-        "
-      />
     </div>
   </ElForm>
   <ServiceDialog v-model:visible="service_visible" :title="$t('apply.contact_customer_service_v2')" />
