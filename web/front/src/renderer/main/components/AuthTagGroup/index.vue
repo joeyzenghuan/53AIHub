@@ -15,16 +15,6 @@
             class="flex items-center gap-1 text-sm"
             :class="[modelValue.includes(item.group_id) ? 'text-primary' : 'hidden']"
           >
-            <img
-              :src="
-                modelValue.includes(item.group_id)
-                  ? !/\.png$/.test(item.logo)
-                    ? $getPublicPath(`/images/subscription/${item.logo}.png`)
-                    : item.logo
-                  : $getPublicPath(`/images/subscription/vip-0.png`)
-              "
-              class="flex-none size-6 rounded-full overflow-auto"
-            />
             {{ item.group_name }}
           </li>
         </template>
